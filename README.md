@@ -34,8 +34,6 @@ end-of-life capture.**
 
 All overlays are labelled *illustrative, not model output.*
 
-![Component chapter: exploded fan with read-outs](docs/screenshot-exploded.png)
-
 ## Data is the source of truth
 
 [`src/data/taxonomy.json`](src/data/taxonomy.json) mirrors **Table S1** verbatim:
