@@ -1,0 +1,25 @@
+/* Host-page reset for the standalone Vite demo. When embedded as an Astro/React
+   island, the host page owns this; the component styles live in CvTaxonomy.css. */
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+  /* disable Blink font boosting on narrow viewports */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* match the component's theme on rubber-band over-scroll */
+  color-scheme: light dark;
+  background-color: #0b1622;
+}
+@media (prefers-color-scheme: light) {
+  html,
+  body {
+    background-color: #dce8f1;
+  }
+}
+#root {
+  min-height: 100vh;
+}
