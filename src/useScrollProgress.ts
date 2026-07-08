@@ -1,51 +1,33 @@
+import { useScroll, useSpring } from "motion/react";
 import { type RefObject, useEffect, useState } from "react";
 
+// Weighty, overdamped spring: the fan is heavy hardware being taken apart, so
+// parts glide and settle — no cartoon overshoot. This is the feel knob.
+// NOTE: tune stiffness/damping/mass here if the scrub feels off.
+const SPRING = { stiffness: 120, damping: 25, mass: 0.7 } as const;
+
 /**
- * Scroll progress (0..1) of a tall container, smoothed with a per-frame lerp
- * for a scrubbed, weighty feel. `smooth: false` (reduced motion) maps 1:1.
- * The rAF loop sleeps once converged and wakes on the next scroll/resize.
+ * Scroll progress (0..1) of a tall container, spring-smoothed for a scrubbed,
+ * weighty feel. `smooth: false` (reduced motion) maps 1:1.
+ *
+ * Returns a plain number so the SVG coordinate math in Fan stays unchanged.
+ * NOTE: per-frame React re-render is retained (same as before). If a
+ * profiler shows scrub jank, drive Fan's transforms off the MotionValue
+ * directly (useTransform + motion.g) to skip the re-render — not before.
  */
-// NOTE: hand-rolled scrub; swap for motion's useScroll if physics get hairy
 export function useScrollProgress(ref: RefObject<HTMLElement | null>, smooth: boolean): number {
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start start", "end end"],
+  });
+  const smoothed = useSpring(scrollYProgress, SPRING);
+  const source = smooth ? smoothed : scrollYProgress;
+
   const [p, setP] = useState(0);
-
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    let target = 0;
-    let current = 0;
-    let raf = 0;
-
-    const measure = () => {
-      const r = el.getBoundingClientRect();
-      const total = Math.max(1, r.height - window.innerHeight);
-      target = Math.min(1, Math.max(0, -r.top / total));
-    };
-    const tick = () => {
-      current += (target - current) * (smooth ? 0.14 : 1);
-      if (Math.abs(target - current) < 0.0004) {
-        current = target;
-        setP(current);
-        raf = 0; // converged, sleep until the next kick
-        return;
-      }
-      setP(current);
-      raf = requestAnimationFrame(tick);
-    };
-    const kick = () => {
-      measure();
-      if (!raf) raf = requestAnimationFrame(tick);
-    };
-
-    kick();
-    window.addEventListener("scroll", kick, { passive: true });
-    window.addEventListener("resize", kick);
-    return () => {
-      if (raf) cancelAnimationFrame(raf);
-      window.removeEventListener("scroll", kick);
-      window.removeEventListener("resize", kick);
-    };
-  }, [ref, smooth]);
+    setP(source.get());
+    return source.on("change", setP);
+  }, [source]);
 
   return p;
 }
