@@ -1,0 +1,13 @@
+pre-commit:
+  commands:
+    format:
+      glob: "*.{ts,tsx,js,jsx,json,jsonc,css}"
+      run: pnpm biome format --write --no-errors-on-unmatched {staged_files}
+      stage_fixed: true
+    typecheck:
+      run: pnpm exec tsc -b
+
+pre-push:
+  commands:
+    test:
+      run: pnpm test
