@@ -235,8 +235,8 @@ const Rail = memo(function Rail({
         </h1>
         <p className="cvt-sub">
           An end-of-life desk fan, taken apart by the twelve tasks computer vision is asked to do in
-          industrial ecology. The read-outs on the fan are the controls. Click one. Every verdict
-          is the paper's own (<span className="cvt-cite">Table&nbsp;S1</span>), shown by{" "}
+          industrial ecology. The read-outs on the fan are the controls. Click one. Every verdict is
+          the paper's own (<span className="cvt-cite">Table&nbsp;S1</span>), shown by{" "}
           <em>texture and letter</em>, never colour.
         </p>
         <ul className="cvt-legendline" aria-label="Maturity legend">
