@@ -1,7 +1,7 @@
 import { memo, useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import "./CvTaxonomy.css";
 import { cellAt, cells, INFO_TYPES, SCALES, taxonomy, VERDICT_LETTER } from "./data/taxonomy";
-import type { Cell, InfoType, Scale } from "./data/types";
+import type { Cell, InfoType, Scale, Verdict } from "./data/types";
 import { Fan } from "./Fan";
 import { rampVars, SCALE_HUE, TIMELINE } from "./theme";
 import { useScrollProgress } from "./useScrollProgress";
@@ -184,6 +184,9 @@ export function CvTaxonomy({
         </div>
 
         <Rail chapter={chapter} activeInfo={activeInfo} onOpen={openCell} />
+        {/* full-width row: the stage's sticky column ends here, and the matrix
+            gets the whole canvas as a captioned paper figure */}
+        <Outro onOpen={openCell} />
       </div>
 
       <footer className="cvt-footer">
@@ -301,26 +304,35 @@ const Rail = memo(function Rail({
           </section>
         );
       })}
+    </div>
+  );
+});
 
-      {/* ---- static matrix, paper-figure style ---- */}
-      <section className="cvt-outro" id="cvt-matrix" aria-label="Full taxonomy matrix">
-        <p className="cvt-eyebrow">The full matrix</p>
-        <h2>
-          Read against its own rubric, the map is largely negative: no task-level cell reaches
-          Strong under end-of-life capture.
-        </h2>
-        <div className="cvt-matrix">
-          <span />
-          {INFO_TYPES.map((i) => (
-            <span key={i} className="cvt-mx-h">
-              {i}
-            </span>
-          ))}
-          {SCALES.map((s) => (
-            <MatrixRow key={s} scale={s} onOpen={onOpen} />
-          ))}
+// ---- outro: the matrix as a full-width paper figure -------------------------
+function Outro({ onOpen }: { onOpen: (cell: Cell, focusId?: string) => void }) {
+  return (
+    <section className="cvt-outro" id="cvt-matrix" aria-label="Full taxonomy matrix">
+      <p className="cvt-eyebrow">The full matrix</p>
+      <h2>
+        Read against its own rubric, the map is largely negative: no task-level cell reaches Strong
+        under end-of-life capture.
+      </h2>
+      <figure className="cvt-figure">
+        {/* wide content scrolls in its own box; the page never scrolls sideways */}
+        <div className="cvt-matrixwrap">
+          <div className="cvt-matrix">
+            <span />
+            {INFO_TYPES.map((i) => (
+              <span key={i} className="cvt-mx-h">
+                {i}
+              </span>
+            ))}
+            {SCALES.map((s) => (
+              <MatrixRow key={s} scale={s} onOpen={onOpen} />
+            ))}
+          </div>
         </div>
-        <p className="cvt-foot">
+        <figcaption className="cvt-foot">
           Maturity of candidate CV tasks per physical scale × information type, shown by ink weight
           and letter:{" "}
           {taxonomy.meta.maturityLevels.map((m, i) => (
@@ -329,13 +341,60 @@ const Rail = memo(function Rail({
               <b>{m.letter}</b> {m.verdict.toLowerCase()}
             </span>
           ))}
-          . Dashed cells are structurally empty (structure resolves at the component scale).
-          Verdicts: Paper 2, Table S1 · {taxonomy.meta.scanDate} snapshot.
-        </p>
-      </section>
-    </div>
+          . Dashed cells are structurally empty (structure resolves at the component scale). A cell
+          split on the diagonal carries two verdicts, one per sub-task. Verdicts: Paper 2, Table S1
+          · {taxonomy.meta.scanDate} snapshot.
+        </figcaption>
+      </figure>
+      <TableView />
+    </section>
   );
-});
+}
+
+/** The figure's table twin: every verdict as text, nothing encoded by ink alone. */
+function TableView() {
+  return (
+    <details className="cvt-tableview">
+      <summary>Table view — the same twelve cells as text</summary>
+      <div className="cvt-tablewrap">
+        <table>
+          <caption>
+            Table S1, verbatim. Compound cells list one row per sub-task, as the paper does.
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Scale</th>
+              <th scope="col">Information type</th>
+              <th scope="col">Task</th>
+              <th scope="col">Maturity</th>
+              <th scope="col">Rubric marks (i·ii·iii·m)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {cells.map((cell) =>
+              (cell.subVerdicts ?? [{ label: null, maturity: cell.maturity }]).map((sub) => (
+                <tr key={`${cell.id}-${sub.label ?? "only"}`}>
+                  <th scope="row">{cell.scale}</th>
+                  <td>{cell.informationType}</td>
+                  <td>
+                    {cell.structurallyEmpty ? "— structurally empty —" : cell.task}
+                    {sub.label && <span className="cvt-subtask"> · {sub.label}</span>}
+                  </td>
+                  <td>
+                    <b>{VERDICT_LETTER[sub.maturity]}</b> {sub.maturity}
+                  </td>
+                  <td className="cvt-mono">
+                    {"rubricMarks" in sub && sub.rubricMarks ? sub.rubricMarks : cell.rubricMarks}
+                  </td>
+                </tr>
+              )),
+            )}
+          </tbody>
+        </table>
+      </div>
+    </details>
+  );
+}
 
 function MatrixRow({
   scale,
@@ -352,6 +411,8 @@ function MatrixRow({
       {INFO_TYPES.map((info) => {
         const cell = cellAt(scale, info)!;
         const hid = `cvt-mx-${cell.id}`;
+        // a compound cell shows both sub-task verdicts rather than flattening to one
+        const split = splitOf(cell);
         return (
           <button
             key={cell.id}
@@ -359,16 +420,37 @@ function MatrixRow({
             type="button"
             className="cvt-mx-cell"
             data-ghost={!!cell.structurallyEmpty}
-            aria-label={`${scale} · ${info}: ${cell.maturity}`}
+            aria-label={
+              split
+                ? `${scale} · ${info}: ${cell.subVerdicts?.map((s) => `${s.label} ${s.maturity}`).join("; ")}`
+                : `${scale} · ${info}: ${cell.maturity}`
+            }
             onClick={() => onOpen(cell, hid)}
           >
-            <VerdictSwatch verdict={cell.maturity} size={20} />
-            <b>{VERDICT_LETTER[cell.maturity]}</b>
+            <VerdictSwatch verdict={cell.maturity} split={split} size={24} />
+            <b>
+              {split
+                ? split.map((v) => VERDICT_LETTER[v]).join(" / ")
+                : VERDICT_LETTER[cell.maturity]}
+            </b>
+            <span className="cvt-mx-name">
+              {cell.structurallyEmpty
+                ? "structurally empty"
+                : split
+                  ? split.map((v) => v.toLowerCase()).join(" · ")
+                  : cell.maturity.toLowerCase()}
+            </span>
           </button>
         );
       })}
     </>
   );
+}
+
+/** exactly two sub-verdicts render as a diagonal split; anything else is one verdict */
+function splitOf(cell: Cell): readonly [Verdict, Verdict] | undefined {
+  const subs = cell.subVerdicts;
+  return subs?.length === 2 ? [subs[0].maturity, subs[1].maturity] : undefined;
 }
 
 // ---- detail panel ------------------------------------------------------------
