@@ -297,7 +297,7 @@
 }
 @keyframes cvt-type {
   to {
-    width: 125px;
+    width: var(--ocr-w);
   }
 }
 .ov-caret {
@@ -315,7 +315,7 @@
     x: 5px;
   }
   to {
-    x: 114px;
+    x: var(--ocr-caret);
   }
 }
 @keyframes cvt-blink {
@@ -1176,7 +1176,7 @@
   }
   /* with animations off, show the OCR read-out fully typed */
   .ov-ocr-reveal {
-    width: 125px !important;
+    width: var(--ocr-w) !important;
   }
   .ov-caret {
     opacity: 0 !important;
