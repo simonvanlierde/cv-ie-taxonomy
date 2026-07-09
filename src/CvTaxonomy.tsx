@@ -3,7 +3,7 @@ import "./CvTaxonomy.css";
 import { cellAt, cells, INFO_TYPES, SCALES, taxonomy, VERDICT_LETTER } from "./data/taxonomy";
 import type { Cell, InfoType, Scale } from "./data/types";
 import { Fan } from "./Fan";
-import { SCALE_HUE, TIMELINE } from "./theme";
+import { rampVars, SCALE_HUE, TIMELINE } from "./theme";
 import { useScrollProgress } from "./useScrollProgress";
 import { VerdictSwatch } from "./VerdictSwatch";
 
@@ -118,7 +118,7 @@ export function CvTaxonomy({
   }, [selected]);
 
   return (
-    <div className="cvt" data-theme={effectiveTheme}>
+    <div className="cvt" data-theme={effectiveTheme} style={rampVars(effectiveTheme)}>
       <div className="cvt-scroll" ref={scrollRef}>
         {/* ---- sticky stage: the fan IS the interface ---- */}
         <div className="cvt-stagecol">
@@ -237,7 +237,7 @@ const Rail = memo(function Rail({
           An end-of-life desk fan, taken apart by the twelve tasks computer vision is asked to do in
           industrial ecology. The read-outs on the fan are the controls. Click one. Every verdict is
           the paper's own (<span className="cvt-cite">Table&nbsp;S1</span>), shown by{" "}
-          <em>texture and letter</em>, never colour.
+          <em>ink weight and letter</em>, never colour.
         </p>
         <ul className="cvt-legendline" aria-label="Maturity legend">
           {taxonomy.meta.maturityLevels.map((m) => (
@@ -321,8 +321,8 @@ const Rail = memo(function Rail({
           ))}
         </div>
         <p className="cvt-foot">
-          Maturity of candidate CV tasks per physical scale × information type, shown by texture and
-          letter:{" "}
+          Maturity of candidate CV tasks per physical scale × information type, shown by ink weight
+          and letter:{" "}
           {taxonomy.meta.maturityLevels.map((m, i) => (
             <span key={m.verdict}>
               {i > 0 ? " · " : ""}

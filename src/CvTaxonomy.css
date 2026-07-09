@@ -145,6 +145,20 @@
 .cvt-glyphbox {
   flex-shrink: 0;
 }
+/* The neutral ramp carries the verdict order; the texture layer is its stand-in
+   where the ramp cannot survive — forced-colors flattens fills, print may not
+   render them faithfully. Exactly one of the two is visible at a time. */
+.v-tex {
+  display: none;
+}
+@media (forced-colors: active), print {
+  .v-fill {
+    fill: none;
+  }
+  .v-tex {
+    display: block;
+  }
+}
 
 /* ---- scroll layout: dominant stage, slim rail ----------------------------------- */
 .cvt-scroll {
@@ -665,10 +679,23 @@
   color: var(--cvt-ink-dim);
   text-align: center;
 }
+/* Scale identity rides a swatch, not the text: the Okabe–Ito hues clear 3:1 as
+   marks but not 4.5:1 as small text on either surface. */
 .cvt-mx-row {
-  text-align: right;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
   padding-right: 0.5rem;
-  color: var(--hue);
+  color: var(--cvt-ink-dim);
+}
+.cvt-mx-row::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  background: var(--hue);
+  flex-shrink: 0;
 }
 .cvt-mx-cell {
   display: flex;
@@ -781,8 +808,19 @@
   font-size: 0.72rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--hue);
+  color: var(--cvt-ink-dim);
   margin: 0 0 0.3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.cvt-panel-scale::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  background: var(--hue);
+  flex-shrink: 0;
 }
 .cvt-panel h2 {
   font-family: var(--cvt-display);
