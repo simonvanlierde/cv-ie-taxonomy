@@ -36,6 +36,41 @@ export const VERDICT_RAMP: Record<"light" | "dark", Record<Verdict, string | nul
   },
 };
 
+/**
+ * Instance-segmentation overlay hues — a deliberate quote of COCO/YOLO output,
+ * not maturity and not scale. Selected per theme rather than flipped: the dark
+ * set is the neon original; the light set keeps each hue but is darkened to the
+ * 3:1 mark floor against the light surface, where the neon reads at 1.2–2.2:1.
+ * Both sets clear 4.5:1 under the tags' dark ink, and every mask carries a class
+ * label, which is the secondary encoding the CVD floor band requires.
+ */
+export const SEG_HUE: Record<"light" | "dark", Record<string, string>> = {
+  dark: {
+    fg: "#facc15",
+    bl: "#22d3ee",
+    rg: "#a78bfa",
+    mo: "#fb923c",
+    nk: "#f472b6",
+    ba: "#34d399",
+    warn: "#ffb454",
+  },
+  light: {
+    fg: "#9d810d",
+    bl: "#0691a6",
+    rg: "#8c75d2",
+    mo: "#bf6f2e",
+    nk: "#c85d95",
+    ba: "#24946b",
+    warn: "#ab7938",
+  },
+};
+
+/** the overlay hues as CSS custom properties, for the root element's inline style */
+export const segVars = (theme: "light" | "dark"): CSSProperties =>
+  Object.fromEntries(
+    Object.entries(SEG_HUE[theme]).map(([part, hex]) => [`--seg-${part}`, hex]),
+  ) as CSSProperties;
+
 /** a ramp step; only `Absent` has none, and it is never asked for here */
 const step = (theme: "light" | "dark", verdict: Verdict): string => {
   const hex = VERDICT_RAMP[theme][verdict];

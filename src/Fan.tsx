@@ -37,20 +37,33 @@ const PETAL =
   "M300 400 C318 390 332 372 336 342 C339 316 324 300 306 309 C290 318 283 352 287 384 Z";
 const BLADES = [0, 120, 240]; // blade rotations about the hub (300 400)
 
-// Instance-segmentation palette (illustrative CV output, not maturity/scale)
+// Instance-segmentation palette (illustrative CV output, not maturity/scale).
+// The values are selected per theme in theme.ts; the fan only names the slots.
 const SEG = {
-  fg: "#facc15", // front grille: yellow
-  bl: "#22d3ee", // blades: cyan
-  rg: "#a78bfa", // rear grille: violet
-  mo: "#fb923c", // motor: orange
-  nk: "#f472b6", // neck: pink
-  ba: "#34d399", // base: green
+  fg: "var(--seg-fg)", // front grille: yellow
+  bl: "var(--seg-bl)", // blades: cyan
+  rg: "var(--seg-rg)", // rear grille: violet
+  mo: "var(--seg-mo)", // motor: orange
+  nk: "var(--seg-nk)", // neck: pink
+  ba: "var(--seg-ba)", // base: green
+  warn: "var(--seg-warn)", // anomaly / condition tags
 } as const;
+
+// Both plates size themselves from the real advance of the mono face
+// (0.616em per glyph), so a label can never outrun its own box. Keep the
+// font sizes in step with .ov-tag text / .cvt-co-text in the stylesheet.
+const MONO_ADVANCE = 0.616;
+const TAG_FONT = 11;
+const CHIP_FONT = 12.5;
+const monoWidth = (label: string, fontSize: number) => label.length * fontSize * MONO_ADVANCE;
+
+const OCR_TEXT = 'OCR ▸ "TYP 4212/A"';
+const OCR_W = monoWidth(OCR_TEXT, TAG_FONT) + 10;
 
 // ---- CV-annotation primitives -----------------------------------------------------
 /** YOLO-style class tag: solid colour box, dark text */
 function Tag({ x, y, label, color }: { x: number; y: number; label: string; color: string }) {
-  const w = label.length * 6.4 + 10;
+  const w = monoWidth(label, TAG_FONT) + 10;
   return (
     <g className="ov-tag" transform={`translate(${x} ${y})`}>
       <rect width={w} height="18" rx="2" fill={color} />
@@ -152,7 +165,7 @@ function Callout({
   onHover: (cell: Cell | null) => void;
 }) {
   const letter = VERDICT_LETTER[cell.maturity];
-  const w = 50 + text.length * 7.2 + 10;
+  const w = 50 + monoWidth(text, CHIP_FONT) + 12;
   const hid = `cvt-co-${cell.id}`;
   const active = opacity > 0.5;
   const start: [number, number] =
@@ -429,14 +442,18 @@ export function Fan({
           className="ov-tag ov-ocr"
           data-active={presence.Product > 0.5}
           transform={`translate(${sx(196)} ${sy(728)})`}
+          style={{
+            ["--ocr-w" as string]: `${OCR_W}px`,
+            ["--ocr-caret" as string]: `${OCR_W - 11}px`,
+          }}
         >
           <clipPath id="cvt-ocr-clip">
-            <rect className="ov-ocr-reveal" x="0" y="0" width="125" height="18" />
+            <rect className="ov-ocr-reveal" x="0" y="0" width={OCR_W} height="18" />
           </clipPath>
-          <rect width="125" height="18" rx="2" fill={SCALE_HUE.Product} />
+          <rect width={OCR_W} height="18" rx="2" fill={SCALE_HUE.Product} />
           <g clipPath="url(#cvt-ocr-clip)">
             <text x="5" y="13">
-              OCR ▸ "TYP 4212/A"
+              {OCR_TEXT}
             </text>
           </g>
           <rect className="ov-caret" y="3" width="6" height="12" />
@@ -454,7 +471,7 @@ export function Fan({
           rx={24 * s}
           ry={12 * s}
         />
-        <Tag x={baC[0] - 90 * s} y={baC[1] + 20 * s} label="anomaly? · 0.4" color="#ffb454" />
+        <Tag x={baC[0] - 90 * s} y={baC[1] + 20 * s} label="anomaly? · 0.4" color={SEG.warn} />
       </g>
 
       {/* component · identity: YOLO-style boxes with class tags */}
@@ -486,7 +503,7 @@ export function Fan({
       </g>
       <g className="ov-layer" style={{ opacity: deco(cell("component-condition")) }}>
         <ellipse className="ov-blob" cx={moC[0] - 40} cy={moC[1] + 18} rx="18" ry="12" />
-        <Tag x={moC[0] - 168} y={moC[1] + 2} label="anomaly? · 0.6" color="#ffb454" />
+        <Tag x={moC[0] - 168} y={moC[1] + 2} label="anomaly? · 0.6" color={SEG.warn} />
       </g>
 
       {/* material · identity: material tags on the tinted parts */}
@@ -498,7 +515,7 @@ export function Fan({
       </g>
       <g className="ov-layer" style={{ opacity: deco(cell("material-condition")) }}>
         <ellipse className="ov-blob" cx={moC[0] + 42} cy={moC[1] - 24} rx="16" ry="11" />
-        <Tag x={moC[0] + 62} y={moC[1] - 44} label="corrosion? · 0.3" color="#ffb454" />
+        <Tag x={moC[0] + 62} y={moC[1] - 44} label="corrosion? · 0.3" color={SEG.warn} />
       </g>
 
       {compact ? null : (
@@ -527,7 +544,8 @@ export function Fan({
             text="wear? (unvalidated)"
             lead={[baC[0] - 92 * s, baC[1] + 12 * s]}
           />
-          <Callout {...co("product-structure")} x={-240} y={870} text="structure → component" />
+          {/* clear of the HUD's scale indicator, which owns the bottom-left corner */}
+          <Callout {...co("product-structure")} x={-240} y={676} text="structure → component" />
 
           {/* component (exploded fan) */}
           <Callout
