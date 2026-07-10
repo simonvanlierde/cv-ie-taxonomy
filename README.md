@@ -45,9 +45,14 @@ that would break if the JSON drifts from the paper.
 
 ## Accessibility
 
-Maturity is encoded by **texture + letter, never colour** (solid = S, diagonal
-hatch = P, dots = E, ring = U, dashed hollow = A). Colour is reserved for physical
-scale (colourblind-safe Okabe–Ito triad); material tints are true material colours
+Maturity is encoded by **ink weight + letter, never colour**: a neutral ramp, monotone
+in lightness and stepped against each theme's own surface (S darkest → U lightest, with
+A the hollow no-data cell). Under `forced-colors` and print, where fills flatten, a
+texture layer takes over — ordered by ink coverage, so the ranks survive (solid = S,
+diagonal hatch = P, dots = E, ring = U, dashed hollow = A). Colour is reserved for
+physical scale (colourblind-safe Okabe–Ito triad), and carried by swatches rather than
+by coloured text, which would not clear 4.5:1 on either surface;
+material tints are true material colours
 (copper, steel, ABS, PCB). The SVG read-outs are keyboard-operable buttons with
 full aria-labels, matrix cells and mobile rows are real buttons, the detail panel
 is a dialog closed with `Esc`, and `prefers-reduced-motion` disables the idle spin
