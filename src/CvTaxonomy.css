@@ -150,10 +150,17 @@
 .cvt-sticky {
   position: sticky;
   top: 0;
-  height: 100dvh;
+  height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+/* an @supports override, not a same-rule fallback pair: the minifier dedupes
+   the latter away, silently stranding engines without dvh at no height */
+@supports (height: 100dvh) {
+  .cvt-sticky {
+    height: 100dvh;
+  }
 }
 .cvt-fan {
   width: 100%;
@@ -254,10 +261,9 @@
   stroke: var(--c, var(--cvt-ink));
   stroke-width: 2.5;
 }
-/* font-size pairs with TAG_FONT in Fan.tsx, which sizes the plate around it */
+/* font-size comes from TAG_FONT in Fan.tsx, which also sizes the plate */
 .ov-tag text {
   font-family: var(--cvt-mono);
-  font-size: 13px;
   font-weight: 600;
   fill: #0b1622;
 }
@@ -315,14 +321,16 @@
   stroke: var(--cvt-ink-dim);
   stroke-width: 1.4;
 }
+/* font-size comes from TAG_FONT in Fan.tsx */
 .ov-dim text {
   font-family: var(--cvt-mono);
-  font-size: 13px;
   fill: var(--cvt-ink-dim);
 }
+/* strokes --seg-warn, the same token as the anomaly Tag riveted to it — the
+   pair must be one orange in both themes (--cvt-warn is the text-contrast arm) */
 .ov-blob {
   fill: none;
-  stroke: var(--cvt-warn);
+  stroke: var(--seg-warn);
   stroke-width: 2;
   stroke-dasharray: 5 4;
 }
@@ -358,9 +366,9 @@
   font-weight: 700;
   fill: var(--cvt-ink);
 }
+/* font-size comes from CHIP_FONT in Fan.tsx, which also sizes the plate */
 .cvt-co-text {
   font-family: var(--cvt-mono);
-  font-size: 14.5px;
   fill: var(--cvt-ink);
 }
 .cvt-co[data-ghost="true"] .cvt-co-bg {
@@ -694,7 +702,9 @@
   padding-right: 0.5rem;
   color: var(--cvt-ink-dim);
 }
-.cvt-mx-row::before {
+/* the small scale swatch, shared by the matrix row heads and the panel eyebrow */
+.cvt-mx-row::before,
+.cvt-panel-scale::before {
   content: "";
   width: 9px;
   height: 9px;
@@ -749,7 +759,10 @@
   border-top: 1px solid var(--cvt-line);
   padding-top: 1rem;
 }
-.cvt-tableview summary {
+.cvt-tableview-open {
+  background: none;
+  border: 0;
+  padding: 0;
   font-family: var(--cvt-mono);
   font-size: 0.72rem;
   letter-spacing: 0.08em;
@@ -757,7 +770,7 @@
   color: var(--cvt-ink-dim);
   cursor: pointer;
 }
-.cvt-tableview summary:hover {
+.cvt-tableview-open:hover {
   color: var(--cvt-ink);
 }
 /* wide content scrolls inside its own box; the page never scrolls sideways */
@@ -844,6 +857,9 @@
 .cvt-panel {
   position: fixed;
   top: 0;
+  /* left too: the dialog UA style supplies inset:0, and in the over-constrained
+     case LTR resolves left:0 — silently turning this right drawer into a left one */
+  left: auto;
   right: 0;
   margin: 0;
   z-index: 50;
@@ -861,6 +877,11 @@
   outline: none;
   color: var(--cvt-ink);
   font-family: var(--cvt-sans);
+}
+/* the table view rides the same drawer: wider than the cell panel, neutral edge */
+.cvt-tablepanel {
+  --hue: var(--cvt-ink);
+  width: min(820px, 94vw);
 }
 @keyframes cvt-slide {
   from {
@@ -889,14 +910,6 @@
   display: flex;
   align-items: center;
   gap: 0.45rem;
-}
-.cvt-panel-scale::before {
-  content: "";
-  width: 9px;
-  height: 9px;
-  border-radius: 2px;
-  background: var(--hue);
-  flex-shrink: 0;
 }
 .cvt-panel h2 {
   font-family: var(--cvt-display);
@@ -1046,13 +1059,18 @@
   }
   .cvt-sticky {
     position: static;
-    height: 44dvh;
+    height: 44vh;
     background-color: var(--cvt-bg);
     background-image:
       linear-gradient(var(--cvt-grid) 1px, transparent 1px),
       linear-gradient(90deg, var(--cvt-grid) 1px, transparent 1px);
     background-size: 28px 28px;
     border-bottom: 1px solid var(--cvt-line);
+  }
+  @supports (height: 44dvh) {
+    .cvt-sticky {
+      height: 44dvh;
+    }
   }
   .cvt-fan {
     max-height: 42vh;
@@ -1067,8 +1085,12 @@
     display: none;
   }
   .cvt-hud-top {
-    justify-content: space-between;
     gap: 0.5rem;
+  }
+  /* the eyebrow is gone, so the actions are the row: caveat left, toggle right */
+  .cvt-hud-actions {
+    flex: 1;
+    justify-content: space-between;
   }
   .cvt-hud-tag {
     font-size: 0.5rem;

@@ -1,5 +1,5 @@
-import { cleanup, render, within } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { render, within } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
 import { cellById } from "./data/taxonomy";
 import { Fan } from "./Fan";
 import { TIMELINE } from "./timeline";
@@ -12,10 +12,6 @@ import { TIMELINE } from "./timeline";
  * Deriving `active` from opacity meant that focusing one chip stripped tabIndex
  * and set aria-hidden on every sibling, so Tab left the fan after a single chip.
  */
-
-// `globals: false`, so Testing Library cannot register its own auto-cleanup:
-// without this, renders pile up in document.body across tests.
-afterEach(cleanup);
 
 /** mid-plateau of the Component chapter: its four chips are fully present */
 const COMPONENT_PLATEAU = (TIMELINE.presence.Component[1] + TIMELINE.presence.Component[2]) / 2;

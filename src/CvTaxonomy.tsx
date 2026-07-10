@@ -12,7 +12,7 @@ import {
 } from "./data/taxonomy";
 import type { Cell, InfoType, Scale, Verdict } from "./data/types";
 import { Fan } from "./Fan";
-import { rampVars, SCALE_HUE, segVars, type Theme } from "./theme";
+import { SCALE_HUE, SURFACE, THEME_VARS, type Theme } from "./theme";
 import { TIMELINE } from "./timeline";
 import { useScrollProgress } from "./useScrollProgress";
 import { VerdictSwatch } from "./VerdictSwatch";
@@ -96,10 +96,20 @@ export function CvTaxonomy({
     root.style.colorScheme = forcedTheme;
     root.setAttribute("data-theme", forcedTheme);
 
+    // The mobile browser chrome reads <meta name="theme-color">, whose media=""
+    // keys on the OS scheme only — it would ignore this toggle and disagree with
+    // the page it frames. Point every theme-color at the forced surface.
+    const metas = document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]');
+    const previousMeta = Array.from(metas, (m) => m.content);
+    for (const m of metas) m.content = SURFACE[forcedTheme];
+
     return () => {
       root.style.colorScheme = previousScheme;
       if (previousTheme === null) root.removeAttribute("data-theme");
       else root.setAttribute("data-theme", previousTheme);
+      metas.forEach((m, i) => {
+        m.content = previousMeta[i] ?? "";
+      });
     };
   }, [forcedTheme]);
 
@@ -143,11 +153,7 @@ export function CvTaxonomy({
   }, [selected]);
 
   return (
-    <div
-      className="cvt"
-      data-theme={effectiveTheme}
-      style={{ ...rampVars(effectiveTheme), ...segVars(effectiveTheme) }}
-    >
+    <div className="cvt" data-theme={effectiveTheme} style={THEME_VARS[effectiveTheme]}>
       <div className="cvt-scroll" ref={scrollRef}>
         {/* ---- sticky stage: the fan IS the interface ---- */}
         <div className="cvt-stagecol">
@@ -336,8 +342,9 @@ const Rail = memo(function Rail({
   );
 });
 
-// ---- outro: the matrix as a full-width paper figure -------------------------
-function Outro({ onOpen }: { onOpen: (cell: Cell, focusId?: string) => void }) {
+// ---- outro: the matrix as a full-width paper figure (memoized: its props are
+// stable, so the per-scroll-frame render skips all twelve matrix buttons) -----
+const Outro = memo(function Outro({ onOpen }: { onOpen: (cell: Cell, focusId?: string) => void }) {
   return (
     <section className="cvt-outro" id="cvt-matrix" aria-label="Full taxonomy matrix">
       <p className="cvt-eyebrow">The full matrix</p>
@@ -377,50 +384,78 @@ function Outro({ onOpen }: { onOpen: (cell: Cell, focusId?: string) => void }) {
       <TableView />
     </section>
   );
-}
+});
 
-/** The figure's table twin: every verdict as text, nothing encoded by ink alone. */
+/** The figure's table twin: every verdict as text, nothing encoded by ink alone.
+ *  A modal rather than an in-flow <details>: the scroll timeline is measured over
+ *  this container, so expanding ~700px of table inline would remap every
+ *  calibrated presence window under the reader (see timeline.ts). */
 function TableView() {
+  const ref = useRef<HTMLDialogElement>(null);
   return (
-    <details className="cvt-tableview">
-      <summary>Table view — the same twelve cells as text</summary>
-      <div className="cvt-tablewrap">
-        <table>
-          <caption>
-            Table S1, verbatim. Compound cells list one row per sub-task, as the paper does.
-          </caption>
-          <thead>
-            <tr>
-              <th scope="col">Scale</th>
-              <th scope="col">Information type</th>
-              <th scope="col">Task</th>
-              <th scope="col">Maturity</th>
-              <th scope="col">Rubric marks (i·ii·iii·m)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {cells.map((cell) =>
-              (cell.subVerdicts ?? [{ label: null, maturity: cell.maturity }]).map((sub) => (
-                <tr key={`${cell.id}-${sub.label ?? "only"}`}>
-                  <th scope="row">{cell.scale}</th>
-                  <td>{cell.informationType}</td>
-                  <td>
-                    {cell.structurallyEmpty ? "— structurally empty —" : cell.task}
-                    {sub.label && <span className="cvt-subtask"> · {sub.label}</span>}
-                  </td>
-                  <td>
-                    <b>{VERDICT_LETTER[sub.maturity]}</b> {sub.maturity}
-                  </td>
-                  <td className="cvt-mono">
-                    {"rubricMarks" in sub && sub.rubricMarks ? sub.rubricMarks : cell.rubricMarks}
-                  </td>
-                </tr>
-              )),
-            )}
-          </tbody>
-        </table>
-      </div>
-    </details>
+    <div className="cvt-tableview">
+      <button type="button" className="cvt-tableview-open" onClick={() => ref.current?.showModal()}>
+        Table view — the same twelve cells as text
+      </button>
+      {/* biome-ignore lint/a11y/useKeyWithClickEvents: native <dialog> already closes on Esc; onClick only adds backdrop-click for mouse users */}
+      {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: a backdrop click lands on the <dialog> itself, so the handler has nowhere else to live */}
+      <dialog
+        ref={ref}
+        className="cvt-panel cvt-tablepanel"
+        aria-label="Table view — the same twelve cells as text"
+        onClick={(e) => {
+          if (e.target === ref.current) ref.current?.close();
+        }}
+      >
+        <div className="cvt-panel-head">
+          <p className="cvt-eyebrow">Table S1 · text view</p>
+          <button
+            type="button"
+            className="cvt-panel-close"
+            onClick={() => ref.current?.close()}
+            aria-label="Close table view"
+          >
+            ✕
+          </button>
+        </div>
+        <div className="cvt-tablewrap">
+          <table>
+            <caption>
+              Table S1, verbatim. Compound cells list one row per sub-task, as the paper does.
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Scale</th>
+                <th scope="col">Information type</th>
+                <th scope="col">Task</th>
+                <th scope="col">Maturity</th>
+                <th scope="col">Rubric marks (i·ii·iii·m)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {cells.map((cell) =>
+                (cell.subVerdicts ?? [{ label: null, maturity: cell.maturity }]).map((sub) => (
+                  <tr key={`${cell.id}-${sub.label ?? "only"}`}>
+                    <th scope="row">{cell.scale}</th>
+                    <td>{cell.informationType}</td>
+                    <td>
+                      {cell.structurallyEmpty ? "— structurally empty —" : cell.task}
+                      {sub.label && <span className="cvt-subtask"> · {sub.label}</span>}
+                    </td>
+                    <td>
+                      <b>{VERDICT_LETTER[sub.maturity]}</b> {sub.maturity}
+                    </td>
+                    <td className="cvt-mono">
+                      {"rubricMarks" in sub && sub.rubricMarks ? sub.rubricMarks : cell.rubricMarks}
+                    </td>
+                  </tr>
+                )),
+              )}
+            </tbody>
+          </table>
+        </div>
+      </dialog>
+    </div>
   );
 }
 

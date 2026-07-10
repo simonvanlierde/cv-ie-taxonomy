@@ -38,10 +38,11 @@ export const VERDICT_RAMP: Record<Theme, Record<Verdict, string | null>> = {
   },
 };
 
-/** The fan's part slots. Naming them keeps `--seg-*` a closed set: rename a slot
- *  and every `var(--seg-…)` consumer fails to compile, instead of resolving to
- *  an undefined custom property at runtime. */
-export type SegSlot = "fg" | "bl" | "rg" | "mo" | "nk" | "ba" | "warn";
+/** The fan's part slots. One list feeds both the property side (THEME_VARS) and
+ *  the consumer side (SEG_VAR), so a renamed slot cannot strand a `var(--seg-…)`
+ *  on an undefined custom property — there is no hand-written copy to go stale. */
+export const SEG_SLOTS = ["fg", "bl", "rg", "mo", "nk", "ba", "warn"] as const;
+export type SegSlot = (typeof SEG_SLOTS)[number];
 
 /**
  * Instance-segmentation overlay hues — a deliberate quote of COCO/YOLO output,
@@ -72,23 +73,41 @@ export const SEG_HUE: Record<Theme, Record<SegSlot, string>> = {
   },
 };
 
-/** the overlay hues as CSS custom properties, for the root element's inline style */
-export const segVars = (theme: Theme): CSSProperties =>
-  Object.fromEntries(
-    Object.entries(SEG_HUE[theme]).map(([part, hex]) => [`--seg-${part}`, hex]),
-  ) as CSSProperties;
+/** the `var(--seg-…)` consumer map, derived from the same slot list as THEME_VARS */
+export const SEG_VAR = Object.fromEntries(
+  SEG_SLOTS.map((slot) => [slot, `var(--seg-${slot})`]),
+) as Record<SegSlot, string>;
 
-/** a ramp step; only `Absent` has none, and it is never asked for here */
-const step = (theme: Theme, verdict: Verdict): string => {
-  const hex = VERDICT_RAMP[theme][verdict];
-  if (!hex) throw new Error(`${verdict} has no ramp step: it is the hollow no-data cell`);
-  return hex;
+// One verdict, one custom property; Absent has none (the hollow no-data cell).
+// Both the property side (THEME_VARS) and the consumer side (VERDICT_VAR)
+// derive from this map, so a renamed token cannot leave a stale var() behind.
+const VERDICT_TOKEN: Record<Verdict, string | null> = {
+  Strong: "--cvt-v-strong",
+  Partial: "--cvt-v-partial",
+  "Emerging-but-narrow": "--cvt-v-emerging",
+  "Plausible-but-unvalidated": "--cvt-v-plausible",
+  Absent: null,
 };
 
-/** the ramp as CSS custom properties, for the root element's inline style */
-export const rampVars = (theme: Theme): CSSProperties => ({
-  "--cvt-v-strong": step(theme, "Strong"),
-  "--cvt-v-partial": step(theme, "Partial"),
-  "--cvt-v-emerging": step(theme, "Emerging-but-narrow"),
-  "--cvt-v-plausible": step(theme, "Plausible-but-unvalidated"),
-});
+/** the `var(--cvt-v-…)` consumer map for anything painting a ramp step */
+export const VERDICT_VAR = Object.fromEntries(
+  Object.entries(VERDICT_TOKEN).map(([verdict, token]) => [verdict, token && `var(${token})`]),
+) as Record<Verdict, string | null>;
+
+const themeVars = (theme: Theme): CSSProperties => {
+  const vars: Record<string, string> = {};
+  for (const slot of SEG_SLOTS) vars[`--seg-${slot}`] = SEG_HUE[theme][slot];
+  for (const [verdict, token] of Object.entries(VERDICT_TOKEN)) {
+    const hex = VERDICT_RAMP[theme][verdict as Verdict];
+    if (token && hex) vars[token] = hex;
+  }
+  return vars;
+};
+
+/** Every overlay/ramp hue as CSS custom properties for the root element's inline
+ *  style — precomputed per theme, so the per-scroll-frame render hands React the
+ *  same object reference and the style diff short-circuits. */
+export const THEME_VARS: Record<Theme, CSSProperties> = {
+  light: themeVars("light"),
+  dark: themeVars("dark"),
+};

@@ -44,6 +44,13 @@ describe("scroll pacing", () => {
     expect(TIMELINE.drift[1]).toBeLessThanOrEqual(TIMELINE.presence.Material[1]);
   });
 
+  it("starts each motion beat only after the overlays riding the parts begin to fade", () => {
+    // otherwise the fan stretches under fixed-value dimensions at full opacity:
+    // explode may not begin inside the Product plateau, nor drift inside Component's
+    expect(TIMELINE.explode[0]).toBeGreaterThanOrEqual(TIMELINE.presence.Product[2]);
+    expect(TIMELINE.drift[0]).toBeGreaterThanOrEqual(TIMELINE.presence.Component[2]);
+  });
+
   it("keeps each plateau inside its own chapter band", () => {
     const band: Record<Scale, [number, number]> = {
       Product: [TIMELINE.heroEnd, TIMELINE.productEnd],

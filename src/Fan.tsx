@@ -1,11 +1,9 @@
 import { type ReactNode, useId } from "react";
-import { cellById, VERDICT_LETTER } from "./data/taxonomy";
+import { cellById as cell, VERDICT_LETTER } from "./data/taxonomy";
 import type { Cell } from "./data/types";
-import { SCALE_HUE, type SegSlot } from "./theme";
+import { SCALE_HUE, SEG_VAR as SEG } from "./theme";
 import { presence as presenceAt, seg, TIMELINE } from "./timeline";
 import { VerdictSwatch } from "./VerdictSwatch";
-
-const cell = cellById;
 
 // Explode vectors at factor 1, a patent-style vertical explode: the front of
 // the fan stacks upward with a slight stagger, the stand drops away below.
@@ -32,21 +30,10 @@ const PETAL =
   "M300 400 C318 390 332 372 336 342 C339 316 324 300 306 309 C290 318 283 352 287 384 Z";
 const BLADES = [0, 120, 240]; // blade rotations about the hub (300 400)
 
-// Instance-segmentation palette (illustrative CV output, not maturity/scale).
-// The values are selected per theme in theme.ts; the fan only names the slots.
-const SEG: Record<SegSlot, string> = {
-  fg: "var(--seg-fg)", // front grille: yellow
-  bl: "var(--seg-bl)", // blades: cyan
-  rg: "var(--seg-rg)", // rear grille: violet
-  mo: "var(--seg-mo)", // motor: orange
-  nk: "var(--seg-nk)", // neck: pink
-  ba: "var(--seg-ba)", // base: green
-  warn: "var(--seg-warn)", // anomaly / condition tags
-};
-
 // Both plates size themselves from the real advance of the mono face
-// (0.616em per glyph), so a label can never outrun its own box. Keep the
-// font sizes in step with .ov-tag text / .cvt-co-text in the stylesheet.
+// (0.616em per glyph), so a label can never outrun its own box. The <text>
+// elements take their font-size from these same constants, so the plate math
+// and the rendered glyphs cannot drift apart.
 const MONO_ADVANCE = 0.616;
 const TAG_FONT = 13;
 const CHIP_FONT = 14.5;
@@ -60,12 +47,17 @@ const CHIP_PAD_R = 12;
 const CHIP_H = 34;
 const chipWidth = (text: string) => CHIP_TEXT_X + monoWidth(text, CHIP_FONT) + CHIP_PAD_R;
 
-// The fan's viewBox spans x ∈ [-250, 820]. Both gutters anchor to an edge of it
-// rather than to hand-tuned constants: right-hand chips grow leftwards from
-// CHIP_RIGHT_EDGE, left-hand chips start at CHIP_LEFT_EDGE, so a longer label
-// can never run off the canvas and a viewBox change moves both columns.
-const CHIP_RIGHT_EDGE = 812;
-const CHIP_LEFT_EDGE = -240;
+// The desktop view rect, declared once: the viewBox string and both chip
+// gutters derive from it, so a viewBox change really does move both columns.
+// Right-hand chips grow leftwards from CHIP_RIGHT_EDGE, left-hand chips start
+// at CHIP_LEFT_EDGE, so a longer label can never run off the canvas.
+const VIEW = { x: -250, y: -25, w: 1070, h: 950 } as const;
+const CHIP_RIGHT_EDGE = VIEW.x + VIEW.w - 8;
+const CHIP_LEFT_EDGE = VIEW.x + 10;
+
+// A chapter is "on stage" once its presence crosses this: its chips become
+// operable and its OCR read-out starts typing. One threshold, used everywhere.
+const ON_STAGE = 0.5;
 
 const OCR_TEXT = 'OCR ▸ "TYP 4212/A"';
 const OCR_W = monoWidth(OCR_TEXT, TAG_FONT) + 10;
@@ -77,7 +69,7 @@ function Tag({ x, y, label, color }: { x: number; y: number; label: string; colo
   return (
     <g className="ov-tag" transform={`translate(${x} ${y})`}>
       <rect width={w} height={TAG_H} rx="2" fill={color} />
-      <text x="5" y="15">
+      <text x="5" y="15" fontSize={TAG_FONT}>
         {label}
       </text>
     </g>
@@ -132,7 +124,11 @@ function DimV({ x, y1, y2, label }: { x: number; y1: number; y2: number; label: 
       <line x1={x} y1={y1} x2={x} y2={y2} />
       <line x1={x - 5} y1={y1} x2={x + 5} y2={y1} />
       <line x1={x - 5} y1={y2} x2={x + 5} y2={y2} />
-      <text transform={`translate(${x + 14} ${(y1 + y2) / 2}) rotate(90)`} textAnchor="middle">
+      <text
+        transform={`translate(${x + 14} ${(y1 + y2) / 2}) rotate(90)`}
+        textAnchor="middle"
+        fontSize={TAG_FONT}
+      >
         {label}
       </text>
     </g>
@@ -145,7 +141,7 @@ function DimH({ y, x1, x2, label }: { y: number; x1: number; x2: number; label: 
       <line x1={x1} y1={y} x2={x2} y2={y} />
       <line x1={x1} y1={y - 5} x2={x1} y2={y + 5} />
       <line x1={x2} y1={y - 5} x2={x2} y2={y + 5} />
-      <text x={(x1 + x2) / 2} y={y - 8} textAnchor="middle">
+      <text x={(x1 + x2) / 2} y={y - 8} textAnchor="middle" fontSize={TAG_FONT}>
         {label}
       </text>
     </g>
@@ -240,7 +236,7 @@ function Callout({
       <text className="cvt-co-letter" x="35" y="1">
         {letter}
       </text>
-      <text className="cvt-co-text" x={CHIP_TEXT_X} y="0">
+      <text className="cvt-co-text" x={CHIP_TEXT_X} y="0" fontSize={CHIP_FONT}>
         {text}
       </text>
       {strike && <line className="ov-strike" x1={CHIP_TEXT_X - 2} y1="-5" x2={w - 9} y2="-5" />}
@@ -316,7 +312,7 @@ export function Fan({
   // faded to 0.45 because a sibling is hovered is still on screen, so it stays
   // tabbable. Deriving this from opacity made Tab skip every chip but the focused
   // one — the chips are the controls, so that stranded keyboard users.
-  const interactive = (c: Cell) => presence[c.scale] > 0.5 && !isDim(c);
+  const interactive = (c: Cell) => presence[c.scale] > ON_STAGE && !isDim(c);
 
   const co = (id: string) => {
     const c = cell(id);
@@ -336,11 +332,17 @@ export function Fan({
   const matO = deco(cell("material-identity"), 0.7);
 
   // The twelve chips, one per taxonomy cell. `id` is looked up through cellById,
-  // so a typo throws at first render rather than rendering a blank chip.
-  const CALLOUTS: ({ id: string } & Omit<
-    Parameters<typeof Callout>[0],
-    "cell" | "opacity" | "active" | "selected" | "onSelect" | "onHover"
-  >)[] = [
+  // so a typo throws at first render rather than rendering a blank chip. Declared
+  // in render because the leader targets read the live part centres.
+  const CALLOUTS: {
+    id: string;
+    x?: number;
+    y: number;
+    text: string;
+    lead?: readonly [number, number];
+    leadEdge?: "right" | "left";
+    strike?: boolean;
+  }[] = [
     // product (assembled fan)
     {
       id: "product-identity",
@@ -430,9 +432,11 @@ export function Fan({
   const fgRing = { cx: 300, cy: 400, r: 122 };
 
   return (
+    // biome-ignore lint/a11y/useSemanticElements: an <svg> cannot become a <fieldset>; the explicit role keeps the aria-label exposed on engines that prune a role-less svg, without flattening the operable chips inside the way role="img" would
     <svg
       className={compact ? "cvt-fan cvt-fan-compact" : "cvt-fan"}
-      viewBox={compact ? "120 -40 420 910" : "-250 -25 1070 950"}
+      viewBox={compact ? "120 -40 420 910" : `${VIEW.x} ${VIEW.y} ${VIEW.w} ${VIEW.h}`}
+      role="group"
       aria-label="Exploding desk fan; the computer-vision read-outs around it open task details"
       preserveAspectRatio="xMidYMid meet"
       style={
@@ -553,7 +557,7 @@ export function Fan({
         {/* OCR read-out types itself when the chapter arrives */}
         <g
           className="ov-tag ov-ocr"
-          data-active={presence.Product > 0.5}
+          data-active={presence.Product > ON_STAGE}
           transform={`translate(${sx(196)} ${sy(728)})`}
           style={{ "--ocr-w": `${OCR_W}px`, "--ocr-caret": `${OCR_W - 11}px` }}
         >
@@ -562,7 +566,7 @@ export function Fan({
           </clipPath>
           <rect width={OCR_W} height={TAG_H} rx="2" fill={SCALE_HUE.Product} />
           <g clipPath={`url(#${ocrClip})`}>
-            <text x="5" y="15">
+            <text x="5" y="15" fontSize={TAG_FONT}>
               {OCR_TEXT}
             </text>
           </g>
