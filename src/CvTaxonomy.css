@@ -143,6 +143,11 @@
   max-width: 1440px;
   margin: 0 auto;
 }
+/* transparent to the desktop grid, so the stage and rail place themselves as
+   direct grid items; becomes a real block on mobile (see the media query) */
+.cvt-pinwrap {
+  display: contents;
+}
 .cvt-stagecol {
   position: relative;
   min-width: 0;
@@ -1052,6 +1057,13 @@
     display: block;
     padding: 0 1rem;
   }
+  /* a real block now, so it is the sticky stage's containing block: the stage
+     stays pinned across the chapters, then releases at the wrapper's end — the
+     outro sits after it in flow, no paint-over needed */
+  .cvt-pinwrap {
+    display: block;
+    position: relative;
+  }
   .cvt-stagecol {
     position: sticky;
     top: 0;
@@ -1109,15 +1121,9 @@
     min-height: auto;
     padding: 3rem 0;
   }
-  /* Once the grid collapses to a block, .cvt-scroll becomes the sticky stage's
-     containing block, so the stage stays pinned over the outro. Let the figure
-     ride above it on its own ground instead. */
   .cvt-outro {
     min-height: auto;
     padding: 3rem 0 6rem;
-    position: relative;
-    z-index: 6;
-    background-color: var(--cvt-bg);
   }
   /* the callouts live on the desktop svg; on mobile each chapter lists its cells */
   .cvt-mgroup {
@@ -1188,20 +1194,20 @@
 }
 
 /* ---- reduced motion --------------------------------------------------------------------------- */
-/* `.cvt *` is only (0,1,0), so every rule above that animates from a higher
-   specificity is named here too. Keep this list in step with the transition
-   and animation declarations; it is what lets the reset win without !important. */
+/* The accessibility kill-switch, and the one place !important earns its keep: it
+   must beat every animating rule whatever its specificity — including ones added
+   later — so no hand-maintained selector list can fall out of step. Scoped to
+   .cvt so an embedding host's own motion is left alone. ::backdrop is a
+   pseudo-element `*` cannot reach, hence the one explicit addition. */
 @media (prefers-reduced-motion: reduce) {
   .cvt *,
-  .cvt-ind li,
-  .cvt-ind li::before,
-  .cvt-panel,
-  .cvt-panel::backdrop,
-  .fan-spin[data-spin="true"],
-  .ov-ocr[data-active="true"] .ov-ocr-reveal,
-  .ov-ocr[data-active="true"] .ov-caret {
-    transition: none;
-    animation: none;
+  .cvt *::before,
+  .cvt *::after,
+  .cvt-panel::backdrop {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
   /* with animations off, show the OCR read-out fully typed and drop the caret */
   .ov-ocr[data-active="true"] .ov-ocr-reveal {
