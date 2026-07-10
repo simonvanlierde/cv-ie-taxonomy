@@ -23,32 +23,8 @@
     },
     "rules": {
       "preset": "recommended",
-      "a11y": {
-        "noSvgWithoutTitle": "off",
-        "useSemanticElements": "off"
-      },
-      "complexity": {
-        "noExcessiveLinesPerFunction": "off",
-        "noImplicitCoercions": "off",
-        "noImportantStyles": "off",
-        "useMaxParams": "off",
-        "useSimplifiedLogicExpression": "off"
-      },
-      "correctness": {
-        "useExhaustiveDependencies": "off"
-      },
-      "performance": {
-        "useTopLevelRegex": "off"
-      },
-      "style": {
-        "noDescendingSpecificity": "off",
-        "noNonNullAssertion": "off"
-      },
-      "suspicious": {
-        "noArrayIndexKey": "off",
-        "noDuplicateProperties": "off",
-        "noShadow": "off"
-      }
+      "a11y": "on",
+      "security": "on"
     }
   },
   "assist": {
