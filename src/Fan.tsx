@@ -1,16 +1,10 @@
-import { cells, VERDICT_LETTER } from "./data/taxonomy";
+import { cellById, VERDICT_LETTER } from "./data/taxonomy";
 import type { Cell } from "./data/types";
-import { SCALE_HUE, TIMELINE } from "./theme";
+import { SCALE_HUE, type SegSlot } from "./theme";
+import { presence as presenceAt, seg, TIMELINE } from "./timeline";
 import { VerdictSwatch } from "./VerdictSwatch";
 
-// ---- scroll → animation mapping -----------------------------------------------
-const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
-const smoothstep = (t: number) => t * t * (3 - 2 * t);
-const seg = (p: number, a: number, b: number) => smoothstep(clamp01((p - a) / (b - a)));
-
-// cells by id ("product-identity", …): the JSON ids are the keys
-const CELL = new Map(cells.map((c) => [c.id, c]));
-const cell = (id: string) => CELL.get(id)!;
+const cell = cellById;
 
 // Explode vectors at factor 1, a patent-style vertical explode: the front of
 // the fan stacks upward with a slight stagger, the stand drops away below.
@@ -39,7 +33,7 @@ const BLADES = [0, 120, 240]; // blade rotations about the hub (300 400)
 
 // Instance-segmentation palette (illustrative CV output, not maturity/scale).
 // The values are selected per theme in theme.ts; the fan only names the slots.
-const SEG = {
+const SEG: Record<SegSlot, string> = {
   fg: "var(--seg-fg)", // front grille: yellow
   bl: "var(--seg-bl)", // blades: cyan
   rg: "var(--seg-rg)", // rear grille: violet
@@ -103,7 +97,7 @@ function BBox({
   color: string;
 }) {
   return (
-    <g className="ov-bbox" style={{ ["--c" as string]: color }}>
+    <g className="ov-bbox" style={{ "--c": color }}>
       <rect className="ov-bbox-r" x={x} y={y} width={w} height={h} />
       <Tag x={x} y={y - TAG_H} label={label} color={color} />
     </g>
@@ -198,7 +192,7 @@ function Callout({
       style={{
         opacity,
         pointerEvents: active ? undefined : "none",
-        ["--hue" as string]: SCALE_HUE[cell.scale],
+        "--hue": SCALE_HUE[cell.scale],
       }}
       onClick={() => onSelect(cell, hid)}
       onKeyDown={(e) => {
@@ -261,11 +255,10 @@ export function Fan({
   const sy = (y: number) => (y - O[1]) * s + O[1];
 
   // chapter presence per scale, faded in/out with scroll
-  const win = (w: readonly number[]) => seg(p, w[0], w[1]) * (1 - seg(p, w[2], w[3]));
   const presence: Record<Cell["scale"], number> = {
-    Product: win(TIMELINE.presence.Product),
-    Component: win(TIMELINE.presence.Component),
-    Material: win(TIMELINE.presence.Material),
+    Product: presenceAt(TIMELINE.presence.Product, p),
+    Component: presenceAt(TIMELINE.presence.Component, p),
+    Material: presenceAt(TIMELINE.presence.Material, p),
   };
 
   // pseudo-3D: the whole sheet tilts with scroll (flat at hero/outro, max
@@ -329,11 +322,7 @@ export function Fan({
       <g transform={`translate(${O[0] * (1 - s)} ${O[1] * (1 - s)}) scale(${s})`}>
         <g className="fan-part" transform={at(V.nk, Z.nk)}>
           <rect {...nkR} />
-          <rect
-            className="ov-segfill"
-            {...nkR}
-            style={{ opacity: segO, ["--c" as string]: SEG.nk }}
-          />
+          <rect className="ov-segfill" {...nkR} style={{ opacity: segO, "--c": SEG.nk }} />
           <rect className="mat-tint mat-steel" {...nkR} style={{ opacity: matO }} />
         </g>
 
@@ -349,11 +338,7 @@ export function Fan({
             <line x1="340" y1="665" x2="374" y2="665" />
             <line x1="340" y1="670" x2="366" y2="670" />
           </g>
-          <rect
-            className="ov-segfill"
-            {...baR}
-            style={{ opacity: segO, ["--c" as string]: SEG.ba }}
-          />
+          <rect className="ov-segfill" {...baR} style={{ opacity: segO, "--c": SEG.ba }} />
           <rect className="mat-tint mat-pcb" {...baR} style={{ opacity: matO }} />
         </g>
 
@@ -363,11 +348,7 @@ export function Fan({
             <line key={x} className="fan-winding" x1={x} y1="384" x2={x} y2="440" />
           ))}
           <circle cx="262" cy="412" r="8" />
-          <rect
-            className="ov-segfill"
-            {...moR}
-            style={{ opacity: segO, ["--c" as string]: SEG.mo }}
-          />
+          <rect className="ov-segfill" {...moR} style={{ opacity: segO, "--c": SEG.mo }} />
           <rect className="mat-tint mat-cu" {...moR} style={{ opacity: matO }} />
         </g>
 
@@ -378,7 +359,7 @@ export function Fan({
           <circle
             className="ov-segfill"
             {...rgRing}
-            style={{ opacity: segO * 0.6, ["--c" as string]: SEG.rg }}
+            style={{ opacity: segO * 0.6, "--c": SEG.rg }}
           />
           <circle className="mat-tint mat-steel" {...rgRing} style={{ opacity: matO }} />
         </g>
@@ -387,7 +368,7 @@ export function Fan({
           <g className="fan-spin" data-spin={spinning}>
             {[
               { cls: "fan-petal", style: undefined },
-              { cls: "ov-segfill", style: { opacity: segO, ["--c" as string]: SEG.bl } },
+              { cls: "ov-segfill", style: { opacity: segO, "--c": SEG.bl } },
               { cls: "mat-tint mat-abs", style: { opacity: matO } },
             ].map((layer) =>
               BLADES.map((a) => (
@@ -413,7 +394,7 @@ export function Fan({
           <circle
             className="ov-segfill"
             {...fgRing}
-            style={{ opacity: segO * 0.5, ["--c" as string]: SEG.fg }}
+            style={{ opacity: segO * 0.5, "--c": SEG.fg }}
           />
           <circle className="mat-tint mat-steel" {...fgRing} style={{ opacity: matO }} />
         </g>
@@ -432,7 +413,7 @@ export function Fan({
         />
         <rect
           className="ov-bbox-r"
-          style={{ ["--c" as string]: SCALE_HUE.Product }}
+          style={{ "--c": SCALE_HUE.Product }}
           x={sx(332 + 16 * k)}
           y={sy(656 + 124 * k)}
           width={52 * s}
@@ -450,10 +431,7 @@ export function Fan({
           className="ov-tag ov-ocr"
           data-active={presence.Product > 0.5}
           transform={`translate(${sx(196)} ${sy(728)})`}
-          style={{
-            ["--ocr-w" as string]: `${OCR_W}px`,
-            ["--ocr-caret" as string]: `${OCR_W - 11}px`,
-          }}
+          style={{ "--ocr-w": `${OCR_W}px`, "--ocr-caret": `${OCR_W - 11}px` }}
         >
           <clipPath id="cvt-ocr-clip">
             <rect className="ov-ocr-reveal" x="0" y="0" width={OCR_W} height={TAG_H} />
