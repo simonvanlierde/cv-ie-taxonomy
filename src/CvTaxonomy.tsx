@@ -1,6 +1,14 @@
 import { memo, useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import "./CvTaxonomy.css";
-import { cellAt, cells, INFO_TYPES, SCALES, taxonomy, VERDICT_LETTER } from "./data/taxonomy";
+import {
+  cellAt,
+  cells,
+  INFO_TYPES,
+  maturityLevel,
+  SCALES,
+  taxonomy,
+  VERDICT_LETTER,
+} from "./data/taxonomy";
 import type { Cell, InfoType, Scale, Verdict } from "./data/types";
 import { Fan } from "./Fan";
 import { rampVars, SCALE_HUE, segVars } from "./theme";
@@ -64,7 +72,7 @@ export function CvTaxonomy({
   theme?: "light" | "dark";
   /** deep-link: open this cell's panel on load */
   initialCell?: string;
-  /** dev-only: pin scroll progress (?p=0.5) for screenshots */
+  /** dev-only: pin scroll progress (?p=0.5) for screenshots. Must be finite. */
   debugProgress?: number;
 } = {}) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -75,7 +83,9 @@ export function CvTaxonomy({
   // render exactly one fan: full on desktop, compact on mobile
   const isMobile = useMediaQuery("(max-width: 880px)");
 
-  // theme: follow the host prop / OS by default; the toggle sets an explicit override
+  // Theme has one owner, resolved here: the user's toggle beats the host's prop,
+  // which beats the OS. Seeding state from `theme` instead would freeze the prop
+  // at mount, so a host that switches its own theme could never move the island.
   const systemDark = useMediaQuery("(prefers-color-scheme: dark)");
   const [themeOverride, setThemeOverride] = useState<"light" | "dark" | null>(theme ?? null);
   const effectiveTheme: "light" | "dark" = themeOverride ?? (systemDark ? "dark" : "light");
@@ -197,6 +207,7 @@ export function CvTaxonomy({
       </footer>
 
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: native <dialog> already closes on Esc; onClick only adds backdrop-click for mouse users */}
+      {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: a backdrop click lands on the <dialog> itself, so the handler has nowhere else to live */}
       <dialog
         ref={dialogRef}
         className="cvt-panel"
@@ -280,7 +291,7 @@ const Rail = memo(function Rail({
             {/* mobile only: this scale's cells as a plain list */}
             <div className="cvt-mgroup">
               {INFO_TYPES.map((info) => {
-                const cell = cellAt(scale, info)!;
+                const cell = cellAt(scale, info);
                 const hid = `cvt-m-${cell.id}`;
                 return (
                   <button
@@ -412,7 +423,7 @@ function MatrixRow({
         {scale}
       </span>
       {INFO_TYPES.map((info) => {
-        const cell = cellAt(scale, info)!;
+        const cell = cellAt(scale, info);
         const hid = `cvt-mx-${cell.id}`;
         // a compound cell shows both sub-task verdicts rather than flattening to one
         const split = splitOf(cell);
@@ -452,13 +463,14 @@ function MatrixRow({
 
 /** exactly two sub-verdicts render as a diagonal split; anything else is one verdict */
 function splitOf(cell: Cell): readonly [Verdict, Verdict] | undefined {
-  const subs = cell.subVerdicts;
-  return subs?.length === 2 ? [subs[0].maturity, subs[1].maturity] : undefined;
+  const [first, second, ...rest] = cell.subVerdicts ?? [];
+  if (!first || !second || rest.length > 0) return undefined;
+  return [first.maturity, second.maturity];
 }
 
 // ---- detail panel ------------------------------------------------------------
 function DetailPanel({ cell, onClose }: { cell: Cell; onClose: () => void }) {
-  const level = taxonomy.meta.maturityLevels.find((m) => m.verdict === cell.maturity)!;
+  const level = maturityLevel(cell.maturity);
   return (
     <>
       <div className="cvt-panel-head">
@@ -550,7 +562,7 @@ function Row({
 // theme-toggle glyphs: sun shows in dark (→ switch to light), moon in light
 function SunIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
       <circle cx="12" cy="12" r="4" />
       <path
         strokeLinecap="round"
@@ -561,7 +573,7 @@ function SunIcon() {
 }
 function MoonIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"

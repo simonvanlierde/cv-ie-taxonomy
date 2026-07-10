@@ -11,7 +11,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc --noEmit && vite build",
     "check": "biome check .",
     "format": "biome format --write .",
     "lint": "biome lint .",

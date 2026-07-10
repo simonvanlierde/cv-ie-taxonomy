@@ -8,7 +8,11 @@ export default defineConfig(({ command }) => ({
   base: command === "build" ? "/cv-ie-taxonomy/" : "/",
   plugins: [react()],
   test: {
-    environment: "node",
-    include: ["src/**/*.test.ts"],
+    // jsdom, not node: the interaction layer (the dialog's open/close, focus
+    // return and Esc) is the part of this viz worth testing, and it needs a DOM.
+    environment: "jsdom",
+    include: ["src/**/*.test.{ts,tsx}"],
+    setupFiles: ["./src/test-setup.ts"],
+    globals: false,
   },
 }));
