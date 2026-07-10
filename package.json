@@ -12,6 +12,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "gen:theme": "node scripts/gen-theme-css.ts",
+    "check:theme": "node scripts/check-theme.ts",
     "check": "biome check .",
     "format": "biome format --write .",
     "lint": "biome lint .",
