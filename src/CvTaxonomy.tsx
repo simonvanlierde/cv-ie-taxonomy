@@ -273,11 +273,15 @@ const Rail = memo(function Rail({
             data-active={chapter === scale}
             style={{ ["--hue" as string]: SCALE_HUE[scale] }}
           >
-            <p className="cvt-eyebrow">
-              <span className="cvt-dot" aria-hidden /> {scale} scale
-            </p>
-            <h2>{copy.title}</h2>
-            <p className="cvt-body">{copy.body}</p>
+            {/* the prose pins while its chapter's overlays are on the stage, so the
+                two are read together rather than in sequence */}
+            <div className="cvt-chapter-inner">
+              <p className="cvt-eyebrow">
+                <span className="cvt-dot" aria-hidden /> {scale} scale
+              </p>
+              <h2>{copy.title}</h2>
+              <p className="cvt-body">{copy.body}</p>
+            </div>
             {/* mobile only: this scale's cells as a plain list */}
             <div className="cvt-mgroup">
               {INFO_TYPES.map((info) => {
