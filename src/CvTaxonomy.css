@@ -1057,15 +1057,24 @@
   .cvt-fan {
     max-height: 42vh;
   }
-  /* keep the theme toggle reachable up top; drop the wordier HUD labels */
+  /* keep the theme toggle reachable up top; drop the wordier HUD labels.
+     The illustrative caveat is NOT one of them: the compact fan still paints
+     every mock read-out, so hiding its label would leave invented confidences
+     and dimensions on the product uncaveated. It shrinks; it never disappears. */
   .cvt-ind,
   .cvt-hud-top .cvt-eyebrow,
-  .cvt-hud-tag,
   .cvt-filters-label {
     display: none;
   }
   .cvt-hud-top {
-    justify-content: flex-end;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .cvt-hud-tag {
+    font-size: 0.5rem;
+    letter-spacing: 0.04em;
+    padding: 0.2rem 0.35rem;
+    min-width: 0;
   }
   .cvt-hud {
     padding: 0.5rem;
