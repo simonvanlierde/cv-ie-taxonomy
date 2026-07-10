@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { CHAPTER_COPY } from "./chapters";
 import "./CvTaxonomy.css";
 import {
   cellAt,
@@ -17,21 +18,6 @@ import { useScrollProgress } from "./useScrollProgress";
 import { VerdictSwatch } from "./VerdictSwatch";
 
 type Chapter = "hero" | Scale | "outro";
-
-const CHAPTER_COPY: Record<Scale, { title: string; body: string }> = {
-  Product: {
-    title: "One product, seen whole",
-    body: "Identity is the workhorse: read the rating label, match a database. 96% of labels read in professional repair, 40% at the recycler. Geometry from a single view stays approximate, and “worth repairing?” is a verdict no benchmark yet validates.",
-  },
-  Component: {
-    title: "Pulled apart",
-    body: "Detection and segmentation can name and count parts, after domain tuning. The gap is relations: which part attaches to which (the bill of components) holds ~82% in-domain and collapses to ~39% out of distribution.",
-  },
-  Material: {
-    title: "Down to matter",
-    body: "Surface material ID works under controlled light and fails under field shift. Mass and volume are never seen, only derived (geometry × material class × density prior), and every error compounds.",
-  },
-};
 
 function chapterAt(p: number): Chapter {
   if (p < TIMELINE.heroEnd) return "hero";
