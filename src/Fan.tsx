@@ -60,9 +60,12 @@ const CHIP_PAD_R = 12;
 const CHIP_H = 34;
 const chipWidth = (text: string) => CHIP_TEXT_X + monoWidth(text, CHIP_FONT) + CHIP_PAD_R;
 
-// The fan's viewBox spans x ∈ [-250, 820]. Right-hand chips anchor to this edge
-// and grow leftwards, so a longer label can never run off the canvas.
+// The fan's viewBox spans x ∈ [-250, 820]. Both gutters anchor to an edge of it
+// rather than to hand-tuned constants: right-hand chips grow leftwards from
+// CHIP_RIGHT_EDGE, left-hand chips start at CHIP_LEFT_EDGE, so a longer label
+// can never run off the canvas and a viewBox change moves both columns.
 const CHIP_RIGHT_EDGE = 812;
+const CHIP_LEFT_EDGE = -240;
 
 const OCR_TEXT = 'OCR ▸ "TYP 4212/A"';
 const OCR_W = monoWidth(OCR_TEXT, TAG_FONT) + 10;
@@ -332,6 +335,92 @@ export function Fan({
   const segO = deco(cell("component-structure"), 0.6);
   const matO = deco(cell("material-identity"), 0.7);
 
+  // The twelve chips, one per taxonomy cell. `id` is looked up through cellById,
+  // so a typo throws at first render rather than rendering a blank chip.
+  const CALLOUTS: ({ id: string } & Omit<
+    Parameters<typeof Callout>[0],
+    "cell" | "opacity" | "active" | "selected" | "onSelect" | "onHover"
+  >)[] = [
+    // product (assembled fan)
+    {
+      id: "product-identity",
+      x: CHIP_LEFT_EDGE,
+      y: 770,
+      text: "OCR + db-match ✓",
+      lead: [sx(196), sy(737)],
+    },
+    {
+      id: "product-quantity",
+      y: 430,
+      text: "H ≈ 430 · ⌀ ≈ 300",
+      leadEdge: "left",
+      lead: [sx(500) + 14, sy(400)],
+    },
+    {
+      id: "product-condition",
+      x: CHIP_LEFT_EDGE,
+      y: 580,
+      text: "wear? (unvalidated)",
+      lead: [baC[0] - 92 * s, baC[1] + 12 * s],
+    },
+    // clear of the HUD's scale indicator, which owns the bottom-left corner
+    { id: "product-structure", x: CHIP_LEFT_EDGE, y: 676, text: "structure → component" },
+
+    // component (exploded fan)
+    {
+      id: "component-identity",
+      x: CHIP_LEFT_EDGE,
+      y: 140,
+      text: "detect ▸ 6 parts",
+      lead: [blC[0] - 106, blC[1] - 112],
+    },
+    {
+      id: "component-structure",
+      y: 300,
+      text: "segment · attached-to? E",
+      leadEdge: "left",
+      lead: [rgC[0] + 100, rgC[1] - 52],
+    },
+    {
+      id: "component-quantity",
+      x: CHIP_LEFT_EDGE,
+      y: 560,
+      text: "dims ▸ motor ≈ 135 mm",
+      lead: [moC[0] - 64, moC[1] + 62],
+    },
+    {
+      id: "component-condition",
+      x: CHIP_LEFT_EDGE,
+      y: 690,
+      text: "brush wear? (unvalidated)",
+      lead: [moC[0] - 76, moC[1] + 44],
+    },
+
+    // material (drifted parts)
+    {
+      id: "material-identity",
+      y: 170,
+      text: "steel · ABS · Cu · PCB",
+      leadEdge: "left",
+      lead: [fgC[0] + 30, fgC[1] - 52],
+    },
+    {
+      id: "material-quantity",
+      x: CHIP_LEFT_EDGE,
+      y: 140,
+      text: "mass (derived only)",
+      strike: true,
+    },
+    { id: "material-structure", y: 470, text: "structure → component" },
+    {
+      id: "material-condition",
+      y: 640,
+      text: "corrosion? (unvalidated)",
+      leadEdge: "left",
+      lead: [moC[0] + 130, moC[1] - 36],
+    },
+  ];
+
   // each part's primary silhouette, defined once and reused by the part, its
   // segmentation mask and its material tint (they must stay pixel-aligned)
   const nkR = { x: 288, y: 480, width: 24, height: 180, rx: 8 };
@@ -542,85 +631,14 @@ export function Fan({
 
       {compact ? null : (
         <>
-          {/* ---- floating info chips (the controls), one chapter at a time ---- */}
-          {/* product (assembled fan) */}
-          <Callout
-            {...co("product-identity")}
-            x={-240}
-            y={770}
-            text="OCR + db-match ✓"
-            lead={[sx(196), sy(737)]}
-          />
-          <Callout
-            {...co("product-quantity")}
-            y={430}
-            text="H ≈ 430 · ⌀ ≈ 300"
-            leadEdge="left"
-            lead={[sx(500) + 14, sy(400)]}
-          />
-          <Callout
-            {...co("product-condition")}
-            x={-240}
-            y={580}
-            text="wear? (unvalidated)"
-            lead={[baC[0] - 92 * s, baC[1] + 12 * s]}
-          />
-          {/* clear of the HUD's scale indicator, which owns the bottom-left corner */}
-          <Callout {...co("product-structure")} x={-240} y={676} text="structure → component" />
-
-          {/* component (exploded fan) */}
-          <Callout
-            {...co("component-identity")}
-            x={-245}
-            y={140}
-            text="detect ▸ 6 parts"
-            lead={[blC[0] - 106, blC[1] - 112]}
-          />
-          <Callout
-            {...co("component-structure")}
-            y={300}
-            text="segment · attached-to? E"
-            leadEdge="left"
-            lead={[rgC[0] + 100, rgC[1] - 52]}
-          />
-          <Callout
-            {...co("component-quantity")}
-            x={-245}
-            y={560}
-            text="dims ▸ motor ≈ 135 mm"
-            lead={[moC[0] - 64, moC[1] + 62]}
-          />
-          <Callout
-            {...co("component-condition")}
-            x={-245}
-            y={690}
-            text="brush wear? (unvalidated)"
-            lead={[moC[0] - 76, moC[1] + 44]}
-          />
-
-          {/* material (drifted parts) */}
-          <Callout
-            {...co("material-identity")}
-            y={170}
-            text="steel · ABS · Cu · PCB"
-            leadEdge="left"
-            lead={[fgC[0] + 30, fgC[1] - 52]}
-          />
-          <Callout
-            {...co("material-quantity")}
-            x={-245}
-            y={140}
-            text="mass (derived only)"
-            strike
-          />
-          <Callout {...co("material-structure")} y={470} text="structure → component" />
-          <Callout
-            {...co("material-condition")}
-            y={640}
-            text="corrosion? (unvalidated)"
-            leadEdge="left"
-            lead={[moC[0] + 130, moC[1] - 36]}
-          />
+          {/* ---- floating info chips (the controls), one chapter at a time.
+                 Left-gutter chips anchor to CHIP_LEFT_EDGE, right-gutter chips
+                 omit `x` and anchor to CHIP_RIGHT_EDGE, so both columns track
+                 the viewBox instead of being re-tuned by hand. Leader targets
+                 are read off the live part centres. ---- */}
+          {CALLOUTS.map(({ id, ...chip }) => (
+            <Callout key={id} {...co(id)} {...chip} />
+          ))}
         </>
       )}
     </svg>
