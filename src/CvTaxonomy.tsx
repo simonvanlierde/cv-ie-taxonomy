@@ -3,7 +3,8 @@ import "./CvTaxonomy.css";
 import { cellAt, cells, INFO_TYPES, SCALES, taxonomy, VERDICT_LETTER } from "./data/taxonomy";
 import type { Cell, InfoType, Scale, Verdict } from "./data/types";
 import { Fan } from "./Fan";
-import { rampVars, SCALE_HUE, segVars, TIMELINE } from "./theme";
+import { rampVars, SCALE_HUE, segVars } from "./theme";
+import { TIMELINE } from "./timeline";
 import { useScrollProgress } from "./useScrollProgress";
 import { VerdictSwatch } from "./VerdictSwatch";
 
@@ -155,11 +156,7 @@ export function CvTaxonomy({
               <div className="cvt-hud-bottom">
                 <ol className="cvt-ind" aria-label="Physical scale chapters">
                   {SCALES.map((s) => (
-                    <li
-                      key={s}
-                      data-active={chapter === s}
-                      style={{ ["--hue" as string]: SCALE_HUE[s] }}
-                    >
+                    <li key={s} data-active={chapter === s} style={{ "--hue": SCALE_HUE[s] }}>
                       {s}
                     </li>
                   ))}
@@ -204,7 +201,7 @@ export function CvTaxonomy({
         ref={dialogRef}
         className="cvt-panel"
         aria-label={selected ? `${selected.scale} · ${selected.informationType}` : undefined}
-        style={selected ? { ["--hue" as string]: SCALE_HUE[selected.scale] } : undefined}
+        style={selected ? { "--hue": SCALE_HUE[selected.scale] } : undefined}
         onClose={() => setSelected(null)}
         onClick={(e) => {
           // click on the backdrop (the dialog itself, outside its content) closes it
@@ -269,7 +266,7 @@ const Rail = memo(function Rail({
             key={scale}
             className="cvt-chapter"
             data-active={chapter === scale}
-            style={{ ["--hue" as string]: SCALE_HUE[scale] }}
+            style={{ "--hue": SCALE_HUE[scale] }}
           >
             {/* the prose pins while its chapter's overlays are on the stage, so the
                 two are read together rather than in sequence */}
@@ -411,7 +408,7 @@ function MatrixRow({
 }) {
   return (
     <>
-      <span className="cvt-mx-h cvt-mx-row" style={{ ["--hue" as string]: SCALE_HUE[scale] }}>
+      <span className="cvt-mx-h cvt-mx-row" style={{ "--hue": SCALE_HUE[scale] }}>
         {scale}
       </span>
       {INFO_TYPES.map((info) => {
