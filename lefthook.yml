@@ -5,7 +5,7 @@ pre-commit:
       run: pnpm biome format --write --no-errors-on-unmatched {staged_files}
       stage_fixed: true
     typecheck:
-      run: pnpm exec tsc -b
+      run: pnpm exec tsc --noEmit
 
 pre-push:
   commands:
