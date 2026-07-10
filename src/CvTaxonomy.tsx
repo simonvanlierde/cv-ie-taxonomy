@@ -11,7 +11,7 @@ import {
 } from "./data/taxonomy";
 import type { Cell, InfoType, Scale, Verdict } from "./data/types";
 import { Fan } from "./Fan";
-import { rampVars, SCALE_HUE, segVars } from "./theme";
+import { rampVars, SCALE_HUE, segVars, type Theme } from "./theme";
 import { TIMELINE } from "./timeline";
 import { useScrollProgress } from "./useScrollProgress";
 import { VerdictSwatch } from "./VerdictSwatch";
@@ -69,7 +69,7 @@ export function CvTaxonomy({
   initialCell,
   debugProgress,
 }: {
-  theme?: "light" | "dark";
+  theme?: Theme;
   /** deep-link: open this cell's panel on load */
   initialCell?: string;
   /** dev-only: pin scroll progress (?p=0.5) for screenshots. Must be finite. */
@@ -87,8 +87,36 @@ export function CvTaxonomy({
   // which beats the OS. Seeding state from `theme` instead would freeze the prop
   // at mount, so a host that switches its own theme could never move the island.
   const systemDark = useMediaQuery("(prefers-color-scheme: dark)");
-  const [themeOverride, setThemeOverride] = useState<"light" | "dark" | null>(theme ?? null);
-  const effectiveTheme: "light" | "dark" = themeOverride ?? (systemDark ? "dark" : "light");
+  const [themeOverride, setThemeOverride] = useState<Theme | null>(null);
+  const effectiveTheme: Theme = themeOverride ?? theme ?? (systemDark ? "dark" : "light");
+
+  // The island styles its own surface via [data-theme], but the page behind it
+  // (rubber-band over-scroll) is not ours to paint. Stamp the resolved theme on
+  // <html> and let the host stylesheet key off it — but only when a theme is
+  // actually in force, so an embedded island with no explicit theme keeps its
+  // hands off the host's document.
+  //
+  // Both the attribute and color-scheme: the attribute because build targets that
+  // predate light-dark() get it lowered to a prefers-color-scheme shim, which
+  // would follow the OS and ignore this toggle; color-scheme because it is what
+  // form controls and scrollbars read.
+  const forcedTheme = themeOverride ?? theme;
+  useEffect(() => {
+    if (!forcedTheme) return;
+    const root = document.documentElement;
+    const previousScheme = root.style.colorScheme;
+    const previousTheme = root.getAttribute("data-theme");
+
+    root.style.colorScheme = forcedTheme;
+    root.setAttribute("data-theme", forcedTheme);
+
+    return () => {
+      root.style.colorScheme = previousScheme;
+      if (previousTheme === null) root.removeAttribute("data-theme");
+      else root.setAttribute("data-theme", previousTheme);
+    };
+  }, [forcedTheme]);
+
   const scrollP = useScrollProgress(scrollRef, !reduceMotion);
   const p = debugProgress ?? scrollP;
   const chapter = chapterAt(p);
