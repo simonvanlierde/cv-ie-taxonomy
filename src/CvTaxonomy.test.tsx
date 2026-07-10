@@ -1,6 +1,6 @@
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, beforeAll, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { CvTaxonomy } from "./CvTaxonomy";
 import { cellById } from "./data/taxonomy";
 
@@ -8,24 +8,8 @@ import { cellById } from "./data/taxonomy";
  * The detail panel is a native <dialog>: it owns the focus trap, Esc and focus
  * return, and the component only drives open/close. That contract is the thing
  * worth testing — it is what a keyboard or screen-reader user actually meets.
+ * (matchMedia and <dialog> shims live in test-setup.ts.)
  */
-
-beforeAll(() => {
-  // jsdom implements <dialog>, but not the layout APIs the fan and the scroll
-  // hook reach for. Stub the two the render path touches.
-  window.matchMedia ??= ((query: string) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addEventListener: () => {},
-    removeEventListener: () => {},
-    addListener: () => {},
-    removeListener: () => {},
-    dispatchEvent: () => false,
-  })) as unknown as typeof window.matchMedia;
-});
-
-afterEach(cleanup);
 
 /** the mobile list renders a button per cell, id `cvt-m-<cellId>`; use it as the trigger */
 const trigger = (cellId: string) => document.getElementById(`cvt-m-${cellId}`) as HTMLElement;
@@ -148,21 +132,10 @@ describe("theme has a single owner", () => {
   });
 });
 
-describe("the mock overlays never reach the accessibility tree", () => {
-  it("hides every annotation layer, so no uncaveated confidence is announced", () => {
-    const { container } = render(<CvTaxonomy />);
-
-    const layers = container.querySelectorAll(".ov-layer");
-    expect(layers.length).toBeGreaterThan(0);
-    for (const layer of layers) {
-      expect(layer, "an overlay layer is exposed to screen readers").toHaveAttribute(
-        "aria-hidden",
-        "true",
-      );
-    }
-  });
-
-  it("renders the illustrative caveat", () => {
+describe("the illustrative caveat", () => {
+  // the per-layer aria-hidden sweep lives in Fan.test.tsx, next to the component
+  // that owns the layers; this is the integration-level half of that guarantee
+  it("is rendered alongside the mock overlays", () => {
     render(<CvTaxonomy />);
     expect(screen.getByText(/overlays illustrative, not model output/i)).toBeInTheDocument();
   });

@@ -1,5 +1,23 @@
 // jest-dom's matchers (toBeInTheDocument, toHaveAttribute, …), typed for Vitest.
 import "@testing-library/jest-dom/vitest";
+import { cleanup } from "@testing-library/react";
+import { afterEach } from "vitest";
+
+// `globals: false`, so Testing Library cannot register its own auto-cleanup:
+// without this, renders pile up in document.body across tests.
+afterEach(cleanup);
+
+// jsdom ships no matchMedia; the theme/motion/breakpoint hooks all reach for it.
+window.matchMedia ??= ((query: string) => ({
+  matches: false,
+  media: query,
+  onchange: null,
+  addEventListener: () => {},
+  removeEventListener: () => {},
+  addListener: () => {},
+  removeListener: () => {},
+  dispatchEvent: () => false,
+})) as unknown as typeof window.matchMedia;
 
 /**
  * jsdom 29 ships HTMLDialogElement but none of its methods (show, showModal,

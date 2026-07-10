@@ -22,7 +22,9 @@ export const TIMELINE = {
   productEnd: 0.36,
   componentEnd: 0.64,
   materialEnd: 0.86,
-  explode: [0.28, 0.41],
+  // each motion beat starts exactly where the chapter above it starts fading
+  // (presence fadeOutStart) and settles before the next chapter is fully in
+  explode: [0.33, 0.43],
   drift: [0.58, 0.67],
   presence: {
     Product: [0.1, 0.16, 0.33, 0.4],
