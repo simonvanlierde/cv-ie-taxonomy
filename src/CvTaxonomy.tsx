@@ -3,7 +3,7 @@ import "./CvTaxonomy.css";
 import { cellAt, cells, INFO_TYPES, SCALES, taxonomy, VERDICT_LETTER } from "./data/taxonomy";
 import type { Cell, InfoType, Scale, Verdict } from "./data/types";
 import { Fan } from "./Fan";
-import { rampVars, SCALE_HUE, TIMELINE } from "./theme";
+import { rampVars, SCALE_HUE, segVars, TIMELINE } from "./theme";
 import { useScrollProgress } from "./useScrollProgress";
 import { VerdictSwatch } from "./VerdictSwatch";
 
@@ -118,7 +118,11 @@ export function CvTaxonomy({
   }, [selected]);
 
   return (
-    <div className="cvt" data-theme={effectiveTheme} style={rampVars(effectiveTheme)}>
+    <div
+      className="cvt"
+      data-theme={effectiveTheme}
+      style={{ ...rampVars(effectiveTheme), ...segVars(effectiveTheme) }}
+    >
       <div className="cvt-scroll" ref={scrollRef}>
         {/* ---- sticky stage: the fan IS the interface ---- */}
         <div className="cvt-stagecol">

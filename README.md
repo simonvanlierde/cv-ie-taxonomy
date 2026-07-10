@@ -53,7 +53,11 @@ diagonal hatch = P, dots = E, ring = U, dashed hollow = A). Colour is reserved f
 physical scale (colourblind-safe Okabe–Ito triad), and carried by swatches rather than
 by coloured text, which would not clear 4.5:1 on either surface;
 material tints are true material colours
-(copper, steel, ABS, PCB). The SVG read-outs are keyboard-operable buttons with
+(copper, steel, ABS, PCB). The instance-segmentation overlay hues — a deliberate quote of
+COCO/YOLO output — are selected per theme rather than flipped: neon on the dark surface,
+darkened to the same hues on the light one, where the neon reads at 1.2–2.2:1. Every mask
+and box also carries a class label, so identity never rests on hue.
+The SVG read-outs are keyboard-operable buttons with
 full aria-labels, matrix cells and mobile rows are real buttons, the detail panel
 is a dialog closed with `Esc`, and `prefers-reduced-motion` disables the idle spin
 and scroll smoothing. Dark theme in dark mode, light in light. The host can force
