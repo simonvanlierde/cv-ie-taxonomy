@@ -62,7 +62,7 @@ export function VerdictSwatch({
       width={size}
       height={size}
       viewBox="0 0 26 26"
-      aria-hidden
+      aria-hidden="true"
       className="cvt-glyphbox"
     >
       <defs>

@@ -13,7 +13,10 @@ if (theme === "dark" || theme === "light") {
   document.body.style.backgroundColor = theme === "dark" ? "#0b1622" : "#dce8f1";
 }
 
-createRoot(document.getElementById("root")!).render(
+const root = document.getElementById("root");
+if (!root) throw new Error("index.html is missing #root");
+
+createRoot(root).render(
   <StrictMode>
     <CvTaxonomy
       theme={theme === "dark" || theme === "light" ? theme : undefined}
