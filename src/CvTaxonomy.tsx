@@ -164,11 +164,9 @@ export function CvTaxonomy({
                     </li>
                   ))}
                 </ol>
-                <div className="cvt-filtergroup">
-                  <span className="cvt-filters-label" aria-hidden>
-                    filter ▸ information type
-                  </span>
-                  <div className="cvt-filters" role="group" aria-label="Filter by information type">
+                <fieldset className="cvt-filtergroup">
+                  <legend className="cvt-filters-label">filter ▸ information type</legend>
+                  <div className="cvt-filters">
                     {INFO_TYPES.map((info) => (
                       <button
                         key={info}
@@ -181,7 +179,7 @@ export function CvTaxonomy({
                       </button>
                     ))}
                   </div>
-                </div>
+                </fieldset>
               </div>
             </div>
           </div>

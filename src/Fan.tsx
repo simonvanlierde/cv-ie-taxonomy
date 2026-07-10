@@ -141,7 +141,7 @@ const spokes = (n: number, r0: number, r1: number, cx = 300, cy = 400) =>
     const a = (i * 2 * Math.PI) / n;
     return (
       <line
-        key={i}
+        key={a}
         x1={cx + r0 * Math.cos(a)}
         y1={cy + r0 * Math.sin(a)}
         x2={cx + r1 * Math.cos(a)}
@@ -204,6 +204,7 @@ function Callout({
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
+    // biome-ignore lint/a11y/useSemanticElements: SVG has no <button>; a role on <g> is the only way to make an in-drawing hotspot operable
           onSelect(cell, hid);
         }
       }}
@@ -358,15 +359,8 @@ export function Fan({
 
         <g className="fan-part" transform={at(V.mo, Z.mo)}>
           <rect {...moR} />
-          {Array.from({ length: 6 }, (_, i) => (
-            <line
-              key={i}
-              className="fan-winding"
-              x1={296 + i * 9}
-              y1="384"
-              x2={296 + i * 9}
-              y2="440"
-            />
+          {Array.from({ length: 6 }, (_, i) => 296 + i * 9).map((x) => (
+            <line key={x} className="fan-winding" x1={x} y1="384" x2={x} y2="440" />
           ))}
           <circle cx="262" cy="412" r="8" />
           <rect

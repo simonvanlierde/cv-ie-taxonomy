@@ -3,7 +3,7 @@ import { type RefObject, useEffect, useState } from "react";
 
 // Weighty, overdamped spring: the fan is heavy hardware being taken apart, so
 // parts glide and settle — no cartoon overshoot. This is the feel knob.
-// ponytail: tune stiffness/damping/mass here if the scrub feels off.
+// NOTE: tune stiffness/damping/mass here if the scrub feels off.
 const SPRING = { stiffness: 120, damping: 25, mass: 0.7 } as const;
 
 /**
@@ -11,7 +11,7 @@ const SPRING = { stiffness: 120, damping: 25, mass: 0.7 } as const;
  * weighty feel. `smooth: false` (reduced motion) maps 1:1.
  *
  * Returns a plain number so the SVG coordinate math in Fan stays unchanged.
- * ponytail: per-frame React re-render is retained (same as before). If a
+ * NOTE: per-frame React re-render is retained (same as before). If a
  * profiler shows scrub jank, drive Fan's transforms off the MotionValue
  * directly (useTransform + motion.g) to skip the re-render — not before.
  */
