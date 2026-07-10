@@ -39,18 +39,25 @@
   font-display: swap;
 }
 
+/* Palette. Each token is declared once, as light-dark(light, dark); which arm
+   wins is decided by the element's used color-scheme, so the OS preference, the
+   host's `theme` prop and the in-page toggle all flow through a single switch
+   (`color-scheme` on .cvt) instead of three restatements of the same 10 values.
+   The dark arm is the blueprint ground; the light arm is cyanotype paper:
+   pale blue-white ground, Prussian-navy ink. */
 .cvt {
-  /* dark blueprint (default) */
-  --cvt-bg: #0b1622;
-  --cvt-bg2: #0f1d2e;
-  --cvt-grid: rgba(125, 165, 205, 0.09);
-  --cvt-ink: #e8f1f8;
-  --cvt-ink-dim: #8ba6bd;
-  --cvt-line: rgba(190, 215, 235, 0.38);
-  --cvt-card: rgba(255, 255, 255, 0.035);
-  --cvt-card-hi: rgba(255, 255, 255, 0.07);
-  --cvt-panel: #101f30;
-  --cvt-warn: #ffb454;
+  color-scheme: light dark;
+
+  --cvt-bg: light-dark(#dce8f1, #0b1622);
+  --cvt-bg2: light-dark(#cedded, #0f1d2e);
+  --cvt-grid: light-dark(rgba(19, 70, 122, 0.1), rgba(125, 165, 205, 0.09));
+  --cvt-ink: light-dark(#0e2740, #e8f1f8);
+  --cvt-ink-dim: light-dark(#40607b, #8ba6bd);
+  --cvt-line: light-dark(rgba(16, 58, 100, 0.4), rgba(190, 215, 235, 0.38));
+  --cvt-card: light-dark(rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.035));
+  --cvt-card-hi: light-dark(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.07));
+  --cvt-panel: light-dark(#e7eff7, #101f30);
+  --cvt-warn: light-dark(#b45309, #ffb454);
 
   --cvt-mono: "Overpass Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --cvt-display: "Overpass", "IBM Plex Sans", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
@@ -69,45 +76,12 @@
   overflow-x: clip;
 }
 
-@media (prefers-color-scheme: light) {
-  .cvt {
-    /* cyanotype blueprint paper: pale blue-white ground, Prussian-navy ink */
-    --cvt-bg: #dce8f1;
-    --cvt-bg2: #cedded;
-    --cvt-grid: rgba(19, 70, 122, 0.1);
-    --cvt-ink: #0e2740;
-    --cvt-ink-dim: #40607b;
-    --cvt-line: rgba(16, 58, 100, 0.4);
-    --cvt-card: rgba(255, 255, 255, 0.55);
-    --cvt-card-hi: rgba(255, 255, 255, 0.85);
-    --cvt-panel: #e7eff7;
-    --cvt-warn: #b45309;
-  }
-}
-/* host-forced theme wins over the media query */
+/* host prop or in-page toggle: pin the scheme, and every light-dark() follows */
 .cvt[data-theme="dark"] {
-  --cvt-bg: #0b1622;
-  --cvt-bg2: #0f1d2e;
-  --cvt-grid: rgba(125, 165, 205, 0.09);
-  --cvt-ink: #e8f1f8;
-  --cvt-ink-dim: #8ba6bd;
-  --cvt-line: rgba(190, 215, 235, 0.38);
-  --cvt-card: rgba(255, 255, 255, 0.035);
-  --cvt-card-hi: rgba(255, 255, 255, 0.07);
-  --cvt-panel: #101f30;
-  --cvt-warn: #ffb454;
+  color-scheme: dark;
 }
 .cvt[data-theme="light"] {
-  --cvt-bg: #dce8f1;
-  --cvt-bg2: #cedded;
-  --cvt-grid: rgba(19, 70, 122, 0.1);
-  --cvt-ink: #0e2740;
-  --cvt-ink-dim: #40607b;
-  --cvt-line: rgba(16, 58, 100, 0.4);
-  --cvt-card: rgba(255, 255, 255, 0.55);
-  --cvt-card-hi: rgba(255, 255, 255, 0.85);
-  --cvt-panel: #e7eff7;
-  --cvt-warn: #b45309;
+  color-scheme: light;
 }
 
 /* ---- shared bits ------------------------------------------------------------- */
@@ -176,7 +150,6 @@
 .cvt-sticky {
   position: sticky;
   top: 0;
-  height: 100vh;
   height: 100dvh;
   display: flex;
   align-items: center;
@@ -189,20 +162,19 @@
   display: block;
 }
 
-/* fan parts */
-.fan-part rect,
-.fan-part circle,
-.fan-part path {
+/* fan parts. :where() drops this to specificity 0, so the class rules below —
+   and the overlay classes painted on the same shapes — override it plainly. */
+:where(.fan-part rect, .fan-part circle, .fan-part path) {
   stroke: var(--cvt-ink);
   stroke-width: 2;
   fill: var(--cvt-bg2);
 }
 .fan-ring {
-  fill: none !important;
+  fill: none;
   stroke-width: 3;
 }
 .fan-ring-thin {
-  fill: none !important;
+  fill: none;
   stroke-width: 1;
   opacity: 0.7;
 }
@@ -218,12 +190,12 @@
   fill: var(--cvt-bg2);
 }
 .fan-winding {
-  stroke: var(--cvt-ink-dim) !important;
-  stroke-width: 1 !important;
+  stroke: var(--cvt-ink-dim);
+  stroke-width: 1;
 }
 .fan-dot {
-  fill: var(--cvt-ink-dim) !important;
-  stroke: none !important;
+  fill: var(--cvt-ink-dim);
+  stroke: none;
 }
 .fan-label rect {
   fill: var(--cvt-card-hi);
@@ -250,24 +222,24 @@
 
 /* material tints (illustrative material colours, not maturity) */
 .mat-tint {
-  stroke: none !important;
+  stroke: none;
   pointer-events: none;
   transition: opacity 0.25s ease;
 }
 .mat-steel {
-  fill: #9ba7b0 !important;
+  fill: #9ba7b0;
   fill-opacity: 0.28;
 }
 .mat-abs {
-  fill: #5b6770 !important;
+  fill: #5b6770;
   fill-opacity: 0.38;
 }
 .mat-cu {
-  fill: #b87333 !important;
+  fill: #b87333;
   fill-opacity: 0.34;
 }
 .mat-pcb {
-  fill: #2e7d4f !important;
+  fill: #2e7d4f;
   fill-opacity: 0.3;
 }
 
@@ -327,10 +299,10 @@
 
 /* instance-segmentation mask fills (ride the parts) */
 .ov-segfill {
-  fill: var(--c) !important;
+  fill: var(--c);
   fill-opacity: 0.36;
-  stroke: var(--c) !important;
-  stroke-width: 2.5 !important;
+  stroke: var(--c);
+  stroke-width: 2.5;
   stroke-opacity: 0.9;
   pointer-events: none;
   transition: opacity 0.25s ease;
@@ -380,12 +352,6 @@
 .cvt-co[data-selected="true"] .cvt-co-bg {
   stroke-width: 2.4;
 }
-.cvt-co[data-ghost="true"] .cvt-co-bg {
-  stroke-dasharray: 4 4;
-}
-.cvt-co[data-ghost="true"] .cvt-co-text {
-  fill: var(--cvt-ink-dim);
-}
 .cvt-co-letter {
   font-family: var(--cvt-display);
   font-size: 18px;
@@ -396,6 +362,12 @@
   font-family: var(--cvt-mono);
   font-size: 14.5px;
   fill: var(--cvt-ink);
+}
+.cvt-co[data-ghost="true"] .cvt-co-bg {
+  stroke-dasharray: 4 4;
+}
+.cvt-co[data-ghost="true"] .cvt-co-text {
+  fill: var(--cvt-ink-dim);
 }
 .cvt-co:focus {
   outline: none;
@@ -504,13 +476,21 @@
   background: var(--hue);
   width: 30px;
 }
+/* a <fieldset>, so the chips are a named group without an ARIA role */
 .cvt-filtergroup {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-inline-size: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 0.4rem;
 }
+/* the <legend> renders outside the fieldset's flex box, so it right-aligns itself */
 .cvt-filters-label {
+  margin-inline-start: auto;
+  padding: 0;
   font-family: var(--cvt-mono);
   font-size: 0.6rem;
   letter-spacing: 0.2em;
@@ -987,7 +967,8 @@
   color: var(--cvt-ink-dim);
   margin-bottom: 0.2rem;
 }
-.cvt-row dd {
+/* :where() so a class on the <dd> (.cvt-mono) can set its own font-size */
+:where(.cvt-row) dd {
   margin: 0;
   font-size: 0.9rem;
   line-height: 1.5;
@@ -997,7 +978,7 @@
 }
 .cvt-mono {
   font-family: var(--cvt-mono);
-  font-size: 0.82rem !important;
+  font-size: 0.82rem;
 }
 .cvt-panel-foot {
   display: flex;
@@ -1065,7 +1046,6 @@
   }
   .cvt-sticky {
     position: static;
-    height: 44vh;
     height: 44dvh;
     background-color: var(--cvt-bg);
     background-image:
@@ -1177,18 +1157,26 @@
 }
 
 /* ---- reduced motion --------------------------------------------------------------------------- */
+/* `.cvt *` is only (0,1,0), so every rule above that animates from a higher
+   specificity is named here too. Keep this list in step with the transition
+   and animation declarations; it is what lets the reset win without !important. */
 @media (prefers-reduced-motion: reduce) {
   .cvt *,
+  .cvt-ind li,
+  .cvt-ind li::before,
   .cvt-panel,
-  .cvt-panel::backdrop {
-    transition: none !important;
-    animation: none !important;
+  .cvt-panel::backdrop,
+  .fan-spin[data-spin="true"],
+  .ov-ocr[data-active="true"] .ov-ocr-reveal,
+  .ov-ocr[data-active="true"] .ov-caret {
+    transition: none;
+    animation: none;
   }
-  /* with animations off, show the OCR read-out fully typed */
-  .ov-ocr-reveal {
-    width: var(--ocr-w) !important;
+  /* with animations off, show the OCR read-out fully typed and drop the caret */
+  .ov-ocr[data-active="true"] .ov-ocr-reveal {
+    width: var(--ocr-w);
   }
-  .ov-caret {
-    opacity: 0 !important;
+  .ov-ocr[data-active="true"] .ov-caret {
+    opacity: 0;
   }
 }
