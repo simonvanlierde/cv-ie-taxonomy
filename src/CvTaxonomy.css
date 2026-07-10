@@ -9,6 +9,10 @@
    identically on every machine, not left to a system fallback.
    =========================================================================== */
 
+/* --cvt-bg is generated from theme.ts (the surface's single source); the rest of
+   the palette lives below. Run `pnpm gen:theme` after changing SURFACE. */
+@import "./theme.generated.css";
+
 /* Type system — engineering-drawing register.
    Display + data are one superfamily: Overpass (Highway-Gothic / DIN lineage)
    and its Overpass Mono sibling, so the headlines and the machine read-outs
@@ -48,7 +52,7 @@
 .cvt {
   color-scheme: light dark;
 
-  --cvt-bg: light-dark(#dce8f1, #0b1622);
+  /* --cvt-bg comes from theme.generated.css (imported above) */
   --cvt-bg2: light-dark(#cedded, #0f1d2e);
   --cvt-grid: light-dark(rgba(19, 70, 122, 0.1), rgba(125, 165, 205, 0.09));
   --cvt-ink: light-dark(#0e2740, #e8f1f8);
@@ -1200,6 +1204,7 @@
    .cvt so an embedding host's own motion is left alone. ::backdrop is a
    pseudo-element `*` cannot reach, hence the one explicit addition. */
 @media (prefers-reduced-motion: reduce) {
+  /* biome-ignore-start lint/complexity/noImportantStyles: the accessibility kill-switch — !important is what lets it beat every animating rule regardless of specificity, the one place it is the correct tool */
   .cvt *,
   .cvt *::before,
   .cvt *::after,
@@ -1209,6 +1214,7 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+  /* biome-ignore-end lint/complexity/noImportantStyles: end kill-switch */
   /* with animations off, show the OCR read-out fully typed and drop the caret */
   .ov-ocr[data-active="true"] .ov-ocr-reveal {
     width: var(--ocr-w);
