@@ -280,11 +280,12 @@
 .ov-bbox-r {
   fill: none;
   stroke: var(--c, var(--cvt-ink));
-  stroke-width: 2;
+  stroke-width: 2.5;
 }
+/* font-size pairs with TAG_FONT in Fan.tsx, which sizes the plate around it */
 .ov-tag text {
   font-family: var(--cvt-mono);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   fill: #0b1622;
 }
@@ -327,36 +328,36 @@
 /* instance-segmentation mask fills (ride the parts) */
 .ov-segfill {
   fill: var(--c) !important;
-  fill-opacity: 0.32;
+  fill-opacity: 0.36;
   stroke: var(--c) !important;
-  stroke-width: 2 !important;
+  stroke-width: 2.5 !important;
   stroke-opacity: 0.9;
   pointer-events: none;
   transition: opacity 0.25s ease;
 }
 .ov-leader {
   stroke: var(--cvt-line);
-  stroke-width: 1;
+  stroke-width: 1.2;
 }
 .ov-dim line {
   stroke: var(--cvt-ink-dim);
-  stroke-width: 1;
+  stroke-width: 1.4;
 }
 .ov-dim text {
   font-family: var(--cvt-mono);
-  font-size: 11px;
+  font-size: 13px;
   fill: var(--cvt-ink-dim);
 }
 .ov-blob {
   fill: none;
   stroke: var(--cvt-warn);
-  stroke-width: 1.6;
+  stroke-width: 2;
   stroke-dasharray: 5 4;
 }
 .ov-rel {
   fill: none;
   stroke: #009e73;
-  stroke-width: 1.6;
+  stroke-width: 2;
   stroke-dasharray: 6 5;
 }
 .ov-strike {
@@ -387,13 +388,13 @@
 }
 .cvt-co-letter {
   font-family: var(--cvt-display);
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
   fill: var(--cvt-ink);
 }
 .cvt-co-text {
   font-family: var(--cvt-mono);
-  font-size: 12.5px;
+  font-size: 14.5px;
   fill: var(--cvt-ink);
 }
 .cvt-co:focus {
@@ -630,6 +631,15 @@
 .cvt-chapter {
   min-height: 120vh;
   padding: 24vh 0 4rem;
+}
+/* Desktop only: pin the prose while its chapter's overlays hold the stage, so the
+   reader is not asked to remember the paragraph they scrolled past. On mobile the
+   stage is already pinned to the top and a second sticky layer would fight it. */
+@media (min-width: 881px) {
+  .cvt-chapter-inner {
+    position: sticky;
+    top: 28vh;
+  }
 }
 .cvt-chapter h2,
 .cvt-outro h2 {

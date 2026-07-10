@@ -53,9 +53,21 @@ const SEG = {
 // (0.616em per glyph), so a label can never outrun its own box. Keep the
 // font sizes in step with .ov-tag text / .cvt-co-text in the stylesheet.
 const MONO_ADVANCE = 0.616;
-const TAG_FONT = 11;
-const CHIP_FONT = 12.5;
+const TAG_FONT = 13;
+const CHIP_FONT = 14.5;
 const monoWidth = (label: string, fontSize: number) => label.length * fontSize * MONO_ADVANCE;
+
+const TAG_H = 21; // class-tag plate height, sized to TAG_FONT
+
+// chip plate: [swatch | letter | text], padded
+const CHIP_TEXT_X = 54;
+const CHIP_PAD_R = 12;
+const CHIP_H = 34;
+const chipWidth = (text: string) => CHIP_TEXT_X + monoWidth(text, CHIP_FONT) + CHIP_PAD_R;
+
+// The fan's viewBox spans x ∈ [-250, 820]. Right-hand chips anchor to this edge
+// and grow leftwards, so a longer label can never run off the canvas.
+const CHIP_RIGHT_EDGE = 812;
 
 const OCR_TEXT = 'OCR ▸ "TYP 4212/A"';
 const OCR_W = monoWidth(OCR_TEXT, TAG_FONT) + 10;
@@ -66,8 +78,8 @@ function Tag({ x, y, label, color }: { x: number; y: number; label: string; colo
   const w = monoWidth(label, TAG_FONT) + 10;
   return (
     <g className="ov-tag" transform={`translate(${x} ${y})`}>
-      <rect width={w} height="18" rx="2" fill={color} />
-      <text x="5" y="13">
+      <rect width={w} height={TAG_H} rx="2" fill={color} />
+      <text x="5" y="15">
         {label}
       </text>
     </g>
@@ -93,7 +105,7 @@ function BBox({
   return (
     <g className="ov-bbox" style={{ ["--c" as string]: color }}>
       <rect className="ov-bbox-r" x={x} y={y} width={w} height={h} />
-      <Tag x={x} y={y - 18} label={label} color={color} />
+      <Tag x={x} y={y - TAG_H} label={label} color={color} />
     </g>
   );
 }
@@ -153,7 +165,8 @@ function Callout({
   onHover,
 }: {
   cell: Cell;
-  x: number;
+  /** left edge; omit and the chip anchors its right edge to CHIP_RIGHT_EDGE */
+  x?: number;
   y: number;
   text: string;
   lead?: readonly [number, number];
@@ -165,11 +178,12 @@ function Callout({
   onHover: (cell: Cell | null) => void;
 }) {
   const letter = VERDICT_LETTER[cell.maturity];
-  const w = 50 + monoWidth(text, CHIP_FONT) + 12;
+  const w = chipWidth(text);
+  const X = x ?? CHIP_RIGHT_EDGE - w;
   const hid = `cvt-co-${cell.id}`;
   const active = opacity > 0.5;
   const start: [number, number] =
-    leadEdge === "right" ? [w, -5] : leadEdge === "left" ? [0, -5] : [w / 2, -20];
+    leadEdge === "right" ? [w, -6] : leadEdge === "left" ? [0, -6] : [w / 2, -23];
   return (
     <g
       id={hid}
@@ -180,7 +194,7 @@ function Callout({
       tabIndex={active ? 0 : -1}
       aria-label={`${cell.scale} · ${cell.informationType}: ${cell.task}. Maturity: ${cell.maturity}. Open details.`}
       aria-hidden={!active}
-      transform={`translate(${x} ${y})`}
+      transform={`translate(${X} ${y})`}
       style={{
         opacity,
         pointerEvents: active ? undefined : "none",
@@ -199,17 +213,17 @@ function Callout({
       onBlur={() => onHover(null)}
     >
       {lead && (
-        <line className="ov-leader" x1={start[0]} y1={start[1]} x2={lead[0] - x} y2={lead[1] - y} />
+        <line className="ov-leader" x1={start[0]} y1={start[1]} x2={lead[0] - X} y2={lead[1] - y} />
       )}
-      <rect className="cvt-co-bg" x="0" y="-20" width={w} height="30" rx="7" />
-      <VerdictSwatch verdict={cell.maturity} size={18} x={8} y={-15} />
-      <text className="cvt-co-letter" x="32" y="1">
+      <rect className="cvt-co-bg" x="0" y="-23" width={w} height={CHIP_H} rx="8" />
+      <VerdictSwatch verdict={cell.maturity} size={21} x={9} y={-17} />
+      <text className="cvt-co-letter" x="35" y="1">
         {letter}
       </text>
-      <text className="cvt-co-text" x="50" y="0">
+      <text className="cvt-co-text" x={CHIP_TEXT_X} y="0">
         {text}
       </text>
-      {strike && <line className="ov-strike" x1="48" y1="-5" x2={w - 8} y2="-5" />}
+      {strike && <line className="ov-strike" x1={CHIP_TEXT_X - 2} y1="-5" x2={w - 9} y2="-5" />}
     </g>
   );
 }
@@ -448,15 +462,15 @@ export function Fan({
           }}
         >
           <clipPath id="cvt-ocr-clip">
-            <rect className="ov-ocr-reveal" x="0" y="0" width={OCR_W} height="18" />
+            <rect className="ov-ocr-reveal" x="0" y="0" width={OCR_W} height={TAG_H} />
           </clipPath>
-          <rect width={OCR_W} height="18" rx="2" fill={SCALE_HUE.Product} />
+          <rect width={OCR_W} height={TAG_H} rx="2" fill={SCALE_HUE.Product} />
           <g clipPath="url(#cvt-ocr-clip)">
-            <text x="5" y="13">
+            <text x="5" y="15">
               {OCR_TEXT}
             </text>
           </g>
-          <rect className="ov-caret" y="3" width="6" height="12" />
+          <rect className="ov-caret" y="4" width="7" height="14" />
         </g>
       </g>
       <g className="ov-layer" style={{ opacity: deco(cell("product-quantity")) }}>
@@ -503,7 +517,8 @@ export function Fan({
       </g>
       <g className="ov-layer" style={{ opacity: deco(cell("component-condition")) }}>
         <ellipse className="ov-blob" cx={moC[0] - 40} cy={moC[1] + 18} rx="18" ry="12" />
-        <Tag x={moC[0] - 168} y={moC[1] + 2} label="anomaly? · 0.6" color={SEG.warn} />
+        {/* clear of the motor box's left edge, which sits at moC − 62 */}
+        <Tag x={moC[0] - 190} y={moC[1] + 2} label="anomaly? · 0.6" color={SEG.warn} />
       </g>
 
       {/* material · identity: material tags on the tinted parts */}
@@ -531,7 +546,6 @@ export function Fan({
           />
           <Callout
             {...co("product-quantity")}
-            x={600}
             y={430}
             text="H ≈ 430 · ⌀ ≈ 300"
             leadEdge="left"
@@ -557,7 +571,6 @@ export function Fan({
           />
           <Callout
             {...co("component-structure")}
-            x={570}
             y={300}
             text="segment · attached-to? E"
             leadEdge="left"
@@ -581,7 +594,6 @@ export function Fan({
           {/* material (drifted parts) */}
           <Callout
             {...co("material-identity")}
-            x={570}
             y={170}
             text="steel · ABS · Cu · PCB"
             leadEdge="left"
@@ -594,10 +606,9 @@ export function Fan({
             text="mass (derived only)"
             strike
           />
-          <Callout {...co("material-structure")} x={570} y={470} text="structure → component" />
+          <Callout {...co("material-structure")} y={470} text="structure → component" />
           <Callout
             {...co("material-condition")}
-            x={570}
             y={640}
             text="corrosion? (unvalidated)"
             leadEdge="left"
