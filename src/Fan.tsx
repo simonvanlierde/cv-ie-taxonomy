@@ -33,7 +33,9 @@ const BLADES = [0, 120, 240]; // blade rotations about the hub (300 400)
 // Both plates size themselves from the real advance of the mono face
 // (0.616em per glyph), so a label can never outrun its own box. The <text>
 // elements take their font-size from these same constants, so the plate math
-// and the rendered glyphs cannot drift apart.
+// and the rendered glyphs cannot drift apart. Labels stay within the shipped
+// Overpass Mono subset (ASCII + · × Ø …), so every glyph really advances
+// 0.616em — a symbol outside it would fall back to a differently-spaced face.
 const MONO_ADVANCE = 0.616;
 const TAG_FONT = 13;
 const CHIP_FONT = 14.5;
@@ -59,7 +61,7 @@ const CHIP_LEFT_EDGE = VIEW.x + 10;
 // operable and its OCR read-out starts typing. One threshold, used everywhere.
 const ON_STAGE = 0.5;
 
-const OCR_TEXT = 'OCR ▸ "TYP 4212/A"';
+const OCR_TEXT = 'OCR > "TYP 4212/A"';
 const OCR_W = monoWidth(OCR_TEXT, TAG_FONT) + 10;
 
 // ---- CV-annotation primitives -----------------------------------------------------
@@ -348,13 +350,13 @@ export function Fan({
       id: "product-identity",
       x: CHIP_LEFT_EDGE,
       y: 770,
-      text: "OCR + db-match ✓",
+      text: "OCR + db-match ok",
       lead: [sx(196), sy(737)],
     },
     {
       id: "product-quantity",
       y: 430,
-      text: "H ≈ 430 · ⌀ ≈ 300",
+      text: "H ~ 430 · Ø ~ 300",
       leadEdge: "left",
       lead: [sx(500) + 14, sy(400)],
     },
@@ -366,14 +368,14 @@ export function Fan({
       lead: [baC[0] - 92 * s, baC[1] + 12 * s],
     },
     // clear of the HUD's scale indicator, which owns the bottom-left corner
-    { id: "product-structure", x: CHIP_LEFT_EDGE, y: 676, text: "structure → component" },
+    { id: "product-structure", x: CHIP_LEFT_EDGE, y: 676, text: "structure -> component" },
 
     // component (exploded fan)
     {
       id: "component-identity",
       x: CHIP_LEFT_EDGE,
       y: 140,
-      text: "detect ▸ 6 parts",
+      text: "detect > 6 parts",
       lead: [blC[0] - 106, blC[1] - 112],
     },
     {
@@ -387,7 +389,7 @@ export function Fan({
       id: "component-quantity",
       x: CHIP_LEFT_EDGE,
       y: 560,
-      text: "dims ▸ motor ≈ 135 mm",
+      text: "dims > motor ~ 135 mm",
       lead: [moC[0] - 64, moC[1] + 62],
     },
     {
@@ -413,7 +415,7 @@ export function Fan({
       text: "mass (derived only)",
       strike: true,
     },
-    { id: "material-structure", y: 470, text: "structure → component" },
+    { id: "material-structure", y: 470, text: "structure -> component" },
     {
       id: "material-condition",
       y: 640,
@@ -574,8 +576,8 @@ export function Fan({
         </g>
       </Layer>
       <Layer opacity={deco(cell("product-quantity"))}>
-        <DimV x={sx(500)} y1={fgC[1] - 122 * s} y2={baC[1] + 26 * s} label="≈ 430 mm" />
-        <DimH y={fgC[1] - 140 * s} x1={fgC[0] - 122 * s} x2={fgC[0] + 122 * s} label="⌀ ≈ 300 mm" />
+        <DimV x={sx(500)} y1={fgC[1] - 122 * s} y2={baC[1] + 26 * s} label="~ 430 mm" />
+        <DimH y={fgC[1] - 140 * s} x1={fgC[0] - 122 * s} x2={fgC[0] + 122 * s} label="Ø ~ 300 mm" />
       </Layer>
       <Layer opacity={deco(cell("product-condition"))}>
         <ellipse
@@ -613,7 +615,7 @@ export function Fan({
         <Tag x={rgC[0] + 96} y={rgC[1] - 66} label="attached-to?" color={SEG.rg} />
       </Layer>
       <Layer opacity={deco(cell("component-quantity"))}>
-        <DimH y={moC[1] + 64} x1={moC[0] - 62} x2={moC[0] + 62} label="≈ 135 mm" />
+        <DimH y={moC[1] + 64} x1={moC[0] - 62} x2={moC[0] + 62} label="~ 135 mm" />
       </Layer>
       <Layer opacity={deco(cell("component-condition"))}>
         <ellipse className="ov-blob" cx={moC[0] - 40} cy={moC[1] + 18} rx="18" ry="12" />
