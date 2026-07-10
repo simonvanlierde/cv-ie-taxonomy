@@ -6,7 +6,7 @@ data, at which physical scale, and how far you can trust it. A self-contained
 React + TypeScript island: runs standalone, drops into an Astro/Next portfolio,
 and doubles as the interactive companion to the paper's Table S1.
 
-![Exploded fan with interactive CV read-outs](docs/screenshot.png)
+![Exploded fan with interactive CV read-outs](public/screenshot.png)
 
 <!-- Live link: TODO once deployed -->
 
