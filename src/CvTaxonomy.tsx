@@ -147,7 +147,9 @@ export function CvTaxonomy({
   const [zoomFrame, setZoomFrame] = useState<Frame | null>(() =>
     initialCell ? (FRAMES[initialCell] ?? null) : null,
   );
-  const viewBox = useCamera(zoomFrame ?? HOME_FRAME, reduceMotion);
+  // On mobile the compact fan ignores this viewBox, so cut instantly rather than
+  // burn a per-frame spring re-rendering the whole tree for output nobody sees.
+  const viewBox = useCamera(zoomFrame ?? HOME_FRAME, reduceMotion || isMobile);
 
   const focus = hovered ?? selected;
   const isDim = (c: Cell) => isDimmed(activeInfo, c);
