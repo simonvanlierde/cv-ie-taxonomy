@@ -186,7 +186,7 @@
     opacity 0.18s,
     filter 0.18s;
 }
-.cvt-fan[data-diagram="true"] [data-part]:not([data-highlight="true"]) {
+.cvt-fan[data-diagram="true"][data-has-selection] [data-part]:not([data-highlight="true"]) {
   opacity: 0.4;
 }
 .cvt-fan[data-diagram="true"] [data-part][data-highlight="true"] {
@@ -1037,6 +1037,12 @@
   .cvt-verdict .cvt-glyphbox {
     view-transition-name: none;
   }
+}
+/* the inline detail (Explorable) has no morph target — without this it would
+   claim the same view-transition-name as the act-one modal's header glyph
+   whenever both are mounted, and the browser silently skips the transition */
+.cvt-inline-detail .cvt-glyphbox {
+  view-transition-name: none;
 }
 .cvt-subverdicts {
   list-style: none;

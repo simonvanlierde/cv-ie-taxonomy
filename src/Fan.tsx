@@ -347,8 +347,8 @@ export function Fan({
   // a worn fan shouldn't spin merrily: hovering a Condition cell stops it
   const spinning =
     !compact && !diagram && !reduceMotion && e < 0.15 && focus?.informationType !== "Condition";
-  const segO = deco(cell("component-structure"), 0.6);
-  const matO = deco(cell("material-identity"), 0.7);
+  const segO = diagram ? 0 : deco(cell("component-structure"), 0.6);
+  const matO = diagram ? 0 : deco(cell("material-identity"), 0.7);
 
   // The twelve chips, one per taxonomy cell. `id` is looked up through cellById,
   // so a typo throws at first render rather than rendering a blank chip. Declared
@@ -456,9 +456,14 @@ export function Fan({
       className={compact ? "cvt-fan cvt-fan-compact" : "cvt-fan"}
       viewBox={compact ? "120 -40 420 910" : (viewBox ?? frameToViewBox(VIEW))}
       role="group"
-      aria-label="Exploding desk fan; the computer-vision read-outs around it open task details"
+      aria-label={
+        diagram
+          ? "Exploded desk fan diagram; the selected task's part is highlighted"
+          : "Exploding desk fan; the computer-vision read-outs around it open task details"
+      }
       preserveAspectRatio="xMidYMid meet"
       data-diagram={diagram || undefined}
+      data-has-selection={hi.size > 0 ? true : undefined}
       style={
         compact ? undefined : { transform: `perspective(1200px) rotateX(1.2deg) rotateY(${ry}deg)` }
       }
