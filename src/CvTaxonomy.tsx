@@ -12,8 +12,10 @@ import {
 } from "./data/taxonomy";
 import type { Cell, InfoType, Scale, Verdict } from "./data/types";
 import { Fan } from "./Fan";
+import { FRAMES, type Frame, HOME_FRAME } from "./frames";
 import { SCALE_HUE, SURFACE, THEME_VARS, type Theme } from "./theme";
 import { TIMELINE } from "./timeline";
+import { useCamera } from "./useCamera";
 import { useScrollProgress } from "./useScrollProgress";
 import { VerdictSwatch } from "./VerdictSwatch";
 
@@ -122,6 +124,10 @@ export function CvTaxonomy({
   );
   const [hovered, setHovered] = useState<Cell | null>(null);
   const [activeInfo, setActiveInfo] = useState<Set<InfoType>>(new Set());
+  const [zoomFrame, setZoomFrame] = useState<Frame | null>(() =>
+    initialCell ? (FRAMES[initialCell] ?? null) : null,
+  );
+  const viewBox = useCamera(zoomFrame ?? HOME_FRAME, reduceMotion);
 
   const focus = hovered ?? selected;
   const isDim = (c: Cell) => isDimmed(activeInfo, c);
@@ -136,6 +142,7 @@ export function CvTaxonomy({
 
   const openCell = useCallback((cell: Cell, focusId?: string) => {
     lastFocused.current = focusId ?? null;
+    setZoomFrame(FRAMES[cell.id] ?? HOME_FRAME);
     setSelected(cell);
   }, []);
 
@@ -172,6 +179,7 @@ export function CvTaxonomy({
                 onHover={setHovered}
                 reduceMotion={reduceMotion}
                 compact={isMobile}
+                viewBox={viewBox}
               />
               <div className="cvt-hud">
                 <div className="cvt-hud-top">
@@ -240,7 +248,10 @@ export function CvTaxonomy({
         className="cvt-panel"
         aria-label={selected ? `${selected.scale} · ${selected.informationType}` : undefined}
         style={selected ? { "--hue": SCALE_HUE[selected.scale] } : undefined}
-        onClose={() => setSelected(null)}
+        onClose={() => {
+          setSelected(null);
+          setZoomFrame(null);
+        }}
         onClick={(e) => {
           // click on the backdrop (the dialog itself, outside its content) closes it
           if (e.target === dialogRef.current) dialogRef.current?.close();

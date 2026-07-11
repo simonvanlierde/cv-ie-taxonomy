@@ -1,6 +1,7 @@
 import { type ReactNode, useId } from "react";
 import { cellById as cell, VERDICT_LETTER } from "./data/taxonomy";
 import type { Cell } from "./data/types";
+import { frameToViewBox, VIEW } from "./frames";
 import { SCALE_HUE, SEG_VAR as SEG } from "./theme";
 import { presence as presenceAt, seg, TIMELINE } from "./timeline";
 import { VerdictSwatch } from "./VerdictSwatch";
@@ -49,11 +50,11 @@ const CHIP_PAD_R = 12;
 const CHIP_H = 34;
 const chipWidth = (text: string) => CHIP_TEXT_X + monoWidth(text, CHIP_FONT) + CHIP_PAD_R;
 
-// The desktop view rect, declared once: the viewBox string and both chip
-// gutters derive from it, so a viewBox change really does move both columns.
-// Right-hand chips grow leftwards from CHIP_RIGHT_EDGE, left-hand chips start
-// at CHIP_LEFT_EDGE, so a longer label can never run off the canvas.
-const VIEW = { x: -250, y: -25, w: 1070, h: 950 } as const;
+// The desktop view rect, imported from frames.ts (it is also the camera's home
+// frame): the viewBox string and both chip gutters derive from it, so a viewBox
+// change really does move both columns. Right-hand chips grow leftwards from
+// CHIP_RIGHT_EDGE, left-hand chips start at CHIP_LEFT_EDGE, so a longer label
+// can never run off the canvas.
 const CHIP_RIGHT_EDGE = VIEW.x + VIEW.w - 8;
 const CHIP_LEFT_EDGE = VIEW.x + 10;
 
@@ -255,6 +256,7 @@ export function Fan({
   onHover,
   reduceMotion,
   compact = false,
+  viewBox,
 }: {
   /** global scroll progress 0..1 */
   p: number;
@@ -267,6 +269,8 @@ export function Fan({
   reduceMotion: boolean;
   /** mobile: fan + annotations, no floating chips */
   compact?: boolean;
+  /** desktop camera viewBox (from useCamera); ignored when compact */
+  viewBox?: string;
 }) {
   // scoped, so a second Fan on the page cannot steal this one's clip path
   const ocrClip = useId();
@@ -437,7 +441,7 @@ export function Fan({
     // biome-ignore lint/a11y/useSemanticElements: an <svg> cannot become a <fieldset>; the explicit role keeps the aria-label exposed on engines that prune a role-less svg, without flattening the operable chips inside the way role="img" would
     <svg
       className={compact ? "cvt-fan cvt-fan-compact" : "cvt-fan"}
-      viewBox={compact ? "120 -40 420 910" : `${VIEW.x} ${VIEW.y} ${VIEW.w} ${VIEW.h}`}
+      viewBox={compact ? "120 -40 420 910" : (viewBox ?? frameToViewBox(VIEW))}
       role="group"
       aria-label="Exploding desk fan; the computer-vision read-outs around it open task details"
       preserveAspectRatio="xMidYMid meet"

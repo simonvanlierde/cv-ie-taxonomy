@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { CvTaxonomy } from "./CvTaxonomy";
 import { cellById } from "./data/taxonomy";
+import { FRAMES, frameToViewBox, VIEW } from "./frames";
 
 /**
  * The detail panel is a native <dialog>: it owns the focus trap, Esc and focus
@@ -138,5 +139,50 @@ describe("the illustrative caveat", () => {
   it("is rendered alongside the mock overlays", () => {
     render(<CvTaxonomy />);
     expect(screen.getByText(/overlays illustrative, not model output/i)).toBeInTheDocument();
+  });
+});
+
+// Force reduced motion ON (so the camera cuts instantly and is deterministic),
+// everything else OFF (desktop). Restore is handled by the shared afterEach.
+function forceReducedMotion() {
+  window.matchMedia = ((query: string) => ({
+    matches: query.includes("prefers-reduced-motion"),
+    media: query,
+    onchange: null,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    addListener: () => {},
+    removeListener: () => {},
+    dispatchEvent: () => false,
+  })) as unknown as typeof window.matchMedia;
+}
+
+describe("camera framing (desktop)", () => {
+  it("starts framed on the whole fan", () => {
+    forceReducedMotion();
+    const { container } = render(<CvTaxonomy />);
+    const fan = container.querySelector(".cvt-fan:not(.cvt-fan-compact)") as SVGSVGElement;
+    expect(fan).toHaveAttribute("viewBox", frameToViewBox(VIEW));
+  });
+
+  it("zooms to a cell's frame when its panel opens, and back home on close", async () => {
+    forceReducedMotion();
+    const user = userEvent.setup();
+    const { container } = render(<CvTaxonomy />);
+    const fan = () => container.querySelector(".cvt-fan:not(.cvt-fan-compact)") as SVGSVGElement;
+
+    await user.click(trigger("component-quantity"));
+    await screen.findByRole("dialog");
+    expect(fan()).toHaveAttribute("viewBox", frameToViewBox(FRAMES["component-quantity"]!));
+
+    await user.keyboard("{Escape}");
+    expect(fan()).toHaveAttribute("viewBox", frameToViewBox(VIEW));
+  });
+
+  it("frames the fan on a cell opened via the initialCell deep link", () => {
+    forceReducedMotion();
+    const { container } = render(<CvTaxonomy initialCell="material-condition" />);
+    const fan = container.querySelector(".cvt-fan:not(.cvt-fan-compact)") as SVGSVGElement;
+    expect(fan).toHaveAttribute("viewBox", frameToViewBox(FRAMES["material-condition"]!));
   });
 });
