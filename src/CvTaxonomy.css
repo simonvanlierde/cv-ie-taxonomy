@@ -888,7 +888,9 @@
   font-family: var(--cvt-sans);
   transition:
     translate 0.28s cubic-bezier(0.2, 0.75, 0.2, 1),
-    opacity 0.28s ease;
+    opacity 0.28s ease,
+    overlay 0.28s allow-discrete,
+    display 0.28s allow-discrete;
   translate: 0 0;
   opacity: 1;
 }
