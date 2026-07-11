@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { CvTaxonomy, withViewTransition } from "./CvTaxonomy";
@@ -267,5 +267,37 @@ describe("per-cell share", () => {
     await user.click(within(dialog).getByRole("button", { name: /copy link/i }));
 
     expect(writeText).toHaveBeenCalledWith(expect.stringContaining("?cell=material-condition"));
+  });
+});
+
+describe("container-driven layout", () => {
+  it("switches to the compact fan when the container is narrow", () => {
+    const callbacks: Array<(entries: unknown) => void> = [];
+    class RO {
+      cb: (entries: unknown) => void;
+      constructor(cb: (entries: unknown) => void) {
+        this.cb = cb;
+        callbacks.push(cb);
+      }
+      observe() {}
+      disconnect() {}
+      unobserve() {}
+    }
+    const savedRO = globalThis.ResizeObserver;
+    globalThis.ResizeObserver = RO as unknown as typeof ResizeObserver;
+    try {
+      const { container } = render(<CvTaxonomy />);
+      // desktop by default (no measurement / wide fallback)
+      // simulate the observer reporting a 390px container
+      const root = container.querySelector(".cvt") as HTMLElement;
+      // React 19 batches this state update into a microtask since it's dispatched
+      // outside a React-managed event; act() flushes it before the assertion below.
+      act(() => {
+        for (const cb of callbacks) cb([{ contentRect: { width: 390 }, target: root }]);
+      });
+      expect(container.querySelector(".cvt-fan-compact")).toBeInTheDocument();
+    } finally {
+      globalThis.ResizeObserver = savedRO;
+    }
   });
 });

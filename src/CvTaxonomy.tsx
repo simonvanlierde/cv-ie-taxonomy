@@ -1,4 +1,12 @@
-import { memo, useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import {
+  memo,
+  type RefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { flushSync } from "react-dom";
 import { CHAPTER_COPY } from "./chapters";
 import "./CvTaxonomy.css";
@@ -52,6 +60,23 @@ function useMediaQuery(query: string): boolean {
   );
 }
 
+/** The component root's inline size, measured via ResizeObserver. null until the
+ *  first measurement, so callers fall back to a viewport guess for the first paint. */
+function useContainerWidth(ref: RefObject<HTMLElement | null>): number | null {
+  const [width, setWidth] = useState<number | null>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver((entries) => {
+      const w = entries[0]?.contentRect.width;
+      if (typeof w === "number") setWidth(w);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [ref]);
+  return width;
+}
+
 type ViewTransitionDocument = Document & {
   startViewTransition?: (cb: () => void) => unknown;
 };
@@ -83,13 +108,18 @@ export function CvTaxonomy({
   /** dev-only: pin scroll progress (?p=0.5) for screenshots. Must be finite. */
   debugProgress?: number;
 } = {}) {
+  const rootRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const lastFocused = useRef<string | null>(null);
 
   const reduceMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
-  // render exactly one fan: full on desktop, compact on mobile
-  const isMobile = useMediaQuery("(max-width: 880px)");
+  // render exactly one fan: full on desktop, compact on mobile. The container's own
+  // width drives this (so an embed adapts to its slot, not the viewport); the
+  // viewport query only stands in for the first paint, before anything is measured.
+  const viewportIsMobile = useMediaQuery("(max-width: 880px)");
+  const containerWidth = useContainerWidth(rootRef);
+  const isMobile = containerWidth == null ? viewportIsMobile : containerWidth <= 880;
 
   // Theme has one owner, resolved here: the user's toggle beats the host's prop,
   // which beats the OS. Seeding state from `theme` instead would freeze the prop
@@ -198,7 +228,12 @@ export function CvTaxonomy({
   }, [selected]);
 
   return (
-    <div className="cvt" data-theme={effectiveTheme} style={THEME_VARS[effectiveTheme]}>
+    <div
+      className="cvt"
+      ref={rootRef}
+      data-theme={effectiveTheme}
+      style={THEME_VARS[effectiveTheme]}
+    >
       <div className="cvt-scroll" ref={scrollRef}>
         {/* The stage + chapters share one wrapper. It is display:contents on
             desktop (the grid places stage and rail directly), but a real block
