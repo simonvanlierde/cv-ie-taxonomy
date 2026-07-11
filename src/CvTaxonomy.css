@@ -883,20 +883,31 @@
   border-left: 3px solid var(--hue);
   padding: 1.6rem 1.6rem 3rem;
   box-shadow: -12px 0 40px rgba(0, 0, 0, 0.35);
-  animation: cvt-slide 0.28s cubic-bezier(0.2, 0.75, 0.2, 1);
   outline: none;
   color: var(--cvt-ink);
   font-family: var(--cvt-sans);
+  transition:
+    translate 0.28s cubic-bezier(0.2, 0.75, 0.2, 1),
+    opacity 0.28s ease;
+  translate: 0 0;
+  opacity: 1;
+}
+/* enter + exit: the drawer starts off-canvas and transparent, and returns there
+   when it closes. @starting-style gives us the exit the old keyframes lacked. */
+@starting-style {
+  .cvt-panel[open] {
+    translate: 100% 0;
+    opacity: 0;
+  }
+}
+.cvt-panel:not([open]) {
+  translate: 100% 0;
+  opacity: 0;
 }
 /* the table view rides the same drawer: wider than the cell panel, neutral edge */
 .cvt-tablepanel {
   --hue: var(--cvt-ink);
   width: min(820px, 94vw);
-}
-@keyframes cvt-slide {
-  from {
-    transform: translateX(100%);
-  }
 }
 @keyframes cvt-fade {
   from {
@@ -1206,10 +1217,14 @@
     border-top: 3px solid var(--hue);
     border-radius: 16px 16px 0 0;
   }
-  @keyframes cvt-slide {
-    from {
-      transform: translateY(100%);
+  /* mobile is a bottom sheet: it slides up from the bottom, not in from the side */
+  @starting-style {
+    .cvt-panel[open] {
+      translate: 0 100%;
     }
+  }
+  .cvt-panel:not([open]) {
+    translate: 0 100%;
   }
 }
 
@@ -1231,6 +1246,13 @@
     scroll-behavior: auto !important;
   }
   /* biome-ignore-end lint/complexity/noImportantStyles: end kill-switch */
+  .cvt-panel {
+    transition: none;
+  }
+  .cvt-panel:not([open]) {
+    translate: 0 0;
+    opacity: 1;
+  }
   /* with animations off, show the OCR read-out fully typed and drop the caret */
   .ov-ocr[data-active="true"] .ov-ocr-reveal {
     width: var(--ocr-w);
