@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { CvTaxonomy } from "./CvTaxonomy";
+import { CvTaxonomy, withViewTransition } from "./CvTaxonomy";
 import { cellById } from "./data/taxonomy";
 import { FRAMES, frameToViewBox, VIEW } from "./frames";
 
@@ -216,5 +216,49 @@ describe("panel progressive disclosure", () => {
     const details = rubric.closest("details");
     expect(details).not.toBeNull();
     expect(details).not.toHaveAttribute("open");
+  });
+});
+
+describe("withViewTransition", () => {
+  it("runs the callback directly when the API is unavailable", () => {
+    let ran = false;
+    withViewTransition(() => {
+      ran = true;
+    }, true);
+    expect(ran).toBe(true);
+  });
+
+  it("runs the update through startViewTransition when the API exists", async () => {
+    // openCell passes !reduceMotion, so the API path needs motion ON. An earlier
+    // describe's forceReducedMotion() leaks the global matchMedia, so reset it here.
+    const savedMatchMedia = window.matchMedia;
+    window.matchMedia = ((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => false,
+    })) as unknown as typeof window.matchMedia;
+    const calls: Array<() => void> = [];
+    (
+      document as unknown as { startViewTransition?: (cb: () => void) => void }
+    ).startViewTransition = (cb) => {
+      calls.push(cb);
+      cb();
+      return undefined as never;
+    };
+    try {
+      const user = userEvent.setup();
+      render(<CvTaxonomy />);
+      await user.click(trigger("component-identity"));
+      expect(await screen.findByRole("dialog")).toBeInTheDocument();
+      expect(calls.length).toBeGreaterThan(0);
+    } finally {
+      (document as unknown as { startViewTransition?: unknown }).startViewTransition = undefined;
+      window.matchMedia = savedMatchMedia;
+    }
   });
 });
