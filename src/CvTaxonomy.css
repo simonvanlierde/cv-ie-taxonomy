@@ -50,6 +50,7 @@
    The dark arm is the blueprint ground; the light arm is cyanotype paper:
    pale blue-white ground, Prussian-navy ink. */
 .cvt {
+  container: cvt / inline-size;
   color-scheme: light dark;
 
   /* --cvt-bg comes from theme.generated.css (imported above) */
@@ -632,7 +633,7 @@
 /* Desktop only: pin the prose while its chapter's overlays hold the stage, so the
    reader is not asked to remember the paragraph they scrolled past. On mobile the
    stage is already pinned to the top and a second sticky layer would fight it. */
-@media (min-width: 881px) {
+@container cvt (min-width: 881px) {
   .cvt-chapter-inner {
     position: sticky;
     top: 28vh;
@@ -1096,7 +1097,7 @@
 }
 
 /* ---- mobile --------------------------------------------------------------------------------- */
-@media (max-width: 880px) {
+@container cvt (max-width: 880px) {
   .cvt-scroll {
     display: block;
     padding: 0 1rem;
