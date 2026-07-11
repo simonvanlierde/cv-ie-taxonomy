@@ -692,12 +692,51 @@
 .cvt-outro h2 {
   max-width: 34ch;
 }
-.cvt-figure {
+
+/* ---- explorable: act two — the matrix and the fan, linked ------------------------------ */
+.cvt-explorable {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(1rem, 3vw, 2.5rem);
+  align-items: start;
   margin: 2rem 0 0;
 }
-.cvt-matrixwrap {
+.cvt-explorable-stage {
+  position: sticky;
+  top: 8vh;
+  aspect-ratio: 3 / 4;
+  min-width: 0;
+}
+/* the grid's own min-width (below) would otherwise force this column wider
+   than its track, same reason .cvt-matrixwrap used to scroll the old figure */
+.cvt-explorable-panel {
+  min-width: 0;
   overflow-x: auto;
 }
+.cvt-inline-detail {
+  margin-top: 1.4rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--cvt-line);
+}
+.cvt-inline-prompt {
+  color: var(--cvt-ink-dim);
+  font-size: 0.95rem;
+}
+@container cvt (max-width: 880px) {
+  .cvt-explorable {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* stack order: grid first (thesis), then detail, then the diagram */
+  .cvt-explorable-stage {
+    position: static;
+    order: 3;
+    aspect-ratio: 4 / 3;
+  }
+  .cvt-explorable-panel {
+    order: 1;
+  }
+}
+
 .cvt-matrix {
   display: grid;
   grid-template-columns: auto repeat(4, minmax(0, 1fr));
