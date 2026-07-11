@@ -3,7 +3,8 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { CvTaxonomy, withViewTransition } from "./CvTaxonomy";
 import { cellById } from "./data/taxonomy";
-import { FRAMES, frameToViewBox, VIEW } from "./frames";
+import { frameToViewBox, VIEW } from "./frames";
+import { frameOf } from "./test-helpers";
 
 /**
  * The detail panel is a native <dialog>: it owns the focus trap, Esc and focus
@@ -173,7 +174,7 @@ describe("camera framing (desktop)", () => {
 
     await user.click(trigger("component-quantity"));
     await screen.findByRole("dialog");
-    expect(fan()).toHaveAttribute("viewBox", frameToViewBox(FRAMES["component-quantity"]!));
+    expect(fan()).toHaveAttribute("viewBox", frameToViewBox(frameOf("component-quantity")));
 
     await user.keyboard("{Escape}");
     expect(fan()).toHaveAttribute("viewBox", frameToViewBox(VIEW));
@@ -183,7 +184,7 @@ describe("camera framing (desktop)", () => {
     forceReducedMotion();
     const { container } = render(<CvTaxonomy initialCell="material-condition" />);
     const fan = container.querySelector(".cvt-fan:not(.cvt-fan-compact)") as SVGSVGElement;
-    expect(fan).toHaveAttribute("viewBox", frameToViewBox(FRAMES["material-condition"]!));
+    expect(fan).toHaveAttribute("viewBox", frameToViewBox(frameOf("material-condition")));
   });
 });
 
