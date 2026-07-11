@@ -80,8 +80,9 @@ src/
   main.tsx              # standalone demo mount + dev deep links
 ```
 
-No animation library: the scrub is a ~40-line hook, everything else is CSS
-(including the OCR typing effect and the pseudo-3D tilt on the exploding stack).
+Motion powers only the scroll scrub and the click-to-zoom camera (both springs);
+everything else is CSS — the OCR typing effect, the pseudo-3D tilt on the
+exploding stack, and the panel's `@starting-style` transitions.
 Display face: **Bricolage Grotesque** (OFL), self-hosted variable woff2. Bundle:
 ~57 kB gzipped JS including React, +77 kB font.
 
