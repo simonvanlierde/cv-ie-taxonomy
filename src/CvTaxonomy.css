@@ -860,7 +860,8 @@
 
 /* ---- detail panel ------------------------------------------------------------------------ */
 .cvt-panel::backdrop {
-  background: rgba(0, 0, 0, 0.45);
+  /* near-transparent: the zoomed fan stays visible beside the panel, not dimmed out */
+  background: rgba(0, 0, 0, 0.06);
   animation: cvt-fade 0.2s ease;
 }
 .cvt-panel {

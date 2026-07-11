@@ -159,6 +159,17 @@ export function CvTaxonomy({
     }
   }, [selected]);
 
+  // Lock page scroll while the panel is open, so the scrub and camera stay put
+  // under the reader. Restores the prior value on close and on unmount.
+  useEffect(() => {
+    if (!selected) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [selected]);
+
   return (
     <div className="cvt" data-theme={effectiveTheme} style={THEME_VARS[effectiveTheme]}>
       <div className="cvt-scroll" ref={scrollRef}>

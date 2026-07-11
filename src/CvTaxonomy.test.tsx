@@ -186,3 +186,18 @@ describe("camera framing (desktop)", () => {
     expect(fan).toHaveAttribute("viewBox", frameToViewBox(FRAMES["material-condition"]!));
   });
 });
+
+describe("body scroll lock", () => {
+  it("locks body scroll while the panel is open and restores it on close", async () => {
+    const user = userEvent.setup();
+    render(<CvTaxonomy />);
+    expect(document.body.style.overflow).toBe("");
+
+    await user.click(trigger("component-identity"));
+    await screen.findByRole("dialog");
+    expect(document.body.style.overflow).toBe("hidden");
+
+    await user.keyboard("{Escape}");
+    expect(document.body.style.overflow).toBe("");
+  });
+});
