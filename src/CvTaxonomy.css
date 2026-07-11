@@ -1245,6 +1245,7 @@
     border-left: none;
     border-top: 3px solid var(--hue);
     border-radius: 16px 16px 0 0;
+    overscroll-behavior: contain;
   }
   /* mobile is a bottom sheet: it slides up from the bottom, not in from the side */
   @starting-style {
