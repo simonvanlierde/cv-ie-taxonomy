@@ -634,7 +634,6 @@ function ShareLink({ cellId }: { cellId: string }) {
 
 // ---- detail panel ------------------------------------------------------------
 function DetailPanel({ cell, onClose }: { cell: Cell; onClose: () => void }) {
-  const level = maturityLevel(cell.maturity);
   return (
     <>
       <div className="cvt-panel-head">
@@ -653,7 +652,15 @@ function DetailPanel({ cell, onClose }: { cell: Cell; onClose: () => void }) {
           ✕
         </button>
       </div>
+      <DetailBody cell={cell} />
+    </>
+  );
+}
 
+export function DetailBody({ cell }: { cell: Cell }) {
+  const level = maturityLevel(cell.maturity);
+  return (
+    <>
       <div className="cvt-verdict">
         <VerdictSwatch verdict={cell.maturity} size={34} />
         <div>
