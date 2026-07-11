@@ -8,7 +8,7 @@ import { afterEach } from "vitest";
 afterEach(cleanup);
 
 // jsdom ships no matchMedia; the theme/motion/breakpoint hooks all reach for it.
-window.matchMedia ??= ((query: string) => ({
+const defaultMatchMedia = ((query: string) => ({
   matches: false,
   media: query,
   onchange: null,
@@ -18,6 +18,14 @@ window.matchMedia ??= ((query: string) => ({
   removeListener: () => {},
   dispatchEvent: () => false,
 })) as unknown as typeof window.matchMedia;
+window.matchMedia = defaultMatchMedia;
+
+// tests that override matchMedia (e.g. to force reduced motion) must not leak
+// that override into the next test, so restore the default after each one —
+// after cleanup, so unmount effects still see whatever the test set.
+afterEach(() => {
+  window.matchMedia = defaultMatchMedia;
+});
 
 /**
  * jsdom 29 ships HTMLDialogElement but none of its methods (show, showModal,
