@@ -201,3 +201,20 @@ describe("body scroll lock", () => {
     expect(document.body.style.overflow).toBe("");
   });
 });
+
+describe("panel progressive disclosure", () => {
+  it("shows the failure mode up front and tucks rubric marks into a closed details", async () => {
+    render(<CvTaxonomy initialCell="component-structure" />);
+    const dialog = await screen.findByRole("dialog");
+
+    // primary: failure mode is not inside the collapsible
+    const failure = within(dialog).getByText(/dominant failure mode/i);
+    expect(failure.closest("details")).toBeNull();
+
+    // secondary: rubric marks live inside a closed <details>
+    const rubric = within(dialog).getByText(/rubric marks/i);
+    const details = rubric.closest("details");
+    expect(details).not.toBeNull();
+    expect(details).not.toHaveAttribute("open");
+  });
+});
