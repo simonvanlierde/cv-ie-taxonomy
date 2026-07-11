@@ -589,16 +589,22 @@ function DetailPanel({ cell, onClose }: { cell: Cell; onClose: () => void }) {
       )}
 
       <dl className="cvt-panel-grid">
-        {cell.methodFamily && <Row label="Candidate method family" value={cell.methodFamily} />}
         <Row label="Why this verdict" value={cell.maturityNote} />
         {cell.failureMode && (
           <Row label="Dominant failure mode" value={cell.failureMode} mode="warn" />
         )}
-        {cell.example && <Row label="Adjacent-field example" value={cell.example} />}
-        {cell.hardware && <Row label="Hardware tendency" value={cell.hardware} />}
-        <Row label="Rubric marks (i·ii·iii·m)" value={cell.rubricMarks} mono />
-        <Row label="Recommended handling" value={level.handling} />
       </dl>
+
+      <details className="cvt-panel-more">
+        <summary>More detail</summary>
+        <dl className="cvt-panel-grid">
+          {cell.methodFamily && <Row label="Candidate method family" value={cell.methodFamily} />}
+          {cell.example && <Row label="Adjacent-field example" value={cell.example} />}
+          {cell.hardware && <Row label="Hardware tendency" value={cell.hardware} />}
+          <Row label="Rubric marks (i·ii·iii·m)" value={cell.rubricMarks} mono />
+          <Row label="Recommended handling" value={level.handling} />
+        </dl>
+      </details>
 
       <div className="cvt-panel-foot">
         <span className={`cvt-status cvt-status-${cell.sourceStatus.toLowerCase()}`}>
