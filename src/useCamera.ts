@@ -17,17 +17,24 @@ export function useCamera(target: Frame, reduceMotion: boolean): string {
   const [frame, setFrame] = useState<Frame>({ x, y, w, h });
 
   useEffect(() => {
+    const from = current.current;
     const to = { x, y, w, h };
     if (reduceMotion) {
       current.current = to;
       setFrame(to);
       return;
     }
-    const controls = animate(current.current, to, {
+    const controls = animate(0, 1, {
       ...SPRING,
-      onUpdate: (latest: Frame) => {
-        current.current = latest;
-        setFrame({ x: latest.x, y: latest.y, w: latest.w, h: latest.h });
+      onUpdate: (t: number) => {
+        const f = {
+          x: from.x + (to.x - from.x) * t,
+          y: from.y + (to.y - from.y) * t,
+          w: from.w + (to.w - from.w) * t,
+          h: from.h + (to.h - from.h) * t,
+        };
+        current.current = f;
+        setFrame(f);
       },
     });
     return () => controls.stop();
