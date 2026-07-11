@@ -1272,3 +1272,19 @@
     opacity: 0;
   }
 }
+.cvt-share {
+  margin-left: auto;
+  align-self: center;
+  font-family: var(--cvt-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--cvt-line);
+  border-radius: 8px;
+  background: var(--cvt-card);
+  color: var(--cvt-ink);
+  cursor: pointer;
+}
+.cvt-share:hover {
+  border-color: var(--cvt-ink-dim);
+}
