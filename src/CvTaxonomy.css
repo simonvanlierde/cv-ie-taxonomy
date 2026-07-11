@@ -971,6 +971,17 @@
   color: var(--cvt-ink-dim);
   line-height: 1.4;
 }
+/* the panel's verdict swatch is the morph target. `VerdictSwatch` renders an
+   <svg class="cvt-glyphbox">; the one inside `.cvt-verdict` is the header glyph.
+   One view-transition-name → the browser tweens the swatch into the header. */
+.cvt-verdict .cvt-glyphbox {
+  view-transition-name: cvt-verdict-morph;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cvt-verdict .cvt-glyphbox {
+    view-transition-name: none;
+  }
+}
 .cvt-subverdicts {
   list-style: none;
   margin: 0 0 1rem;

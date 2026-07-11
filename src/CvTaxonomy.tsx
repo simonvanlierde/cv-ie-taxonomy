@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { flushSync } from "react-dom";
 import { CHAPTER_COPY } from "./chapters";
 import "./CvTaxonomy.css";
 import {
@@ -49,6 +50,25 @@ function useMediaQuery(query: string): boolean {
     () => window.matchMedia(query).matches,
     () => false, // server render: assume no match
   );
+}
+
+type ViewTransitionDocument = Document & {
+  startViewTransition?: (cb: () => void) => unknown;
+};
+
+/** Run a DOM mutation inside a view transition when supported and enabled;
+ *  otherwise just run it. Keeps the morph a pure progressive enhancement. */
+export function withViewTransition(run: () => void, enabled: boolean): void {
+  const doc = document as ViewTransitionDocument;
+  if (enabled && typeof doc.startViewTransition === "function") {
+    // flushSync commits the state update *inside* the transition callback, so the
+    // browser's after-snapshot sees the open panel; without it React batches the
+    // setState past the snapshot and nothing morphs. Safe here: only ever called
+    // from an event handler (openCell ← onClick), never during render.
+    doc.startViewTransition(() => flushSync(run));
+  } else {
+    run();
+  }
 }
 
 // ---- main -------------------------------------------------------------------------
@@ -140,11 +160,16 @@ export function CvTaxonomy({
     });
   }
 
-  const openCell = useCallback((cell: Cell, focusId?: string) => {
-    lastFocused.current = focusId ?? null;
-    setZoomFrame(FRAMES[cell.id] ?? HOME_FRAME);
-    setSelected(cell);
-  }, []);
+  const openCell = useCallback(
+    (cell: Cell, focusId?: string) => {
+      lastFocused.current = focusId ?? null;
+      withViewTransition(() => {
+        setZoomFrame(FRAMES[cell.id] ?? HOME_FRAME);
+        setSelected(cell);
+      }, !reduceMotion);
+    },
+    [reduceMotion],
+  );
 
   // native <dialog> owns focus-trap, Esc and focus-return; we only drive open/close
   useEffect(() => {
