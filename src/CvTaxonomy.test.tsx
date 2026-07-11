@@ -229,19 +229,8 @@ describe("withViewTransition", () => {
   });
 
   it("runs the update through startViewTransition when the API exists", async () => {
-    // openCell passes !reduceMotion, so the API path needs motion ON. An earlier
-    // describe's forceReducedMotion() leaks the global matchMedia, so reset it here.
-    const savedMatchMedia = window.matchMedia;
-    window.matchMedia = ((query: string) => ({
-      matches: false,
-      media: query,
-      onchange: null,
-      addEventListener: () => {},
-      removeEventListener: () => {},
-      addListener: () => {},
-      removeListener: () => {},
-      dispatchEvent: () => false,
-    })) as unknown as typeof window.matchMedia;
+    // openCell passes !reduceMotion, so the API path needs motion ON. The default
+    // matchMedia stub (restored after every test) already returns matches:false.
     const calls: Array<() => void> = [];
     (
       document as unknown as { startViewTransition?: (cb: () => void) => void }
@@ -258,7 +247,6 @@ describe("withViewTransition", () => {
       expect(calls.length).toBeGreaterThan(0);
     } finally {
       (document as unknown as { startViewTransition?: unknown }).startViewTransition = undefined;
-      window.matchMedia = savedMatchMedia;
     }
   });
 });
