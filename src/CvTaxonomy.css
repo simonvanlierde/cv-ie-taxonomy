@@ -1115,7 +1115,7 @@
   }
   .cvt-sticky {
     position: static;
-    height: 44vh;
+    height: 34vh;
     background-color: var(--cvt-bg);
     background-image:
       linear-gradient(var(--cvt-grid) 1px, transparent 1px),
@@ -1123,13 +1123,13 @@
     background-size: 28px 28px;
     border-bottom: 1px solid var(--cvt-line);
   }
-  @supports (height: 44dvh) {
+  @supports (height: 34dvh) {
     .cvt-sticky {
-      height: 44dvh;
+      height: 34dvh;
     }
   }
   .cvt-fan {
-    max-height: 42vh;
+    max-height: 32vh;
   }
   /* keep the theme toggle reachable up top; drop the wordier HUD labels.
      The illustrative caveat is NOT one of them: the compact fan still paints
@@ -1156,6 +1156,22 @@
   }
   .cvt-hud {
     padding: 0.5rem;
+  }
+  .cvt-filtergroup {
+    align-items: stretch;
+  }
+  .cvt-filters {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .cvt-filters::-webkit-scrollbar {
+    display: none;
+  }
+  .cvt-chip {
+    flex: 0 0 auto;
   }
   .cvt-hero {
     min-height: 46vh;
