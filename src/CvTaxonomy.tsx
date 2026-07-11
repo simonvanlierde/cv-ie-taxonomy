@@ -571,6 +571,30 @@ function splitOf(cell: Cell): readonly [Verdict, Verdict] | undefined {
   return [first.maturity, second.maturity];
 }
 
+function ShareLink({ cellId }: { cellId: string }) {
+  const [copied, setCopied] = useState(false);
+  const share = async () => {
+    const url = `${location.origin}${location.pathname}?cell=${cellId}`;
+    const nav = navigator as Navigator & { share?: (data: { url: string }) => Promise<void> };
+    try {
+      if (typeof nav.share === "function") {
+        await nav.share({ url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1600);
+      }
+    } catch {
+      // the user dismissed the share sheet, or clipboard was denied — nothing to do
+    }
+  };
+  return (
+    <button type="button" className="cvt-share" onClick={share}>
+      {copied ? "Copied" : "Copy link"}
+    </button>
+  );
+}
+
 // ---- detail panel ------------------------------------------------------------
 function DetailPanel({ cell, onClose }: { cell: Cell; onClose: () => void }) {
   const level = maturityLevel(cell.maturity);
@@ -644,6 +668,7 @@ function DetailPanel({ cell, onClose }: { cell: Cell; onClose: () => void }) {
             ))}
           </ul>
         )}
+        <ShareLink cellId={cell.id} />
       </div>
     </>
   );

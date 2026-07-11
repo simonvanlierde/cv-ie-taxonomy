@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { CvTaxonomy, withViewTransition } from "./CvTaxonomy";
 import { cellById } from "./data/taxonomy";
 import { FRAMES, frameToViewBox, VIEW } from "./frames";
@@ -260,5 +260,23 @@ describe("withViewTransition", () => {
       (document as unknown as { startViewTransition?: unknown }).startViewTransition = undefined;
       window.matchMedia = savedMatchMedia;
     }
+  });
+});
+
+describe("per-cell share", () => {
+  it("copies a deep link to this cell to the clipboard", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    // user-event's setup() installs its own clipboard stub, so the mock must be
+    // defined after that (and jsdom's navigator.clipboard is a getter-only
+    // accessor, so it must be redefined rather than assigned).
+    Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
+    Object.assign(navigator, { share: undefined });
+
+    render(<CvTaxonomy initialCell="material-condition" />);
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("button", { name: /copy link/i }));
+
+    expect(writeText).toHaveBeenCalledWith(expect.stringContaining("?cell=material-condition"));
   });
 });
