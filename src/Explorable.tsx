@@ -28,7 +28,7 @@ export function Explorable() {
         <MiniMatrix selectedId={selected?.id ?? null} onSelect={setSelected} />
         <div className="cvt-inline-detail" aria-live="polite">
           {selected ? (
-            <DetailBody cell={selected} />
+            <DetailBody key={selected.id} cell={selected} />
           ) : (
             <p className="cvt-inline-prompt">
               Select a cell to read its verdict, failure mode, and sources.
