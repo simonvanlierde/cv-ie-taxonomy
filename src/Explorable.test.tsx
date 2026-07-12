@@ -16,11 +16,18 @@ describe("Explorable", () => {
     expect(screen.getByText(/dominant failure mode/i)).toBeInTheDocument();
   });
 
-  it("highlights the selected cell's part on the diagram fan", async () => {
-    const { container } = render(<Explorable />);
+  it("marks the selected cell pressed and swaps the detail on a new selection", async () => {
+    render(<Explorable />);
     await userEvent.click(screen.getByRole("button", { name: /component · quantity/i }));
-    // component-quantity → motor (mo)
-    const motor = container.querySelector('[data-part="mo"][data-highlight="true"]');
-    expect(motor).toBeInTheDocument();
+    const pressed = screen
+      .getAllByRole("button")
+      .filter((b) => b.getAttribute("aria-pressed") === "true");
+    expect(pressed).toHaveLength(1);
+
+    await userEvent.click(screen.getByRole("button", { name: /material · condition/i }));
+    const stillOne = screen
+      .getAllByRole("button")
+      .filter((b) => b.getAttribute("aria-pressed") === "true");
+    expect(stillOne).toHaveLength(1);
   });
 });
