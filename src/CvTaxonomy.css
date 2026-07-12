@@ -693,30 +693,26 @@
   max-width: 34ch;
 }
 
-/* ---- explorable: act two — the matrix and the fan, linked ------------------------------ */
+/* ---- explorable: act two — the full matrix as a driveable instrument ------------------- */
 .cvt-explorable {
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-  gap: clamp(1rem, 3vw, 2.5rem);
+  /* matrix takes its natural width (its cells are wide), detail gets a fixed,
+     readable column beside it; the matrix never crushes the detail */
+  grid-template-columns: minmax(0, max-content) minmax(300px, 400px);
+  gap: clamp(1.5rem, 4vw, 3.5rem);
   align-items: start;
   margin: 2rem 0 0;
 }
-.cvt-explorable-stage {
-  position: sticky;
-  top: 8vh;
-  aspect-ratio: 3 / 4;
-  min-width: 0;
-}
-/* the grid's own min-width (below) would otherwise force this column wider
-   than its track, same reason .cvt-matrixwrap used to scroll the old figure */
-.cvt-explorable-panel {
+/* the matrix's own min-width would otherwise force its track wider than the
+   canvas, same reason .cvt-matrixwrap used to scroll the old figure */
+.cvt-explorable-grid {
   min-width: 0;
   overflow-x: auto;
 }
 .cvt-inline-detail {
-  margin-top: 1.4rem;
-  padding-top: 1.4rem;
-  border-top: 1px solid var(--cvt-line);
+  /* the detail stays put beside the grid while the reader scans cells */
+  position: sticky;
+  top: 8vh;
 }
 .cvt-inline-prompt {
   color: var(--cvt-ink-dim);
@@ -726,14 +722,11 @@
   .cvt-explorable {
     grid-template-columns: minmax(0, 1fr);
   }
-  /* stack order: grid first (thesis), then detail, then the diagram */
-  .cvt-explorable-stage {
+  .cvt-inline-detail {
     position: static;
-    order: 3;
-    aspect-ratio: 4 / 3;
-  }
-  .cvt-explorable-panel {
-    order: 1;
+    margin-top: 1.4rem;
+    padding-top: 1.4rem;
+    border-top: 1px solid var(--cvt-line);
   }
 }
 
