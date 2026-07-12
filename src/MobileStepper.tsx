@@ -1,25 +1,25 @@
 import { type ReactNode, useState } from "react";
-import { CellList, Hero, InfoFilter, Outro } from "./CvTaxonomy";
+import { CellList, Hero, Outro } from "./CvTaxonomy";
 import { CHAPTER_COPY } from "./chapters";
 import { SCALES } from "./data/taxonomy";
 import type { Cell, InfoType, Scale } from "./data/types";
 import { Fan } from "./Fan";
-import { SCALE_HUE } from "./theme";
-import { TIMELINE } from "./timeline";
+import { SCALE_VAR } from "./theme";
+import { plateauCentre } from "./timeline";
 
 /** The fan's explode state per scale step: assembled → exploded → drifted, so
- *  stepping forward literally takes the fan apart. Derived as the centre of each
- *  scale's presence plateau, so these stay on-plateau if TIMELINE is retuned
+ *  stepping forward literally takes the fan apart. Pinned to each scale's
+ *  presence-plateau centre, so these stay on-plateau if TIMELINE is retuned
  *  rather than drifting off a hand-tuned magic number. */
-const plateauCentre = (scale: Scale) => {
-  const [, plateauStart, plateauEnd] = TIMELINE.presence[scale];
-  return (plateauStart + plateauEnd) / 2;
-};
 const STEP_P: Record<Scale, number> = {
   Product: plateauCentre("Product"),
   Component: plateauCentre("Component"),
   Material: plateauCentre("Material"),
 };
+
+// one stable empty set: the stepper has no info-type filter, and a fresh Set
+// each render would defeat CellList's referential quiet
+const NO_FILTER: Set<InfoType> = new Set();
 
 /**
  * Mobile act one, paged instead of scrolled. Five steps — intro, the three
@@ -37,7 +37,6 @@ export function MobileStepper({
   themeToggle: ReactNode;
 }) {
   const [step, setStep] = useState(0);
-  const [activeInfo, setActiveInfo] = useState<Set<InfoType>>(new Set());
   const scale: Scale | null = step >= 1 && step <= 3 ? (SCALES[step - 1] ?? null) : null;
   const isMatrix = step === 4;
   const labels = ["Intro", ...SCALES, "Matrix"];
@@ -71,14 +70,15 @@ export function MobileStepper({
         )}
 
         {scale && (
-          <section className="cvt-step-body" style={{ "--hue": SCALE_HUE[scale] }}>
+          <section className="cvt-step-body" style={{ "--hue": SCALE_VAR[scale] }}>
             <p className="cvt-eyebrow">
               <span className="cvt-dot" aria-hidden /> {scale} scale
             </p>
             <h2>{CHAPTER_COPY[scale].title}</h2>
             <p className="cvt-body">{CHAPTER_COPY[scale].body}</p>
-            <InfoFilter active={activeInfo} onChange={setActiveInfo} />
-            <CellList scale={scale} activeInfo={activeInfo} onOpen={onOpen} />
+            {/* no InfoFilter here: a four-row list needs no filtering, and the
+                chips only stole space from the fan — the desktop HUD keeps them */}
+            <CellList scale={scale} activeInfo={NO_FILTER} onOpen={onOpen} />
           </section>
         )}
 

@@ -2,7 +2,7 @@ import { type ReactNode, useId } from "react";
 import { cellById as cell, VERDICT_LETTER } from "./data/taxonomy";
 import type { Cell } from "./data/types";
 import { frameToViewBox, VIEW } from "./frames";
-import { SCALE_HUE, SEG_VAR as SEG } from "./theme";
+import { SCALE_VAR, SEG_VAR as SEG } from "./theme";
 import { presence as presenceAt, seg, TIMELINE } from "./timeline";
 import { VerdictSwatch } from "./VerdictSwatch";
 
@@ -217,7 +217,7 @@ function Callout({
       style={{
         opacity,
         pointerEvents: active ? undefined : "none",
-        "--hue": SCALE_HUE[cell.scale],
+        "--hue": SCALE_VAR[cell.scale],
       }}
       onClick={() => onSelect(cell, hid)}
       onKeyDown={(e) => {
@@ -543,11 +543,11 @@ export function Fan({
           w={sx(455) - sx(150)}
           h={baC[1] + 40 * s - (fgC[1] - 132 * s)}
           label="desk_fan · 0.94"
-          color={SCALE_HUE.Product}
+          color={SCALE_VAR.Product}
         />
         <rect
           className="ov-bbox-r"
-          style={{ "--c": SCALE_HUE.Product }}
+          style={{ "--c": SCALE_VAR.Product }}
           x={sx(332 + 16 * k)}
           y={sy(656 + 124 * k)}
           width={52 * s}
@@ -570,7 +570,7 @@ export function Fan({
           <clipPath id={ocrClip}>
             <rect className="ov-ocr-reveal" x="0" y="0" width={OCR_W} height={TAG_H} />
           </clipPath>
-          <rect width={OCR_W} height={TAG_H} rx="2" fill={SCALE_HUE.Product} />
+          <rect width={OCR_W} height={TAG_H} rx="2" fill={SCALE_VAR.Product} />
           <g clipPath={`url(#${ocrClip})`}>
             <text x="5" y="15" fontSize={TAG_FONT}>
               {OCR_TEXT}

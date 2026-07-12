@@ -11,12 +11,30 @@ export type Theme = "light" | "dark";
 export const BREAKPOINT_PX = 881;
 
 // Colourblind-safe (Okabe–Ito) hue per physical scale. Maturity is NEVER colour.
-// These clear 3:1 as marks but not 4.5:1 as text — carry them on a swatch, never
+// Selected per theme like SEG_HUE: the dark set is the Okabe–Ito original; on the
+// light surfaces the green and pink read at 2.5–2.8:1, so the light set keeps each
+// hue but is darkened to the 3:1 mark floor (theme.test.ts holds both sets there).
+// They clear 3:1 as marks but not 4.5:1 as text — carry them on a swatch, never
 // on the glyph text itself.
-export const SCALE_HUE: Record<Scale, string> = {
-  Product: "#0072B2",
-  Component: "#009E73",
-  Material: "#CC79A7",
+export const SCALE_HUE: Record<Theme, Record<Scale, string>> = {
+  dark: {
+    Product: "#0072B2",
+    Component: "#009E73",
+    Material: "#CC79A7",
+  },
+  light: {
+    Product: "#0072B2",
+    Component: "#008a64",
+    Material: "#b25e8e",
+  },
+};
+
+/** the `var(--cvt-sc-…)` consumer map — anything painting a scale mark uses this,
+ *  so the mark follows the theme without every call site branching on it */
+export const SCALE_VAR: Record<Scale, string> = {
+  Product: "var(--cvt-sc-product)",
+  Component: "var(--cvt-sc-component)",
+  Material: "var(--cvt-sc-material)",
 };
 
 // Maturity is ordinal, so it rides a neutral ramp: one hue, monotone in lightness,
@@ -104,6 +122,9 @@ export const VERDICT_VAR = Object.fromEntries(
 const themeVars = (theme: Theme): CSSProperties => {
   const vars: Record<string, string> = {};
   for (const slot of SEG_SLOTS) vars[`--seg-${slot}`] = SEG_HUE[theme][slot];
+  for (const [scale, hex] of Object.entries(SCALE_HUE[theme])) {
+    vars[`--cvt-sc-${scale.toLowerCase()}`] = hex;
+  }
   for (const [verdict, token] of Object.entries(VERDICT_TOKEN)) {
     const hex = VERDICT_RAMP[theme][verdict as Verdict];
     if (token && hex) vars[token] = hex;
