@@ -23,6 +23,7 @@ import type { Cell, InfoType, Scale } from "./data/types";
 import { Explorable } from "./Explorable";
 import { Fan } from "./Fan";
 import { FRAMES, type Frame, HOME_FRAME } from "./frames";
+import { MobileStepper } from "./MobileStepper";
 import { SCALE_HUE, SURFACE, THEME_VARS, type Theme } from "./theme";
 import { TIMELINE } from "./timeline";
 import { useCamera } from "./useCamera";
@@ -235,77 +236,85 @@ export function CvTaxonomy({
       data-theme={effectiveTheme}
       style={THEME_VARS[effectiveTheme]}
     >
-      <div className="cvt-scroll" ref={scrollRef}>
-        {/* The stage + chapters share one wrapper. It is display:contents on
-            desktop (the grid places stage and rail directly), but a real block
-            on mobile — where it becomes the sticky stage's containing block, so
-            the stage releases at the chapters' end instead of being painted over
-            by the outro. */}
-        <div className="cvt-pinwrap">
-          {/* ---- sticky stage: the fan IS the interface ---- */}
-          <div className="cvt-stagecol">
-            <div className="cvt-sticky">
-              <Fan
-                p={p}
-                focus={focus}
-                isDim={isDim}
-                onSelect={openCell}
-                onHover={setHovered}
-                reduceMotion={reduceMotion}
-                compact={isMobile}
-                viewBox={viewBox}
-              />
-              <div className="cvt-hud">
-                <div className="cvt-hud-top">
-                  <span className="cvt-eyebrow">CV × industrial ecology</span>
-                  <div className="cvt-hud-actions">
-                    <span className="cvt-hud-tag">overlays illustrative, not model output</span>
-                    <button
-                      type="button"
-                      className="cvt-theme-toggle"
-                      onClick={() => setThemeOverride(effectiveTheme === "dark" ? "light" : "dark")}
-                      aria-label={`Switch to ${effectiveTheme === "dark" ? "light" : "dark"} theme`}
-                      title={`Switch to ${effectiveTheme === "dark" ? "light" : "dark"} theme`}
-                    >
-                      {effectiveTheme === "dark" ? <SunIcon /> : <MoonIcon />}
-                    </button>
-                  </div>
-                </div>
-                <div className="cvt-hud-bottom">
-                  <ol className="cvt-ind" aria-label="Physical scale chapters">
-                    {SCALES.map((s) => (
-                      <li key={s} data-active={chapter === s} style={{ "--hue": SCALE_HUE[s] }}>
-                        {s}
-                      </li>
-                    ))}
-                  </ol>
-                  <fieldset className="cvt-filtergroup">
-                    <legend className="cvt-filters-label">filter &gt; information type</legend>
-                    <div className="cvt-filters">
-                      {INFO_TYPES.map((info) => (
-                        <button
-                          key={info}
-                          type="button"
-                          className="cvt-chip"
-                          aria-pressed={activeInfo.has(info)}
-                          onClick={() => toggleInfo(info)}
-                        >
-                          {info}
-                        </button>
-                      ))}
+      {isMobile ? (
+        <MobileStepper
+          onOpen={openCell}
+          reduceMotion={reduceMotion}
+          theme={effectiveTheme}
+          onToggleTheme={() => setThemeOverride(effectiveTheme === "dark" ? "light" : "dark")}
+          themeIcon={effectiveTheme === "dark" ? <SunIcon /> : <MoonIcon />}
+        />
+      ) : (
+        <div className="cvt-scroll" ref={scrollRef}>
+          {/* The stage + chapters share one wrapper, placed directly by the grid. */}
+          <div className="cvt-pinwrap">
+            {/* ---- sticky stage: the fan IS the interface ---- */}
+            <div className="cvt-stagecol">
+              <div className="cvt-sticky">
+                <Fan
+                  p={p}
+                  focus={focus}
+                  isDim={isDim}
+                  onSelect={openCell}
+                  onHover={setHovered}
+                  reduceMotion={reduceMotion}
+                  compact={isMobile}
+                  viewBox={viewBox}
+                />
+                <div className="cvt-hud">
+                  <div className="cvt-hud-top">
+                    <span className="cvt-eyebrow">CV × industrial ecology</span>
+                    <div className="cvt-hud-actions">
+                      <span className="cvt-hud-tag">overlays illustrative, not model output</span>
+                      <button
+                        type="button"
+                        className="cvt-theme-toggle"
+                        onClick={() =>
+                          setThemeOverride(effectiveTheme === "dark" ? "light" : "dark")
+                        }
+                        aria-label={`Switch to ${effectiveTheme === "dark" ? "light" : "dark"} theme`}
+                        title={`Switch to ${effectiveTheme === "dark" ? "light" : "dark"} theme`}
+                      >
+                        {effectiveTheme === "dark" ? <SunIcon /> : <MoonIcon />}
+                      </button>
                     </div>
-                  </fieldset>
+                  </div>
+                  <div className="cvt-hud-bottom">
+                    <ol className="cvt-ind" aria-label="Physical scale chapters">
+                      {SCALES.map((s) => (
+                        <li key={s} data-active={chapter === s} style={{ "--hue": SCALE_HUE[s] }}>
+                          {s}
+                        </li>
+                      ))}
+                    </ol>
+                    <fieldset className="cvt-filtergroup">
+                      <legend className="cvt-filters-label">filter &gt; information type</legend>
+                      <div className="cvt-filters">
+                        {INFO_TYPES.map((info) => (
+                          <button
+                            key={info}
+                            type="button"
+                            className="cvt-chip"
+                            aria-pressed={activeInfo.has(info)}
+                            onClick={() => toggleInfo(info)}
+                          >
+                            {info}
+                          </button>
+                        ))}
+                      </div>
+                    </fieldset>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <Rail chapter={chapter} activeInfo={activeInfo} onOpen={openCell} />
+            <Rail chapter={chapter} activeInfo={activeInfo} onOpen={openCell} />
+          </div>
+          {/* full-width row: the stage's sticky column ends here, and the matrix
+              gets the whole canvas as a captioned paper figure */}
+          <Outro />
         </div>
-        {/* full-width row: the stage's sticky column ends here, and the matrix
-            gets the whole canvas as a captioned paper figure */}
-        <Outro />
-      </div>
+      )}
 
       <footer className="cvt-footer">
         <span>© 2026 Simon van Lierde · MIT &amp; CC BY 4.0</span>
