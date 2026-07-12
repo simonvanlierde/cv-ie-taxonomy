@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { CvTaxonomy, withViewTransition } from "./CvTaxonomy";
 import { cellById } from "./data/taxonomy";
 import { frameToViewBox, VIEW } from "./frames";
-import { frameOf } from "./test-helpers";
+import { frameOf, matchMediaStub } from "./test-helpers";
 
 /**
  * The detail panel is a native <dialog>: it owns the focus trap, Esc and focus
@@ -146,16 +146,7 @@ describe("the illustrative caveat", () => {
 // Force reduced motion ON (so the camera cuts instantly and is deterministic),
 // everything else OFF (desktop). Restore is handled by the shared afterEach.
 function forceReducedMotion() {
-  window.matchMedia = ((query: string) => ({
-    matches: query.includes("prefers-reduced-motion"),
-    media: query,
-    onchange: null,
-    addEventListener: () => {},
-    removeEventListener: () => {},
-    addListener: () => {},
-    removeListener: () => {},
-    dispatchEvent: () => false,
-  })) as unknown as typeof window.matchMedia;
+  window.matchMedia = matchMediaStub((query) => query.includes("prefers-reduced-motion"));
 }
 
 describe("camera framing (desktop)", () => {
