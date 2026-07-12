@@ -128,7 +128,7 @@ export function MobileStepper({
         )}
 
         {isMatrix && (
-          <section className="cvt-step-body" id="cvt-matrix">
+          <section className="cvt-step-body" id="cvt-matrix" aria-label="Full taxonomy matrix">
             <p className="cvt-eyebrow">The full matrix</p>
             <h2 className="cvt-step-thesis">
               Read against its own rubric, the map is largely negative: no task-level cell reaches
