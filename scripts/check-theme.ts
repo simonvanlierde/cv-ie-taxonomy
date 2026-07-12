@@ -3,7 +3,7 @@
 // theme-color metas, demo.css's over-scroll shim — has drifted from it.
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { SURFACE } from "../src/theme.ts";
+import { BREAKPOINT_PX, SURFACE } from "../src/theme.ts";
 import { themeCss } from "./theme-css.ts";
 
 const read = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), "utf8");
@@ -16,7 +16,7 @@ if (read("../src/theme.generated.css") !== themeCss()) {
 const must = (file: string, needle: string) => {
   if (!read(file).includes(needle)) {
     errors.push(
-      `${file} does not carry theme.ts SURFACE (\`${needle}\`) — sync it or re-run gen:theme`,
+      `${file} does not carry the theme.ts value \`${needle}\` — sync it or re-run gen:theme`,
     );
   }
 };
@@ -25,6 +25,11 @@ must("../index.html", `content="${SURFACE.dark}"`);
 must("../src/demo.css", `light-dark(${SURFACE.light}, ${SURFACE.dark})`);
 must("../src/demo.css", `background-color: ${SURFACE.light}`);
 must("../src/demo.css", `background-color: ${SURFACE.dark}`);
+
+// the layout fork: container queries cannot read the TS constant, so the CSS
+// hard-codes it — fail if either side of the 881px seam drifts from theme.ts
+must("../src/CvTaxonomy.css", `(width >= ${BREAKPOINT_PX}px)`);
+must("../src/CvTaxonomy.css", `(width < ${BREAKPOINT_PX}px)`);
 
 if (errors.length > 0) {
   console.error(`theme sync check failed:\n  - ${errors.join("\n  - ")}`);

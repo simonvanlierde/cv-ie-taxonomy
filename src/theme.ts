@@ -3,6 +3,13 @@ import type { Scale, Verdict } from "./data/types";
 
 export type Theme = "light" | "dark";
 
+/** The one layout fork, shared by the JS tree swap and the CSS container queries:
+ *  below this width the island is mobile (stepper, bottom sheet), at or above it
+ *  desktop (scroll narrative). Container queries cannot read a TS constant, so
+ *  CvTaxonomy.css hard-codes it as `(width < 881px)` / `(width >= 881px)` —
+ *  scripts/check-theme.ts fails CI if the two drift. */
+export const BREAKPOINT_PX = 881;
+
 // Colourblind-safe (Okabe–Ito) hue per physical scale. Maturity is NEVER colour.
 // These clear 3:1 as marks but not 4.5:1 as text — carry them on a swatch, never
 // on the glyph text itself.

@@ -633,7 +633,10 @@
 /* Desktop only: pin the prose while its chapter's overlays hold the stage, so the
    reader is not asked to remember the paragraph they scrolled past. On mobile the
    stage is already pinned to the top and a second sticky layer would fight it. */
-@container cvt (min-width: 881px) {
+/* 881 = theme.ts BREAKPOINT_PX. Range syntax, not min-/max-width: the JS tree
+   swap compares the same fractional ResizeObserver width against the same
+   boundary, so no width falls between the two. check-theme.ts guards the sync. */
+@container cvt (width >= 881px) {
   .cvt-chapter-inner {
     position: sticky;
     top: 28vh;
@@ -699,17 +702,27 @@
   /* the detail stays put beside the grid while the reader scans cells */
   position: sticky;
   top: 8vh;
+  /* fixed height, scrolling inside: this column sits in .cvt-scroll, the element
+     the scroll timeline is measured over, so swapping the prompt for a tall
+     DetailBody (or opening its "More detail") must not change the outer height —
+     that would remap every calibrated presence window (see timeline.ts, and the
+     same reasoning on TableView) */
+  height: 70vh;
+  overflow-y: auto;
 }
 .cvt-inline-prompt {
   color: var(--cvt-ink-dim);
   font-size: 0.95rem;
 }
-@container cvt (max-width: 880px) {
+@container cvt (width < 881px) {
   .cvt-explorable {
     grid-template-columns: minmax(0, 1fr);
   }
   .cvt-inline-detail {
     position: static;
+    /* no scroll timeline on mobile (the stepper pages), so let it flow */
+    height: auto;
+    overflow-y: visible;
     margin-top: 1.4rem;
     padding-top: 1.4rem;
     border-top: 1px solid var(--cvt-line);
@@ -884,8 +897,14 @@
   padding: 0 clamp(1rem, 4vw, 1.5rem) 1rem;
 }
 .cvt-step-stage {
-  height: 34dvh;
+  height: 34vh;
   flex-shrink: 0;
+}
+/* an @supports override, not a same-rule fallback pair — see .cvt-sticky */
+@supports (height: 34dvh) {
+  .cvt-step-stage {
+    height: 34dvh;
+  }
 }
 .cvt-step-stage .cvt-fan {
   max-height: none;
@@ -898,9 +917,6 @@
   font-size: clamp(1.4rem, 6vw, 1.9rem);
   line-height: 1.1;
   margin: 0.2rem 0 0.6rem;
-}
-.cvt-step-body > h2.cvt-step-thesis {
-  font-size: clamp(1.15rem, 5vw, 1.5rem);
 }
 /* the nav sticks to the bottom of the viewport while a tall step scrolls */
 .cvt-stepper-nav {
@@ -1102,7 +1118,9 @@
 }
 /* the panel's verdict swatch is the morph target. `VerdictSwatch` renders an
    <svg class="cvt-glyphbox">; the one inside `.cvt-verdict` is the header glyph.
-   One view-transition-name → the browser tweens the swatch into the header. */
+   Its source pair lives on the clicked trigger's swatch, named imperatively in
+   openCell for the old snapshot only — the panel is unmounted pre-click, so
+   without that there is nothing to tween from and the morph is a plain fade. */
 .cvt-verdict .cvt-glyphbox {
   view-transition-name: cvt-verdict-morph;
 }
@@ -1229,7 +1247,7 @@
 }
 
 /* ---- mobile --------------------------------------------------------------------------------- */
-@container cvt (max-width: 880px) {
+@container cvt (width < 881px) {
   .cvt-scroll {
     display: block;
     padding: 0 1rem;

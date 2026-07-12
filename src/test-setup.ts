@@ -2,22 +2,14 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
 import { afterEach } from "vitest";
+import { matchMediaStub } from "./test-helpers";
 
 // `globals: false`, so Testing Library cannot register its own auto-cleanup:
 // without this, renders pile up in document.body across tests.
 afterEach(cleanup);
 
 // jsdom ships no matchMedia; the theme/motion/breakpoint hooks all reach for it.
-const defaultMatchMedia = ((query: string) => ({
-  matches: false,
-  media: query,
-  onchange: null,
-  addEventListener: () => {},
-  removeEventListener: () => {},
-  addListener: () => {},
-  removeListener: () => {},
-  dispatchEvent: () => false,
-})) as unknown as typeof window.matchMedia;
+const defaultMatchMedia = matchMediaStub(() => false);
 window.matchMedia = defaultMatchMedia;
 
 // tests that override matchMedia (e.g. to force reduced motion) must not leak

@@ -22,9 +22,9 @@ import {
 import type { Cell, InfoType, Scale } from "./data/types";
 import { Explorable } from "./Explorable";
 import { Fan } from "./Fan";
-import { FRAMES, type Frame, HOME_FRAME } from "./frames";
+import { FRAMES, HOME_FRAME } from "./frames";
 import { MobileStepper } from "./MobileStepper";
-import { SCALE_HUE, SURFACE, THEME_VARS, type Theme } from "./theme";
+import { BREAKPOINT_PX, SCALE_HUE, SURFACE, THEME_VARS, type Theme } from "./theme";
 import { TIMELINE } from "./timeline";
 import { useCamera } from "./useCamera";
 import { useScrollProgress } from "./useScrollProgress";
@@ -62,21 +62,36 @@ function useMediaQuery(query: string): boolean {
   );
 }
 
-/** The component root's inline size, measured via ResizeObserver. null until the
- *  first measurement, so callers fall back to a viewport guess for the first paint. */
-function useContainerWidth(ref: RefObject<HTMLElement | null>): number | null {
-  const [width, setWidth] = useState<number | null>(null);
+/** Whether the component root is narrower than the layout breakpoint, measured via
+ *  ResizeObserver. Stores the boolean, not the raw width, so a resize drag only
+ *  re-renders on the frame the threshold is crossed. null until the first
+ *  measurement, so callers fall back to a viewport guess for the first paint. */
+function useContainerNarrow(ref: RefObject<HTMLElement | null>): boolean | null {
+  const [narrow, setNarrow] = useState<boolean | null>(null);
   useEffect(() => {
     const el = ref.current;
     if (!el || typeof ResizeObserver === "undefined") return;
     const ro = new ResizeObserver((entries) => {
       const w = entries[0]?.contentRect.width;
-      if (typeof w === "number") setWidth(w);
+      if (typeof w === "number") setNarrow(w < BREAKPOINT_PX);
     });
     ro.observe(el);
     return () => ro.disconnect();
   }, [ref]);
-  return width;
+  return narrow;
+}
+
+/** Lock page scroll while a modal is open, so the scrub and camera stay put
+ *  under the reader. Restores the prior value on close and on unmount. */
+function useBodyScrollLock(locked: boolean) {
+  useEffect(() => {
+    if (!locked) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [locked]);
 }
 
 type ViewTransitionDocument = Document & {
@@ -119,9 +134,9 @@ export function CvTaxonomy({
   // render exactly one fan: full on desktop, compact on mobile. The container's own
   // width drives this (so an embed adapts to its slot, not the viewport); the
   // viewport query only stands in for the first paint, before anything is measured.
-  const viewportIsMobile = useMediaQuery("(max-width: 880px)");
-  const containerWidth = useContainerWidth(rootRef);
-  const isMobile = containerWidth == null ? viewportIsMobile : containerWidth <= 880;
+  const viewportIsMobile = useMediaQuery(`(max-width: ${BREAKPOINT_PX - 1}px)`);
+  const containerNarrow = useContainerNarrow(rootRef);
+  const isMobile = containerNarrow ?? viewportIsMobile;
 
   // Theme has one owner, resolved here: the user's toggle beats the host's prop,
   // which beats the OS. Seeding state from `theme` instead would freeze the prop
@@ -176,29 +191,35 @@ export function CvTaxonomy({
   );
   const [hovered, setHovered] = useState<Cell | null>(null);
   const [activeInfo, setActiveInfo] = useState<Set<InfoType>>(new Set());
-  const [zoomFrame, setZoomFrame] = useState<Frame | null>(() =>
-    initialCell ? (FRAMES[initialCell] ?? null) : null,
-  );
+  // the camera target derives from the selection (frames.test.ts holds FRAMES
+  // to a frame per cell), so open/close paths cannot desync the two
+  const zoomFrame = selected ? (FRAMES[selected.id] ?? HOME_FRAME) : null;
   // On mobile the compact fan ignores this viewBox, so cut instantly rather than
   // burn a per-frame spring re-rendering the whole tree for output nobody sees.
   const viewBox = useCamera(zoomFrame ?? HOME_FRAME, reduceMotion || isMobile);
 
+  // the drawer's 0.28s exit keeps rendering after `selected` clears; hold the
+  // last cell so it slides out with its content, not as an empty card
+  const lastSelected = useRef<Cell | null>(null);
+  if (selected) lastSelected.current = selected;
+  const panelCell = selected ?? lastSelected.current;
+
   const focus = hovered ?? selected;
   const isDim = (c: Cell) => isDimmed(activeInfo, c);
-
-  function toggleInfo(info: InfoType) {
-    setActiveInfo((prev) => {
-      const next = new Set(prev);
-      next.has(info) ? next.delete(info) : next.add(info);
-      return next;
-    });
-  }
 
   const openCell = useCallback(
     (cell: Cell, focusId?: string) => {
       lastFocused.current = focusId ?? null;
+      // Name the clicked trigger's swatch so the browser's *old* snapshot has a
+      // cvt-verdict-morph element to pair with the panel's header glyph; the
+      // name comes off again inside the update, before the new snapshot, so the
+      // panel's glyph (named in CSS) is the only carrier there.
+      const source = focusId
+        ? document.getElementById(focusId)?.querySelector<SVGElement>(".cvt-glyphbox")
+        : null;
+      source?.style.setProperty("view-transition-name", "cvt-verdict-morph");
       withViewTransition(() => {
-        setZoomFrame(FRAMES[cell.id] ?? HOME_FRAME);
+        source?.style.removeProperty("view-transition-name");
         setSelected(cell);
       }, !reduceMotion);
     },
@@ -218,16 +239,7 @@ export function CvTaxonomy({
     }
   }, [selected]);
 
-  // Lock page scroll while the panel is open, so the scrub and camera stay put
-  // under the reader. Restores the prior value on close and on unmount.
-  useEffect(() => {
-    if (!selected) return;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previous;
-    };
-  }, [selected]);
+  useBodyScrollLock(selected !== null);
 
   return (
     <div
@@ -240,9 +252,12 @@ export function CvTaxonomy({
         <MobileStepper
           onOpen={openCell}
           reduceMotion={reduceMotion}
-          theme={effectiveTheme}
-          onToggleTheme={() => setThemeOverride(effectiveTheme === "dark" ? "light" : "dark")}
-          themeIcon={effectiveTheme === "dark" ? <SunIcon /> : <MoonIcon />}
+          themeToggle={
+            <ThemeToggle
+              theme={effectiveTheme}
+              onToggle={() => setThemeOverride(effectiveTheme === "dark" ? "light" : "dark")}
+            />
+          }
         />
       ) : (
         <div className="cvt-scroll" ref={scrollRef}>
@@ -266,17 +281,12 @@ export function CvTaxonomy({
                     <span className="cvt-eyebrow">CV × industrial ecology</span>
                     <div className="cvt-hud-actions">
                       <span className="cvt-hud-tag">overlays illustrative, not model output</span>
-                      <button
-                        type="button"
-                        className="cvt-theme-toggle"
-                        onClick={() =>
+                      <ThemeToggle
+                        theme={effectiveTheme}
+                        onToggle={() =>
                           setThemeOverride(effectiveTheme === "dark" ? "light" : "dark")
                         }
-                        aria-label={`Switch to ${effectiveTheme === "dark" ? "light" : "dark"} theme`}
-                        title={`Switch to ${effectiveTheme === "dark" ? "light" : "dark"} theme`}
-                      >
-                        {effectiveTheme === "dark" ? <SunIcon /> : <MoonIcon />}
-                      </button>
+                      />
                     </div>
                   </div>
                   <div className="cvt-hud-bottom">
@@ -287,22 +297,7 @@ export function CvTaxonomy({
                         </li>
                       ))}
                     </ol>
-                    <fieldset className="cvt-filtergroup">
-                      <legend className="cvt-filters-label">filter &gt; information type</legend>
-                      <div className="cvt-filters">
-                        {INFO_TYPES.map((info) => (
-                          <button
-                            key={info}
-                            type="button"
-                            className="cvt-chip"
-                            aria-pressed={activeInfo.has(info)}
-                            onClick={() => toggleInfo(info)}
-                          >
-                            {info}
-                          </button>
-                        ))}
-                      </div>
-                    </fieldset>
+                    <InfoFilter active={activeInfo} onChange={setActiveInfo} />
                   </div>
                 </div>
               </div>
@@ -329,18 +324,15 @@ export function CvTaxonomy({
       <dialog
         ref={dialogRef}
         className="cvt-panel"
-        aria-label={selected ? `${selected.scale} · ${selected.informationType}` : undefined}
-        style={selected ? { "--hue": SCALE_HUE[selected.scale] } : undefined}
-        onClose={() => {
-          setSelected(null);
-          setZoomFrame(null);
-        }}
+        aria-label={panelCell ? `${panelCell.scale} · ${panelCell.informationType}` : undefined}
+        style={panelCell ? { "--hue": SCALE_HUE[panelCell.scale] } : undefined}
+        onClose={() => setSelected(null)}
         onClick={(e) => {
           // click on the backdrop (the dialog itself, outside its content) closes it
           if (e.target === dialogRef.current) dialogRef.current?.close();
         }}
       >
-        {selected && <DetailPanel cell={selected} onClose={() => dialogRef.current?.close()} />}
+        {panelCell && <DetailPanel cell={panelCell} onClose={() => dialogRef.current?.close()} />}
       </dialog>
     </div>
   );
@@ -357,32 +349,10 @@ const Rail = memo(function Rail({
   activeInfo: Set<InfoType>;
   onOpen: (cell: Cell, focusId?: string) => void;
 }) {
-  const isDim = (c: Cell) => isDimmed(activeInfo, c);
   return (
     <div className="cvt-rail">
       <section className="cvt-hero">
-        <p className="cvt-eyebrow">Paper 2 · interactive supplement</p>
-        <h1 className="cvt-title">
-          What can a machine
-          <br />
-          actually see?
-        </h1>
-        <p className="cvt-sub">
-          An end-of-life desk fan, taken apart by the twelve tasks computer vision is asked to do in
-          industrial ecology. The read-outs on the fan are the controls. Click one. Every verdict is
-          the paper's own (<span className="cvt-cite">Table&nbsp;S1</span>), shown by{" "}
-          <em>ink weight and letter</em>, never colour.
-        </p>
-        <ul className="cvt-legendline" aria-label="Maturity legend">
-          {taxonomy.meta.maturityLevels.map((m) => (
-            <li key={m.verdict} title={m.gloss}>
-              <VerdictSwatch verdict={m.verdict} size={18} />
-              <span>
-                <b>{m.letter}</b> {m.verdict}
-              </span>
-            </li>
-          ))}
-        </ul>
+        <Hero hint="The read-outs on the fan are the controls. Click one." />
         <p className="cvt-scrollhint" aria-hidden>
           scroll to take it apart <span className="cvt-scrollhint-arrow">↓</span>
         </p>
@@ -410,32 +380,7 @@ const Rail = memo(function Rail({
               <p className="cvt-body">{copy.body}</p>
             </div>
             {/* mobile only: this scale's cells as a plain list */}
-            <div className="cvt-mgroup">
-              {INFO_TYPES.map((info) => {
-                const cell = cellAt(scale, info);
-                const hid = `cvt-m-${cell.id}`;
-                return (
-                  <button
-                    key={cell.id}
-                    id={hid}
-                    type="button"
-                    className="cvt-mcell"
-                    data-ghost={!!cell.structurallyEmpty}
-                    data-dim={isDim(cell)}
-                    onClick={() => onOpen(cell, hid)}
-                  >
-                    <VerdictSwatch verdict={cell.maturity} size={20} />
-                    <span className="cvt-mcell-info">{info}</span>
-                    <span className="cvt-mcell-task">
-                      {cell.structurallyEmpty
-                        ? "resolved at component scale"
-                        : cell.task.split(/[,;]/)[0]}
-                    </span>
-                    <b>{VERDICT_LETTER[cell.maturity]}</b>
-                  </button>
-                );
-              })}
-            </div>
+            <CellList scale={scale} activeInfo={activeInfo} onOpen={onOpen} />
           </section>
         );
       })}
@@ -443,10 +388,132 @@ const Rail = memo(function Rail({
   );
 });
 
+// ---- pieces shared between the desktop rail and the mobile stepper, so the
+// claim-bearing copy and the cell buttons have exactly one source ---------------
+
+/** The hero's shared copy: eyebrow, title, sub and maturity legend. `hint` is
+ *  the interaction sentence — the desktop rail points at the fan's chips, which
+ *  the compact fan does not render, so the stepper omits it. */
+export function Hero({ hint }: { hint?: string }) {
+  return (
+    <>
+      <p className="cvt-eyebrow">Paper 2 · interactive supplement</p>
+      <h1 className="cvt-title">
+        What can a machine
+        <br />
+        actually see?
+      </h1>
+      <p className="cvt-sub">
+        An end-of-life desk fan, taken apart by the twelve tasks computer vision is asked to do in
+        industrial ecology.{hint ? ` ${hint} ` : " "}Every verdict is the paper's own (
+        <span className="cvt-cite">Table&nbsp;S1</span>), shown by <em>ink weight and letter</em>,
+        never colour.
+      </p>
+      <ul className="cvt-legendline" aria-label="Maturity legend">
+        {taxonomy.meta.maturityLevels.map((m) => (
+          <li key={m.verdict} title={m.gloss}>
+            <VerdictSwatch verdict={m.verdict} size={18} />
+            <span>
+              <b>{m.letter}</b> {m.verdict}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
+
+/** One scale's cells as a plain list of buttons (the mobile stand-in for the
+ *  fan's chips), dimmed by the information-type filter like everything else. */
+export function CellList({
+  scale,
+  activeInfo,
+  onOpen,
+}: {
+  scale: Scale;
+  activeInfo: Set<InfoType>;
+  onOpen: (cell: Cell, focusId?: string) => void;
+}) {
+  return (
+    <div className="cvt-mgroup">
+      {INFO_TYPES.map((info) => {
+        const cell = cellAt(scale, info);
+        const hid = `cvt-m-${cell.id}`;
+        return (
+          <button
+            key={cell.id}
+            id={hid}
+            type="button"
+            className="cvt-mcell"
+            data-ghost={!!cell.structurallyEmpty}
+            data-dim={isDimmed(activeInfo, cell)}
+            onClick={() => onOpen(cell, hid)}
+          >
+            <VerdictSwatch verdict={cell.maturity} size={20} />
+            <span className="cvt-mcell-info">{info}</span>
+            <span className="cvt-mcell-task">
+              {cell.structurallyEmpty ? "resolved at component scale" : cell.task.split(/[,;]/)[0]}
+            </span>
+            <b>{VERDICT_LETTER[cell.maturity]}</b>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** The information-type filter chips; owns the set arithmetic so both layouts
+ *  just hand it their state. */
+export function InfoFilter({
+  active,
+  onChange,
+}: {
+  active: Set<InfoType>;
+  onChange: (next: Set<InfoType>) => void;
+}) {
+  return (
+    <fieldset className="cvt-filtergroup">
+      <legend className="cvt-filters-label">filter &gt; information type</legend>
+      <div className="cvt-filters">
+        {INFO_TYPES.map((info) => (
+          <button
+            key={info}
+            type="button"
+            className="cvt-chip"
+            aria-pressed={active.has(info)}
+            onClick={() => {
+              const next = new Set(active);
+              next.has(info) ? next.delete(info) : next.add(info);
+              onChange(next);
+            }}
+          >
+            {info}
+          </button>
+        ))}
+      </div>
+    </fieldset>
+  );
+}
+
+function ThemeToggle({ theme, onToggle }: { theme: Theme; onToggle: () => void }) {
+  const next = theme === "dark" ? "light" : "dark";
+  return (
+    <button
+      type="button"
+      className="cvt-theme-toggle"
+      onClick={onToggle}
+      aria-label={`Switch to ${next} theme`}
+      title={`Switch to ${next} theme`}
+    >
+      {theme === "dark" ? <SunIcon /> : <MoonIcon />}
+    </button>
+  );
+}
+
 // ---- outro: the matrix, live — select a cell to fill the detail inline
 // (memoized: nothing here depends on scroll progress, so the per-scroll-frame
 // render skips it entirely) -----
-const Outro = memo(function Outro() {
+export const Outro = memo(function Outro() {
   return (
     <section className="cvt-outro" id="cvt-matrix" aria-label="Full taxonomy matrix">
       <p className="cvt-eyebrow">The full matrix</p>
@@ -479,9 +546,18 @@ const Outro = memo(function Outro() {
  *  calibrated presence window under the reader (see timeline.ts). */
 function TableView() {
   const ref = useRef<HTMLDialogElement>(null);
+  const [open, setOpen] = useState(false);
+  useBodyScrollLock(open);
   return (
     <div className="cvt-tableview">
-      <button type="button" className="cvt-tableview-open" onClick={() => ref.current?.showModal()}>
+      <button
+        type="button"
+        className="cvt-tableview-open"
+        onClick={() => {
+          ref.current?.showModal();
+          setOpen(true);
+        }}
+      >
         Table view — the same twelve cells as text
       </button>
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: native <dialog> already closes on Esc; onClick only adds backdrop-click for mouse users */}
@@ -490,6 +566,7 @@ function TableView() {
         ref={ref}
         className="cvt-panel cvt-tablepanel"
         aria-label="Table view — the same twelve cells as text"
+        onClose={() => setOpen(false)}
         onClick={(e) => {
           if (e.target === ref.current) ref.current?.close();
         }}
@@ -548,16 +625,24 @@ function TableView() {
 
 function ShareLink({ cellId }: { cellId: string }) {
   const [copied, setCopied] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  // no share sheet and no clipboard (e.g. an insecure embed): a button that
+  // could only silently no-op is worse than no button
+  if (typeof navigator.share !== "function" && !navigator.clipboard) return null;
   const share = async () => {
-    const url = `${location.origin}${location.pathname}?cell=${cellId}`;
-    const nav = navigator as Navigator & { share?: (data: { url: string }) => Promise<void> };
+    // build on the current URL so host params survive (?theme=dark stays a dark
+    // link); ?p is the dev-only scroll pin and has no business being shared
+    const url = new URL(location.href);
+    url.searchParams.set("cell", cellId);
+    url.searchParams.delete("p");
     try {
-      if (typeof nav.share === "function") {
-        await nav.share({ url });
+      if (typeof navigator.share === "function") {
+        await navigator.share({ url: url.href });
       } else {
-        await navigator.clipboard.writeText(url);
+        await navigator.clipboard.writeText(url.href);
+        clearTimeout(timer.current);
         setCopied(true);
-        setTimeout(() => setCopied(false), 1600);
+        timer.current = setTimeout(() => setCopied(false), 1600);
       }
     } catch {
       // the user dismissed the share sheet, or clipboard was denied — nothing to do

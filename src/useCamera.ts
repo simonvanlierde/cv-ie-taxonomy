@@ -18,12 +18,15 @@ export function useCamera(target: Frame, reduceMotion: boolean): string {
 
   useEffect(() => {
     const to = { x, y, w, h };
+    const from = current.current;
+    // already there (every mount, and any dep change that keeps the target):
+    // don't burn a spring of no-op re-renders gliding a camera that isn't moving
+    if (from.x === x && from.y === y && from.w === w && from.h === h) return;
     if (reduceMotion) {
       current.current = to;
       setFrame(to);
       return;
     }
-    const from = current.current;
     const controls = animate(0, 1, {
       ...SPRING,
       onUpdate: (t: number) => {
