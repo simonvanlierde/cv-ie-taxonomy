@@ -443,9 +443,9 @@ const Rail = memo(function Rail({
   );
 });
 
-// ---- outro: the matrix, live — select a cell to fill the detail inline and
-// ring its part on the diagram fan (memoized: nothing here depends on scroll
-// progress, so the per-scroll-frame render skips it entirely) -----
+// ---- outro: the matrix, live — select a cell to fill the detail inline
+// (memoized: nothing here depends on scroll progress, so the per-scroll-frame
+// render skips it entirely) -----
 const Outro = memo(function Outro() {
   return (
     <section className="cvt-outro" id="cvt-matrix" aria-label="Full taxonomy matrix">

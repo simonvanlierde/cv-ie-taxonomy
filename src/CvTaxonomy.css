@@ -179,20 +179,6 @@
   display: block;
 }
 
-/* explorable diagram: the selected cell's part(s) lift with a neutral ink glow and
-   the rest recede — colour stays reserved for scale, so this reads by weight, not hue */
-.cvt-fan[data-diagram="true"] [data-part] {
-  transition:
-    opacity 0.18s,
-    filter 0.18s;
-}
-.cvt-fan[data-diagram="true"][data-has-selection] [data-part]:not([data-highlight="true"]) {
-  opacity: 0.4;
-}
-.cvt-fan[data-diagram="true"] [data-part][data-highlight="true"] {
-  filter: drop-shadow(0 0 2px var(--cvt-ink)) drop-shadow(0 0 3px var(--cvt-ink));
-}
-
 /* fan parts. :where() drops this to specificity 0, so the class rules below —
    and the overlay classes painted on the same shapes — override it plainly. */
 :where(.fan-part rect, .fan-part circle, .fan-part path) {
