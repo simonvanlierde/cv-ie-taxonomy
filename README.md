@@ -4,9 +4,6 @@
 [![Live demo](https://img.shields.io/badge/live-demo-2b7a78?logo=githubpages&logoColor=white)](https://simonvanlierde.github.io/cv-ie-taxonomy/)
 [![License: MIT](https://img.shields.io/badge/code-MIT-blue)](LICENSE)
 [![License: CC BY 4.0](https://img.shields.io/badge/content-CC%20BY%204.0-lightgrey)](LICENSE-CONTENT)
-[![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white)](https://react.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
-[![Vite](https://img.shields.io/badge/Vite-7-646cff?logo=vite&logoColor=white)](https://vite.dev)
 
 An interactive exploded-teardown map of the computer-vision-for-industrial-ecology
 taxonomy from **Paper 2** (JIE Review): which vision task recovers which product
@@ -16,7 +13,7 @@ and doubles as the interactive companion to the paper's Table S1.
 
 ![Exploded fan with interactive CV read-outs](public/screenshot.png)
 
-<!-- Live link: TODO once deployed -->
+**[▶ Open the live demo](https://simonvanlierde.github.io/cv-ie-taxonomy/)**
 
 ## What it does
 
