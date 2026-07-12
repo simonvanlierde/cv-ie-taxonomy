@@ -1,14 +1,7 @@
-import { cellAt, INFO_TYPES, SCALES, VERDICT_LETTER } from "./data/taxonomy";
-import type { Cell, Scale, Verdict } from "./data/types";
-import { SCALE_HUE } from "./theme";
+import { cellAt, INFO_TYPES, SCALES, splitOf, VERDICT_LETTER } from "./data/taxonomy";
+import type { Cell, Scale } from "./data/types";
+import { SCALE_VAR } from "./theme";
 import { VerdictSwatch } from "./VerdictSwatch";
-
-/** exactly two sub-verdicts render as a diagonal split; anything else is one verdict */
-function splitOf(cell: Cell): readonly [Verdict, Verdict] | undefined {
-  const [first, second, ...rest] = cell.subVerdicts ?? [];
-  if (!first || !second || rest.length > 0) return undefined;
-  return [first.maturity, second.maturity];
-}
 
 /** Standalone, selectable 3x4 taxonomy grid — the same markup as the Outro's matrix
  *  figure, but each cell is a toggle button reporting its selection instead of
@@ -46,7 +39,7 @@ function MiniMatrixRow({
 }) {
   return (
     <>
-      <span className="cvt-mx-h cvt-mx-row" style={{ "--hue": SCALE_HUE[scale] }}>
+      <span className="cvt-mx-h cvt-mx-row" style={{ "--hue": SCALE_VAR[scale] }}>
         {scale}
       </span>
       {INFO_TYPES.map((info) => {

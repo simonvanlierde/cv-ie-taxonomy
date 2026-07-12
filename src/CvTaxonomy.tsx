@@ -16,6 +16,7 @@ import {
   INFO_TYPES,
   maturityLevel,
   SCALES,
+  splitOf,
   taxonomy,
   VERDICT_LETTER,
 } from "./data/taxonomy";
@@ -24,8 +25,8 @@ import { Explorable } from "./Explorable";
 import { Fan } from "./Fan";
 import { FRAMES, HOME_FRAME } from "./frames";
 import { MobileStepper } from "./MobileStepper";
-import { BREAKPOINT_PX, SCALE_HUE, SURFACE, THEME_VARS, type Theme } from "./theme";
-import { TIMELINE } from "./timeline";
+import { BREAKPOINT_PX, SCALE_VAR, SURFACE, THEME_VARS, type Theme } from "./theme";
+import { plateauCentre, TIMELINE } from "./timeline";
 import { useCamera } from "./useCamera";
 import { useScrollProgress } from "./useScrollProgress";
 import { VerdictSwatch } from "./VerdictSwatch";
@@ -207,6 +208,21 @@ export function CvTaxonomy({
   const focus = hovered ?? selected;
   const isDim = (c: Cell) => isDimmed(activeInfo, c);
 
+  // A ?cell= deep link lands the desktop page on that cell's chapter plateau, so
+  // the zoom frame (tuned for the chapter's explode state) frames real geometry
+  // instead of a giant assembled close-up, and the chip is operable on close.
+  // Declared BEFORE useBodyScrollLock below: effects run in order, and the lock
+  // pins the page at whatever scroll position it finds — this must set it first.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: mount-only by design — a later mobile↔desktop resize must not yank the reader's scroll position
+  useEffect(() => {
+    const scrollEl = scrollRef.current;
+    if (!initialCell || isMobile || !scrollEl) return;
+    const cell = cells.find((c) => c.id === initialCell);
+    if (!cell) return;
+    const span = scrollEl.offsetHeight - window.innerHeight;
+    if (span > 0) window.scrollTo(0, scrollEl.offsetTop + plateauCentre(cell.scale) * span);
+  }, []);
+
   const openCell = useCallback(
     (cell: Cell, focusId?: string) => {
       lastFocused.current = focusId ?? null;
@@ -292,7 +308,7 @@ export function CvTaxonomy({
                   <div className="cvt-hud-bottom">
                     <ol className="cvt-ind" aria-label="Physical scale chapters">
                       {SCALES.map((s) => (
-                        <li key={s} data-active={chapter === s} style={{ "--hue": SCALE_HUE[s] }}>
+                        <li key={s} data-active={chapter === s} style={{ "--hue": SCALE_VAR[s] }}>
                           {s}
                         </li>
                       ))}
@@ -325,7 +341,7 @@ export function CvTaxonomy({
         ref={dialogRef}
         className="cvt-panel"
         aria-label={panelCell ? `${panelCell.scale} · ${panelCell.informationType}` : undefined}
-        style={panelCell ? { "--hue": SCALE_HUE[panelCell.scale] } : undefined}
+        style={panelCell ? { "--hue": SCALE_VAR[panelCell.scale] } : undefined}
         onClose={() => setSelected(null)}
         onClick={(e) => {
           // click on the backdrop (the dialog itself, outside its content) closes it
@@ -368,7 +384,7 @@ const Rail = memo(function Rail({
             key={scale}
             className="cvt-chapter"
             data-active={chapter === scale}
-            style={{ "--hue": SCALE_HUE[scale] }}
+            style={{ "--hue": SCALE_VAR[scale] }}
           >
             {/* the prose pins while its chapter's overlays are on the stage, so the
                 two are read together rather than in sequence */}
@@ -439,6 +455,8 @@ export function CellList({
       {INFO_TYPES.map((info) => {
         const cell = cellAt(scale, info);
         const hid = `cvt-m-${cell.id}`;
+        // a compound cell shows both sub-task verdicts, as the matrix does
+        const split = splitOf(cell);
         return (
           <button
             key={cell.id}
@@ -449,12 +467,16 @@ export function CellList({
             data-dim={isDimmed(activeInfo, cell)}
             onClick={() => onOpen(cell, hid)}
           >
-            <VerdictSwatch verdict={cell.maturity} size={20} />
+            <VerdictSwatch verdict={cell.maturity} split={split} size={20} />
             <span className="cvt-mcell-info">{info}</span>
             <span className="cvt-mcell-task">
               {cell.structurallyEmpty ? "resolved at component scale" : cell.task.split(/[,;]/)[0]}
             </span>
-            <b>{VERDICT_LETTER[cell.maturity]}</b>
+            <b>
+              {split
+                ? split.map((v) => VERDICT_LETTER[v]).join(" / ")
+                : VERDICT_LETTER[cell.maturity]}
+            </b>
           </button>
         );
       })}

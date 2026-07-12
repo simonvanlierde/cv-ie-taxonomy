@@ -52,3 +52,12 @@ export const seg = (p: number, a: number, b: number) =>
 /** A chapter's presence at p: faded in, held across the plateau, faded out. */
 export const presence = (w: PresenceWindow, p: number) =>
   seg(p, w[0], w[1]) * (1 - seg(p, w[2], w[3]));
+
+/** The centre of a scale's presence plateau: the p where that chapter is at full
+ *  strength. The stepper pins each scale step here, and a `?cell=` deep link
+ *  scrolls here, so both land on a fan state whose chips are operable and whose
+ *  camera frames point at real geometry. Derived, so a TIMELINE retune moves it. */
+export const plateauCentre = (scale: keyof typeof TIMELINE.presence) => {
+  const [, plateauStart, plateauEnd] = TIMELINE.presence[scale];
+  return (plateauStart + plateauEnd) / 2;
+};
