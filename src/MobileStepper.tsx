@@ -52,8 +52,13 @@ export function MobileStepper({
   themeToggle: ReactNode;
 }) {
   const [step, setStep] = useState(0);
+  // The sheet folds down to its handle on the scale steps, leaving the fan
+  // alone on stage. Sticky across steps by choice: a reader who chose the
+  // fan-only view keeps it while paging. Intro and matrix always show theirs.
+  const [collapsed, setCollapsed] = useState(false);
   const scale: Scale | null = step >= 1 && step <= 3 ? (SCALES[step - 1] ?? null) : null;
   const isMatrix = step === 4;
+  const sheetCollapsed = collapsed && scale !== null;
   const labels = ["Intro", ...SCALES, "Matrix"];
   // paging morphs the camera between step frames (reduced motion cuts)
   const viewBox = useCamera(STEP_FRAMES[Math.min(step, 3)] ?? INTRO_FRAME, reduceMotion);
@@ -64,16 +69,17 @@ export function MobileStepper({
         <span className="cvt-hud-tag">overlays illustrative, not model output</span>
         {themeToggle}
       </div>
-      <div className="cvt-step" data-step={labels[step]}>
+      <div className="cvt-step" data-step={labels[step]} data-collapsed={sheetCollapsed}>
         {/* the fan is the full-screen backdrop on every step but the matrix,
-            walking apart as you advance; the sheet floats over its lower third */}
+            walking apart as you advance; the sheet floats over its lower third.
+            Its overlay labels are the mobile tap targets for the cell modal. */}
         {!isMatrix && (
-          <div className="cvt-step-stage" aria-hidden="true">
+          <div className="cvt-step-stage">
             <Fan
               p={scale ? STEP_P[scale] : 0}
               focus={null}
               isDim={() => false}
-              onSelect={() => {}}
+              onSelect={onOpen}
               onHover={() => {}}
               reduceMotion={reduceMotion}
               compact
@@ -90,14 +96,25 @@ export function MobileStepper({
 
         {scale && (
           <section className="cvt-step-body" style={{ "--hue": SCALE_VAR[scale] }}>
-            <p className="cvt-eyebrow">
-              <span className="cvt-dot" aria-hidden /> {scale} scale
-            </p>
-            <h2>{CHAPTER_COPY[scale].title}</h2>
-            <p className="cvt-body">{CHAPTER_COPY[scale].body}</p>
-            {/* no InfoFilter here: a four-row list needs no filtering, and the
-                chips only stole space from the fan — the desktop HUD keeps them */}
-            <CellList scale={scale} activeInfo={NO_FILTER} onOpen={onOpen} />
+            <button
+              type="button"
+              className="cvt-sheet-toggle"
+              aria-expanded={!sheetCollapsed}
+              aria-label={sheetCollapsed ? "Show this scale's text" : "Hide the text, show the fan"}
+              onClick={() => setCollapsed((c) => !c)}
+            />
+            {!sheetCollapsed && (
+              <>
+                <p className="cvt-eyebrow">
+                  <span className="cvt-dot" aria-hidden /> {scale} scale
+                </p>
+                <h2>{CHAPTER_COPY[scale].title}</h2>
+                <p className="cvt-body">{CHAPTER_COPY[scale].body}</p>
+                {/* no InfoFilter here: a four-row list needs no filtering, and the
+                    chips only stole space from the fan — the desktop HUD keeps them */}
+                <CellList scale={scale} activeInfo={NO_FILTER} onOpen={onOpen} />
+              </>
+            )}
           </section>
         )}
 

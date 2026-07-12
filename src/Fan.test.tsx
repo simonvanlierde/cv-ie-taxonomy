@@ -107,4 +107,24 @@ describe("compact fan", () => {
     expect(container.querySelectorAll(".ov-layer")).toHaveLength(9);
     expect(within(container).getByText(/desk_fan/)).toBeInTheDocument();
   });
+
+  it("turns the on-stage annotation layers into the cell's tap targets", () => {
+    const opened: string[] = [];
+    const { container } = renderFan({
+      compact: true,
+      onSelect: (cell) => opened.push(cell.id),
+    });
+
+    const layer = container.querySelector("#cvt-ov-component-identity") as SVGGElement;
+    expect(layer).toHaveAttribute("role", "button");
+    expect(layer).toHaveAttribute("tabindex", "0");
+    expect(layer).toHaveAttribute("aria-hidden", "false");
+    layer.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(opened).toEqual(["component-identity"]);
+
+    // off-stage chapters stay out of reach, exactly like the desktop chips
+    const offStage = container.querySelector("#cvt-ov-product-identity") as SVGGElement;
+    expect(offStage).toHaveAttribute("tabindex", "-1");
+    expect(offStage).toHaveAttribute("aria-hidden", "true");
+  });
 });

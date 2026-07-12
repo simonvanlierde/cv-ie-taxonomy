@@ -58,4 +58,23 @@ describe("MobileStepper", () => {
     await user.click(container.querySelector(".cvt-stepper-next") as HTMLButtonElement); // → Product
     expect(container.querySelector(".cvt-filtergroup")).toBeNull();
   });
+
+  it("folds the sheet to its handle and back, and holds the fold across steps", async () => {
+    const user = userEvent.setup();
+    const { container } = render(<MobileStepper {...baseProps()} />);
+    await user.click(container.querySelector(".cvt-stepper-next") as HTMLButtonElement); // → Product
+
+    const toggle = () => container.querySelector(".cvt-sheet-toggle") as HTMLButtonElement;
+    expect(toggle()).toHaveAttribute("aria-expanded", "true");
+
+    await user.click(toggle());
+    expect(toggle()).toHaveAttribute("aria-expanded", "false");
+    expect(container.querySelector(".cvt-mgroup")).toBeNull(); // text gone, fan alone
+
+    await user.click(container.querySelector(".cvt-stepper-next") as HTMLButtonElement); // → Component
+    expect(toggle()).toHaveAttribute("aria-expanded", "false"); // fan-only view sticks
+
+    await user.click(toggle());
+    expect(container.querySelector(".cvt-mgroup")).not.toBeNull();
+  });
 });

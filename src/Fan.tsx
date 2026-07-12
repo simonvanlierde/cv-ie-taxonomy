@@ -66,13 +66,29 @@ const OCR_TEXT = 'OCR > "TYP 4212/A"';
 const OCR_W = monoWidth(OCR_TEXT, TAG_FONT) + 10;
 
 // ---- CV-annotation primitives -----------------------------------------------------
+// `s` scales the read-out type and plates: 1 on desktop; >1 on the compact fan,
+// where the same viewBox units render at roughly half the pixels and the tags
+// double as the tap targets for the cell modal.
+
 /** YOLO-style class tag: solid colour box, dark text */
-function Tag({ x, y, label, color }: { x: number; y: number; label: string; color: string }) {
-  const w = monoWidth(label, TAG_FONT) + 10;
+function Tag({
+  x,
+  y,
+  label,
+  color,
+  s = 1,
+}: {
+  x: number;
+  y: number;
+  label: string;
+  color: string;
+  s?: number;
+}) {
+  const w = monoWidth(label, TAG_FONT * s) + 10 * s;
   return (
     <g className="ov-tag" transform={`translate(${x} ${y})`}>
-      <rect width={w} height={TAG_H} rx="2" fill={color} />
-      <text x="5" y="15" fontSize={TAG_FONT}>
+      <rect width={w} height={TAG_H * s} rx="2" fill={color} />
+      <text x={5 * s} y={15 * s} fontSize={TAG_FONT * s}>
         {label}
       </text>
     </g>
@@ -87,6 +103,7 @@ function BBox({
   h,
   label,
   color,
+  s = 1,
 }: {
   x: number;
   y: number;
@@ -94,43 +111,97 @@ function BBox({
   h: number;
   label: string;
   color: string;
+  s?: number;
 }) {
   return (
     <g className="ov-bbox" style={{ "--c": color }}>
       <rect className="ov-bbox-r" x={x} y={y} width={w} height={h} />
-      <Tag x={x} y={y - TAG_H} label={label} color={color} />
+      <Tag x={x} y={y - TAG_H * s} label={label} color={color} s={s} />
     </g>
   );
 }
 
+/** the operable layer's wiring: which cell a tap opens, via the shared modal */
+type LayerTap = { cell: Cell; onSelect: (cell: Cell, focusId: string) => void };
+
 /**
  * One chapter's CV annotations, painted on the fan.
  *
- * Every number these draw is a mock, and the caveat that
- * says so lives in the HUD, not here — so the whole layer is hidden from the
+ * Every number these draw is a mock, and the caveat that says so lives in the
+ * HUD, not here — so on desktop the whole layer is hidden from the
  * accessibility tree. Fading a group to opacity 0 does not remove it, and a
  * screen reader would otherwise read all nine chapters' read-outs at once, out
  * of order, uncaveated. The chips carry the real, sourced content.
+ *
+ * With `tap` (the compact fan, which has no chips), the layer IS the control:
+ * a labelled button opening its cell's modal, exposed only while its chapter
+ * is on stage. The label names the cell, not the mock values.
  */
-function Layer({ opacity, children }: { opacity: number; children: ReactNode }) {
+function Layer({
+  opacity,
+  children,
+  tap,
+}: {
+  opacity: number;
+  children: ReactNode;
+  tap?: LayerTap;
+}) {
+  if (!tap) {
+    return (
+      // biome-ignore lint/a11y/noAriaHiddenOnFocusable: a plain <g> is not focusable, and these layers hold only decorative shapes and text — the operable chips live outside them
+      <g className="ov-layer" aria-hidden="true" style={{ opacity }}>
+        {children}
+      </g>
+    );
+  }
+  const { cell: c, onSelect } = tap;
+  const active = opacity > ON_STAGE;
+  const hid = `cvt-ov-${c.id}`;
   return (
-    // biome-ignore lint/a11y/noAriaHiddenOnFocusable: a plain <g> is not focusable, and these layers hold only decorative shapes and text — the operable chips live outside them
-    <g className="ov-layer" aria-hidden="true" style={{ opacity }}>
+    // biome-ignore lint/a11y/useSemanticElements: SVG has no <button>; a role on <g> is the only way to make an in-drawing hotspot operable
+    <g
+      id={hid}
+      className="ov-layer ov-layer-tap"
+      role="button"
+      tabIndex={active ? 0 : -1}
+      aria-hidden={!active}
+      aria-label={`${c.scale} · ${c.informationType}: ${c.task}. Maturity: ${c.maturity}. Open details.`}
+      style={{ opacity, pointerEvents: active ? "auto" : "none" }}
+      onClick={() => onSelect(c, hid)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelect(c, hid);
+        }
+      }}
+    >
       {children}
     </g>
   );
 }
 
-function DimV({ x, y1, y2, label }: { x: number; y1: number; y2: number; label: string }) {
+function DimV({
+  x,
+  y1,
+  y2,
+  label,
+  s = 1,
+}: {
+  x: number;
+  y1: number;
+  y2: number;
+  label: string;
+  s?: number;
+}) {
   return (
     <g className="ov-dim">
       <line x1={x} y1={y1} x2={x} y2={y2} />
       <line x1={x - 5} y1={y1} x2={x + 5} y2={y1} />
       <line x1={x - 5} y1={y2} x2={x + 5} y2={y2} />
       <text
-        transform={`translate(${x + 14} ${(y1 + y2) / 2}) rotate(90)`}
+        transform={`translate(${x + 14 * s} ${(y1 + y2) / 2}) rotate(90)`}
         textAnchor="middle"
-        fontSize={TAG_FONT}
+        fontSize={TAG_FONT * s}
       >
         {label}
       </text>
@@ -138,13 +209,25 @@ function DimV({ x, y1, y2, label }: { x: number; y1: number; y2: number; label: 
   );
 }
 
-function DimH({ y, x1, x2, label }: { y: number; x1: number; x2: number; label: string }) {
+function DimH({
+  y,
+  x1,
+  x2,
+  label,
+  s = 1,
+}: {
+  y: number;
+  x1: number;
+  x2: number;
+  label: string;
+  s?: number;
+}) {
   return (
     <g className="ov-dim">
       <line x1={x1} y1={y} x2={x2} y2={y} />
       <line x1={x1} y1={y - 5} x2={x1} y2={y + 5} />
       <line x1={x2} y1={y - 5} x2={x2} y2={y + 5} />
-      <text x={(x1 + x2) / 2} y={y - 8} textAnchor="middle" fontSize={TAG_FONT}>
+      <text x={(x1 + x2) / 2} y={y - 8 * s} textAnchor="middle" fontSize={TAG_FONT * s}>
         {label}
       </text>
     </g>
@@ -337,6 +420,13 @@ export function Fan({
   const spinning = !compact && !reduceMotion && e < 0.15 && focus?.informationType !== "Condition";
   const segO = deco(cell("component-structure"), 0.6);
   const matO = deco(cell("material-identity"), 0.7);
+
+  // Compact: the read-outs grow (same viewBox units, roughly half the pixels)
+  // and each annotation layer becomes the tap target for its cell's modal —
+  // the compact fan has no chips, so the labels are the controls.
+  const ts = compact ? 1.6 : 1;
+  const tapFor = (id: string): LayerTap | undefined =>
+    compact ? { cell: cell(id), onSelect } : undefined;
 
   // The twelve chips, one per taxonomy cell. `id` is looked up through cellById,
   // so a typo throws at first render rather than rendering a blank chip. Declared
@@ -535,9 +625,10 @@ export function Fan({
       </g>
 
       {/* ---- CV annotations painted on the product. Every read-out here is a mock;
-             <Layer> keeps the whole lot out of the accessibility tree. ---- */}
+             on desktop <Layer> keeps the lot out of the accessibility tree, and on
+             the compact fan each layer is the tappable control for its cell. ---- */}
       {/* product · identity: whole-object detection box + OCR read-out on the label */}
-      <Layer opacity={deco(cell("product-identity"))}>
+      <Layer opacity={deco(cell("product-identity"))} tap={tapFor("product-identity")}>
         <BBox
           x={sx(150)}
           y={fgC[1] - 132 * s}
@@ -545,6 +636,7 @@ export function Fan({
           h={baC[1] + 40 * s - (fgC[1] - 132 * s)}
           label="desk_fan · 0.94"
           color={SCALE_VAR.Product}
+          s={ts}
         />
         <rect
           className="ov-bbox-r"
@@ -566,25 +658,33 @@ export function Fan({
           className="ov-tag ov-ocr"
           data-active={presence.Product > ON_STAGE}
           transform={`translate(${sx(196)} ${sy(728)})`}
-          style={{ "--ocr-w": `${OCR_W}px`, "--ocr-caret": `${OCR_W - 11}px` }}
+          style={{ "--ocr-w": `${OCR_W * ts}px`, "--ocr-caret": `${(OCR_W - 11) * ts}px` }}
         >
           <clipPath id={ocrClip}>
-            <rect className="ov-ocr-reveal" x="0" y="0" width={OCR_W} height={TAG_H} />
+            <rect className="ov-ocr-reveal" x="0" y="0" width={OCR_W * ts} height={TAG_H * ts} />
           </clipPath>
-          <rect width={OCR_W} height={TAG_H} rx="2" fill={SCALE_VAR.Product} />
+          <rect width={OCR_W * ts} height={TAG_H * ts} rx="2" fill={SCALE_VAR.Product} />
           <g clipPath={`url(#${ocrClip})`}>
-            <text x="5" y="15" fontSize={TAG_FONT}>
+            <text x={5 * ts} y={15 * ts} fontSize={TAG_FONT * ts}>
               {OCR_TEXT}
             </text>
           </g>
-          <rect className="ov-caret" y="4" width="7" height="14" />
+          <rect className="ov-caret" y={4 * ts} width={7 * ts} height={14 * ts} />
         </g>
       </Layer>
-      <Layer opacity={deco(cell("product-quantity"))}>
-        <DimV x={sx(500)} y1={fgC[1] - 122 * s} y2={baC[1] + 26 * s} label="~ 430 mm" />
-        <DimH y={fgC[1] - 140 * s} x1={fgC[0] - 122 * s} x2={fgC[0] + 122 * s} label="Ø ~ 300 mm" />
+      <Layer opacity={deco(cell("product-quantity"))} tap={tapFor("product-quantity")}>
+        <DimV x={sx(500)} y1={fgC[1] - 122 * s} y2={baC[1] + 26 * s} label="~ 430 mm" s={ts} />
+        <DimH
+          /* the compact fan's grown desk_fan tag reaches higher; keep the
+             diameter line above it rather than through it */
+          y={fgC[1] - 140 * s - (ts - 1) * 60}
+          x1={fgC[0] - 122 * s}
+          x2={fgC[0] + 122 * s}
+          label="Ø ~ 300 mm"
+          s={ts}
+        />
       </Layer>
-      <Layer opacity={deco(cell("product-condition"))}>
+      <Layer opacity={deco(cell("product-condition"))} tap={tapFor("product-condition")}>
         <ellipse
           className="ov-blob"
           cx={baC[0] - 60 * s}
@@ -592,11 +692,17 @@ export function Fan({
           rx={24 * s}
           ry={12 * s}
         />
-        <Tag x={baC[0] - 90 * s} y={baC[1] + 20 * s} label="anomaly? · 0.4" color={SEG.warn} />
+        <Tag
+          x={baC[0] - 90 * s}
+          y={baC[1] + 20 * s}
+          label="anomaly? · 0.4"
+          color={SEG.warn}
+          s={ts}
+        />
       </Layer>
 
       {/* component · identity: YOLO-style boxes with class tags */}
-      <Layer opacity={deco(cell("component-identity"))}>
+      <Layer opacity={deco(cell("component-identity"))} tap={tapFor("component-identity")}>
         <BBox
           x={blC[0] - 106}
           y={blC[1] - 104}
@@ -604,11 +710,20 @@ export function Fan({
           h={208}
           label="blade ×3 · 0.91"
           color={SEG.bl}
+          s={ts}
         />
-        <BBox x={moC[0] - 62} y={moC[1] - 42} w={124} h={84} label="motor · 0.87" color={SEG.mo} />
+        <BBox
+          x={moC[0] - 62}
+          y={moC[1] - 42}
+          w={124}
+          h={84}
+          label="motor · 0.87"
+          color={SEG.mo}
+          s={ts}
+        />
       </Layer>
       {/* component · structure: instance masks (on the parts) + relation queries */}
-      <Layer opacity={deco(cell("component-structure"))}>
+      <Layer opacity={deco(cell("component-structure"))} tap={tapFor("component-structure")}>
         <path
           className="ov-rel"
           d={`M ${moC[0] - 40} ${moC[1] - 10} Q ${(moC[0] + blC[0]) / 2 + 60} ${(moC[1] + blC[1]) / 2 - 40} ${blC[0] + 44} ${blC[1] + 24}`}
@@ -617,27 +732,27 @@ export function Fan({
           className="ov-rel"
           d={`M ${blC[0] + 30} ${blC[1] - 60} Q ${(blC[0] + fgC[0]) / 2 + 80} ${(blC[1] + fgC[1]) / 2} ${fgC[0] + 90} ${fgC[1] + 70}`}
         />
-        <Tag x={rgC[0] + 96} y={rgC[1] - 66} label="attached-to?" color={SEG.rg} />
+        <Tag x={rgC[0] + 96} y={rgC[1] - 66} label="attached-to?" color={SEG.rg} s={ts} />
       </Layer>
-      <Layer opacity={deco(cell("component-quantity"))}>
-        <DimH y={moC[1] + 64} x1={moC[0] - 62} x2={moC[0] + 62} label="~ 135 mm" />
+      <Layer opacity={deco(cell("component-quantity"))} tap={tapFor("component-quantity")}>
+        <DimH y={moC[1] + 64} x1={moC[0] - 62} x2={moC[0] + 62} label="~ 135 mm" s={ts} />
       </Layer>
-      <Layer opacity={deco(cell("component-condition"))}>
+      <Layer opacity={deco(cell("component-condition"))} tap={tapFor("component-condition")}>
         <ellipse className="ov-blob" cx={moC[0] - 40} cy={moC[1] + 18} rx="18" ry="12" />
         {/* clear of the motor box's left edge, which sits at moC − 62 */}
-        <Tag x={moC[0] - 190} y={moC[1] + 2} label="anomaly? · 0.6" color={SEG.warn} />
+        <Tag x={moC[0] - 190} y={moC[1] + 2} label="anomaly? · 0.6" color={SEG.warn} s={ts} />
       </Layer>
 
       {/* material · identity: material tags on the tinted parts */}
-      <Layer opacity={deco(cell("material-identity"))}>
-        <Tag x={fgC[0] - 20} y={fgC[1] - 60} label="steel" color="#9ba7b0" />
-        <Tag x={blC[0] - 96} y={blC[1] + 26} label="ABS" color="#8b97a3" />
-        <Tag x={moC[0] + 8} y={moC[1] - 6} label="Cu" color="#b87333" />
-        <Tag x={baC[0] - 20} y={baC[1] - 8} label="PCB" color="#2e7d4f" />
+      <Layer opacity={deco(cell("material-identity"))} tap={tapFor("material-identity")}>
+        <Tag x={fgC[0] - 20} y={fgC[1] - 60} label="steel" color="#9ba7b0" s={ts} />
+        <Tag x={blC[0] - 96} y={blC[1] + 26} label="ABS" color="#8b97a3" s={ts} />
+        <Tag x={moC[0] + 8} y={moC[1] - 6} label="Cu" color="#b87333" s={ts} />
+        <Tag x={baC[0] - 20} y={baC[1] - 8} label="PCB" color="#2e7d4f" s={ts} />
       </Layer>
-      <Layer opacity={deco(cell("material-condition"))}>
+      <Layer opacity={deco(cell("material-condition"))} tap={tapFor("material-condition")}>
         <ellipse className="ov-blob" cx={moC[0] + 42} cy={moC[1] - 24} rx="16" ry="11" />
-        <Tag x={moC[0] + 62} y={moC[1] - 44} label="corrosion? · 0.3" color={SEG.warn} />
+        <Tag x={moC[0] + 62} y={moC[1] - 44} label="corrosion? · 0.3" color={SEG.warn} s={ts} />
       </Layer>
 
       {compact ? null : (
