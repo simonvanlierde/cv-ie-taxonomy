@@ -327,11 +327,17 @@ export function CvTaxonomy({
         </div>
       )}
 
+      {/* licences live in the repo (LICENSE + README), not the chrome */}
       <footer className="cvt-footer">
-        <span>© 2026 Simon van Lierde · MIT &amp; CC BY 4.0</span>
-        <span className="cvt-footer-mid">Interactive companion to Paper 2 · Table S1</span>
-        <a href="https://github.com/simonvanlierde/cv-ie-taxonomy" target="_blank" rel="noreferrer">
-          Source on GitHub <span aria-hidden>↗</span>
+        <span>© 2026 Simon van Lierde</span>
+        <a
+          href="https://github.com/simonvanlierde/cv-ie-taxonomy"
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Source on GitHub"
+          title="Source on GitHub"
+        >
+          <GitHubIcon />
         </a>
       </footer>
 
@@ -368,7 +374,7 @@ const Rail = memo(function Rail({
   return (
     <div className="cvt-rail">
       <section className="cvt-hero">
-        <Hero hint="The read-outs on the fan are the controls. Click one." />
+        <Hero hint="Click any read-out on the fan to see the evidence." />
         <p className="cvt-scrollhint" aria-hidden>
           scroll to take it apart <span className="cvt-scrollhint-arrow">↓</span>
         </p>
@@ -420,10 +426,12 @@ export function Hero({ hint }: { hint?: string }) {
         actually see?
       </h1>
       <p className="cvt-sub">
-        An end-of-life desk fan, taken apart by the twelve tasks computer vision is asked to do in
-        industrial ecology.{hint ? ` ${hint} ` : " "}Every verdict is the paper's own (
-        <span className="cvt-cite">Table&nbsp;S1</span>), shown by <em>ink weight and letter</em>,
-        never colour.
+        Circular-economy research keeps asking cameras to judge discarded products: what is this,
+        what's inside it, what's it worth? Here is one worn-out desk fan and the twelve ways
+        computer vision could answer — each judged by how well it actually works today.
+        {hint ? ` ${hint} ` : " "}Every verdict comes straight from the paper's{" "}
+        <span className="cvt-cite">Table&nbsp;S1</span>:{" "}
+        <em>the heavier the square, the stronger the evidence</em>. Colour never carries meaning.
       </p>
       <ul className="cvt-legendline" aria-label="Maturity legend">
         {taxonomy.meta.maturityLevels.map((m) => (
@@ -470,7 +478,9 @@ export function CellList({
             <VerdictSwatch verdict={cell.maturity} split={split} size={20} />
             <span className="cvt-mcell-info">{info}</span>
             <span className="cvt-mcell-task">
-              {cell.structurallyEmpty ? "resolved at component scale" : cell.task.split(/[,;]/)[0]}
+              {cell.structurallyEmpty
+                ? "answered at the component scale"
+                : cell.task.split(/[,;]/)[0]}
             </span>
             <b>
               {split
@@ -540,8 +550,8 @@ export const Outro = memo(function Outro() {
     <section className="cvt-outro" id="cvt-matrix" aria-label="Full taxonomy matrix">
       <p className="cvt-eyebrow">The full matrix</p>
       <h2>
-        Read against its own rubric, the map is largely negative: no task-level cell reaches Strong
-        under end-of-life capture.
+        The honest map is mostly gaps: judged by the paper's own rubric, none of the twelve tasks
+        earns a Strong on worn, real-world products.
       </h2>
       <Explorable />
       <p className="cvt-foot">
@@ -580,14 +590,14 @@ function TableView() {
           setOpen(true);
         }}
       >
-        Table view — the same twelve cells as text
+        The same twelve verdicts, as a plain table
       </button>
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: native <dialog> already closes on Esc; onClick only adds backdrop-click for mouse users */}
       {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: a backdrop click lands on the <dialog> itself, so the handler has nowhere else to live */}
       <dialog
         ref={ref}
         className="cvt-panel cvt-tablepanel"
-        aria-label="Table view — the same twelve cells as text"
+        aria-label="The same twelve verdicts, as a plain table"
         onClose={() => setOpen(false)}
         onClick={(e) => {
           if (e.target === ref.current) ref.current?.close();
@@ -802,6 +812,15 @@ function MoonIcon() {
         strokeLinejoin="round"
         d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"
       />
+    </svg>
+  );
+}
+
+// the GitHub mark, as the footer's source link
+function GitHubIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z" />
     </svg>
   );
 }

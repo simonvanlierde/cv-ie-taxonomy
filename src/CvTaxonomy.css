@@ -269,6 +269,18 @@
   pointer-events: none;
   transition: opacity 0.25s ease;
 }
+/* the compact fan's layers are its controls (see Layer's `tap`); hit-testing is
+   visiblePainted, so the filled tag plates are the effective targets */
+.ov-layer-tap {
+  cursor: pointer;
+}
+.ov-layer-tap:focus {
+  outline: none;
+}
+.ov-layer-tap:focus-visible {
+  outline: 2px solid var(--cvt-ink);
+  outline-offset: 3px;
+}
 /* YOLO-style detection boxes + class tags */
 .ov-bbox-r {
   fill: none;
@@ -715,9 +727,10 @@
   position: sticky;
   top: 8vh;
   /* fixed height, scrolling inside: this column sits in .cvt-scroll, the element
-     the scroll timeline is measured over, so opening a tall DetailBody (or its
-     "More detail") must not change the outer height — that would remap every
-     calibrated presence window (see timeline.ts, and the same reasoning on
+     the scroll timeline is measured over. Selecting the first cell grows the
+     outer height once, by design; from then on the height is pinned, so moving
+     cell to cell or opening "More detail" cannot remap the calibrated presence
+     windows under a reader mid-scan (see timeline.ts, and the same reasoning on
      TableView) */
   height: 70vh;
   overflow-y: auto;
@@ -896,18 +909,48 @@
 }
 
 /* ---- footer -------------------------------------------------------------------------------- */
-/* ---- mobile stepper: act one, paged instead of scrolled ------------------------------- */
+/* ---- mobile stepper: fan-first, paged. The fan is a full-screen backdrop;
+   each step's prose and cells ride a peek sheet over its lower third, scrolling
+   internally (a fixed-peek sheet, not drag-snap — same look at rest, far less
+   machinery). The matrix step has no fan, so its sheet takes the whole page. */
 .cvt-stepper {
+  position: relative;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
-@supports (min-height: 100dvh) {
+/* an @supports override, not a same-rule fallback pair — see .cvt-sticky */
+@supports (height: 100dvh) {
   .cvt-stepper {
-    min-height: 100dvh;
+    height: 100dvh;
   }
 }
+/* The backdrop. Its containing block is .cvt-step (positioned), so it spans
+   the space between the bars; the bottom inset stops just shy of the sheet's
+   peek, letting the silhouette tuck slightly behind it. */
+.cvt-step-stage {
+  position: absolute;
+  inset: 0 0 26vh;
+  transition: inset 0.35s ease;
+}
+@supports (inset: 26dvh) {
+  .cvt-step-stage {
+    inset: 0 0 26dvh;
+  }
+}
+/* sheet folded to its handle: the fan takes the freed space */
+.cvt-step[data-collapsed="true"] .cvt-step-stage {
+  inset: 0 0 4rem;
+}
+.cvt-step-stage .cvt-fan {
+  width: 100%;
+  height: 100%;
+  max-height: none;
+}
 .cvt-stepper-top {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -915,27 +958,71 @@
   padding: 0.6rem clamp(1rem, 4vw, 1.5rem) 0.2rem;
 }
 .cvt-step {
+  position: relative;
+  z-index: 1;
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
-  padding: 0 clamp(1rem, 4vw, 1.5rem) 1rem;
+  justify-content: flex-end;
+  padding: 0 0.6rem;
+  /* the step area is a passthrough over the fan; only the sheet is interactive */
+  pointer-events: none;
 }
-.cvt-step-stage {
-  height: 34vh;
-  flex-shrink: 0;
+/* The peek sheet. position + z-index lift it over the stage: an absolutely
+   positioned sibling paints above static content whatever the DOM order. */
+.cvt-step-body {
+  pointer-events: auto;
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  max-height: 32vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--cvt-panel);
+  border: 1px solid var(--cvt-line);
+  border-bottom: none;
+  border-radius: 16px 16px 0 0;
+  padding: 0.4rem 1.1rem 1.1rem;
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.18);
 }
-/* an @supports override, not a same-rule fallback pair — see .cvt-sticky */
-@supports (height: 34dvh) {
-  .cvt-step-stage {
-    height: 34dvh;
+@supports (max-height: 32dvh) {
+  .cvt-step-body {
+    max-height: 32dvh;
   }
 }
-.cvt-step-stage .cvt-fan {
-  max-height: none;
+/* grabber-style affordance: the sheet reads as a sheet, and its body scrolls.
+   Scale steps carry a real toggle button instead (the pseudo bows out). */
+.cvt-step-body:not(:has(.cvt-sheet-toggle))::before {
+  content: "";
+  display: block;
+  width: 38px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--cvt-line);
+  margin: 0.2rem auto 0.8rem;
 }
-.cvt-step-body {
-  min-width: 0;
+/* the grabber as a control: full-width tap target, bar drawn by the pseudo */
+.cvt-sheet-toggle {
+  display: block;
+  width: 100%;
+  padding: 0.55rem 0;
+  margin: 0 0 0.35rem;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.cvt-sheet-toggle::after {
+  content: "";
+  display: block;
+  width: 38px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--cvt-ink-dim);
+  margin: 0 auto;
+}
+.cvt-step[data-collapsed="true"] .cvt-step-body {
+  padding-bottom: 0.4rem;
 }
 .cvt-step-body > h2 {
   font-family: var(--cvt-display);
@@ -943,10 +1030,44 @@
   line-height: 1.1;
   margin: 0.2rem 0 0.6rem;
 }
-/* the nav sticks to the bottom of the viewport while a tall step scrolls */
+/* matrix step: no fan behind, so the sheet grows into the full page */
+.cvt-step[data-step="Matrix"] .cvt-step-body {
+  max-height: none;
+  flex: 1;
+  min-height: 0;
+}
+/* Landscape phones: a bottom sheet would leave the fan a sliver, so it docks
+   right instead and the fan keeps the full height. Safe as a viewport query:
+   only the stepper DOM carries these classes, and it only renders below the
+   container breakpoint. */
+@media (max-height: 520px) {
+  .cvt-step {
+    flex-direction: row;
+    justify-content: flex-end;
+    padding: 0 0.6rem 0;
+  }
+  .cvt-step-body {
+    max-height: none;
+    width: min(46%, 400px);
+    border-bottom: none;
+    border-radius: 16px 16px 0 0;
+  }
+  .cvt-step-stage {
+    inset: 0 min(46%, 400px) 0 0;
+    transition: none;
+  }
+  .cvt-step[data-collapsed="true"] .cvt-step-stage {
+    inset: 0 4rem 0 0;
+  }
+  .cvt-step[data-collapsed="true"] .cvt-step-body {
+    width: 3.4rem;
+  }
+  .cvt-step[data-step="Matrix"] .cvt-step-body {
+    width: 100%;
+  }
+}
 .cvt-stepper-nav {
-  position: sticky;
-  bottom: 0;
+  position: relative;
   z-index: 2;
   display: flex;
   align-items: center;
@@ -1008,19 +1129,10 @@
   letter-spacing: 0.04em;
   color: var(--cvt-ink-dim);
 }
-.cvt-footer-mid {
-  flex: 1;
-  text-align: center;
-  min-width: 12ch;
-}
 .cvt-footer a {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
   color: var(--cvt-ink-dim);
-  text-decoration: underline;
-  text-decoration-style: dotted;
-  text-underline-offset: 3px;
 }
 .cvt-footer a:hover {
   color: var(--cvt-ink);
