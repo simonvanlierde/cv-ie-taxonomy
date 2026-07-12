@@ -1,16 +1,10 @@
-import { cells, VERDICT_LETTER } from "./data/taxonomy";
+import { type ReactNode, useId } from "react";
+import { cellById as cell, VERDICT_LETTER } from "./data/taxonomy";
 import type { Cell } from "./data/types";
-import { SCALE_HUE, TIMELINE } from "./theme";
+import { frameToViewBox, VIEW } from "./frames";
+import { SCALE_VAR, SEG_VAR as SEG } from "./theme";
+import { presence as presenceAt, seg, TIMELINE } from "./timeline";
 import { VerdictSwatch } from "./VerdictSwatch";
-
-// ---- scroll → animation mapping -----------------------------------------------
-const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
-const smoothstep = (t: number) => t * t * (3 - 2 * t);
-const seg = (p: number, a: number, b: number) => smoothstep(clamp01((p - a) / (b - a)));
-
-// cells by id ("product-identity", …): the JSON ids are the keys
-const CELL = new Map(cells.map((c) => [c.id, c]));
-const cell = (id: string) => CELL.get(id)!;
 
 // Explode vectors at factor 1, a patent-style vertical explode: the front of
 // the fan stacks upward with a slight stagger, the stand drops away below.
@@ -37,21 +31,12 @@ const PETAL =
   "M300 400 C318 390 332 372 336 342 C339 316 324 300 306 309 C290 318 283 352 287 384 Z";
 const BLADES = [0, 120, 240]; // blade rotations about the hub (300 400)
 
-// Instance-segmentation palette (illustrative CV output, not maturity/scale).
-// The values are selected per theme in theme.ts; the fan only names the slots.
-const SEG = {
-  fg: "var(--seg-fg)", // front grille: yellow
-  bl: "var(--seg-bl)", // blades: cyan
-  rg: "var(--seg-rg)", // rear grille: violet
-  mo: "var(--seg-mo)", // motor: orange
-  nk: "var(--seg-nk)", // neck: pink
-  ba: "var(--seg-ba)", // base: green
-  warn: "var(--seg-warn)", // anomaly / condition tags
-} as const;
-
 // Both plates size themselves from the real advance of the mono face
-// (0.616em per glyph), so a label can never outrun its own box. Keep the
-// font sizes in step with .ov-tag text / .cvt-co-text in the stylesheet.
+// (0.616em per glyph), so a label can never outrun its own box. The <text>
+// elements take their font-size from these same constants, so the plate math
+// and the rendered glyphs cannot drift apart. Labels stay within the shipped
+// Overpass Mono subset (ASCII + · × Ø …), so every glyph really advances
+// 0.616em — a symbol outside it would fall back to a differently-spaced face.
 const MONO_ADVANCE = 0.616;
 const TAG_FONT = 13;
 const CHIP_FONT = 14.5;
@@ -65,21 +50,45 @@ const CHIP_PAD_R = 12;
 const CHIP_H = 34;
 const chipWidth = (text: string) => CHIP_TEXT_X + monoWidth(text, CHIP_FONT) + CHIP_PAD_R;
 
-// The fan's viewBox spans x ∈ [-250, 820]. Right-hand chips anchor to this edge
-// and grow leftwards, so a longer label can never run off the canvas.
-const CHIP_RIGHT_EDGE = 812;
+// The desktop view rect, imported from frames.ts (it is also the camera's home
+// frame): the viewBox string and both chip gutters derive from it, so a viewBox
+// change really does move both columns. Right-hand chips grow leftwards from
+// CHIP_RIGHT_EDGE, left-hand chips start at CHIP_LEFT_EDGE, so a longer label
+// can never run off the canvas.
+const CHIP_RIGHT_EDGE = VIEW.x + VIEW.w - 8;
+const CHIP_LEFT_EDGE = VIEW.x + 10;
 
-const OCR_TEXT = 'OCR ▸ "TYP 4212/A"';
+// A chapter is "on stage" once its presence crosses this: its chips become
+// operable and its OCR read-out starts typing. One threshold, used everywhere.
+const ON_STAGE = 0.5;
+
+const OCR_TEXT = 'OCR > "TYP 4212/A"';
 const OCR_W = monoWidth(OCR_TEXT, TAG_FONT) + 10;
 
 // ---- CV-annotation primitives -----------------------------------------------------
+// `s` scales the read-out type and plates: 1 on desktop; >1 on the compact fan,
+// where the same viewBox units render at roughly half the pixels and the tags
+// double as the tap targets for the cell modal.
+
 /** YOLO-style class tag: solid colour box, dark text */
-function Tag({ x, y, label, color }: { x: number; y: number; label: string; color: string }) {
-  const w = monoWidth(label, TAG_FONT) + 10;
+function Tag({
+  x,
+  y,
+  label,
+  color,
+  s = 1,
+}: {
+  x: number;
+  y: number;
+  label: string;
+  color: string;
+  s?: number;
+}) {
+  const w = monoWidth(label, TAG_FONT * s) + 10 * s;
   return (
     <g className="ov-tag" transform={`translate(${x} ${y})`}>
-      <rect width={w} height={TAG_H} rx="2" fill={color} />
-      <text x="5" y="15">
+      <rect width={w} height={TAG_H * s} rx="2" fill={color} />
+      <text x={5 * s} y={15 * s} fontSize={TAG_FONT * s}>
         {label}
       </text>
     </g>
@@ -94,6 +103,7 @@ function BBox({
   h,
   label,
   color,
+  s = 1,
 }: {
   x: number;
   y: number;
@@ -101,35 +111,123 @@ function BBox({
   h: number;
   label: string;
   color: string;
+  s?: number;
 }) {
   return (
-    <g className="ov-bbox" style={{ ["--c" as string]: color }}>
+    <g className="ov-bbox" style={{ "--c": color }}>
       <rect className="ov-bbox-r" x={x} y={y} width={w} height={h} />
-      <Tag x={x} y={y - TAG_H} label={label} color={color} />
+      <Tag x={x} y={y - TAG_H * s} label={label} color={color} s={s} />
     </g>
   );
 }
 
-function DimV({ x, y1, y2, label }: { x: number; y1: number; y2: number; label: string }) {
+/** the operable layer's wiring: which cell a tap opens, via the shared modal */
+type LayerTap = { cell: Cell; onSelect: (cell: Cell, focusId: string) => void };
+
+/**
+ * One chapter's CV annotations, painted on the fan.
+ *
+ * Every number these draw is a mock, and the caveat that says so lives in the
+ * HUD, not here — so on desktop the whole layer is hidden from the
+ * accessibility tree. Fading a group to opacity 0 does not remove it, and a
+ * screen reader would otherwise read all nine chapters' read-outs at once, out
+ * of order, uncaveated. The chips carry the real, sourced content.
+ *
+ * With `tap` (the compact fan, which has no chips), the layer IS the control:
+ * a labelled button opening its cell's modal, exposed only while its chapter
+ * is on stage. The label names the cell, not the mock values.
+ */
+function Layer({
+  opacity,
+  children,
+  tap,
+}: {
+  opacity: number;
+  children: ReactNode;
+  tap?: LayerTap;
+}) {
+  if (!tap) {
+    return (
+      // biome-ignore lint/a11y/noAriaHiddenOnFocusable: a plain <g> is not focusable, and these layers hold only decorative shapes and text — the operable chips live outside them
+      <g className="ov-layer" aria-hidden="true" style={{ opacity }}>
+        {children}
+      </g>
+    );
+  }
+  const { cell: c, onSelect } = tap;
+  const active = opacity > ON_STAGE;
+  const hid = `cvt-ov-${c.id}`;
+  return (
+    // biome-ignore lint/a11y/useSemanticElements: SVG has no <button>; a role on <g> is the only way to make an in-drawing hotspot operable
+    <g
+      id={hid}
+      className="ov-layer ov-layer-tap"
+      role="button"
+      tabIndex={active ? 0 : -1}
+      aria-hidden={!active}
+      aria-label={`${c.scale} · ${c.informationType}: ${c.task}. Maturity: ${c.maturity}. Open details.`}
+      style={{ opacity, pointerEvents: active ? "auto" : "none" }}
+      onClick={() => onSelect(c, hid)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelect(c, hid);
+        }
+      }}
+    >
+      {children}
+    </g>
+  );
+}
+
+function DimV({
+  x,
+  y1,
+  y2,
+  label,
+  s = 1,
+}: {
+  x: number;
+  y1: number;
+  y2: number;
+  label: string;
+  s?: number;
+}) {
   return (
     <g className="ov-dim">
       <line x1={x} y1={y1} x2={x} y2={y2} />
       <line x1={x - 5} y1={y1} x2={x + 5} y2={y1} />
       <line x1={x - 5} y1={y2} x2={x + 5} y2={y2} />
-      <text transform={`translate(${x + 14} ${(y1 + y2) / 2}) rotate(90)`} textAnchor="middle">
+      <text
+        transform={`translate(${x + 14 * s} ${(y1 + y2) / 2}) rotate(90)`}
+        textAnchor="middle"
+        fontSize={TAG_FONT * s}
+      >
         {label}
       </text>
     </g>
   );
 }
 
-function DimH({ y, x1, x2, label }: { y: number; x1: number; x2: number; label: string }) {
+function DimH({
+  y,
+  x1,
+  x2,
+  label,
+  s = 1,
+}: {
+  y: number;
+  x1: number;
+  x2: number;
+  label: string;
+  s?: number;
+}) {
   return (
     <g className="ov-dim">
       <line x1={x1} y1={y} x2={x2} y2={y} />
       <line x1={x1} y1={y - 5} x2={x1} y2={y + 5} />
       <line x1={x2} y1={y - 5} x2={x2} y2={y + 5} />
-      <text x={(x1 + x2) / 2} y={y - 8} textAnchor="middle">
+      <text x={(x1 + x2) / 2} y={y - 8 * s} textAnchor="middle" fontSize={TAG_FONT * s}>
         {label}
       </text>
     </g>
@@ -141,7 +239,7 @@ const spokes = (n: number, r0: number, r1: number, cx = 300, cy = 400) =>
     const a = (i * 2 * Math.PI) / n;
     return (
       <line
-        key={i}
+        key={a}
         x1={cx + r0 * Math.cos(a)}
         y1={cy + r0 * Math.sin(a)}
         x2={cx + r1 * Math.cos(a)}
@@ -160,6 +258,7 @@ function Callout({
   leadEdge = "right",
   strike,
   opacity,
+  active,
   selected,
   onSelect,
   onHover,
@@ -170,9 +269,13 @@ function Callout({
   y: number;
   text: string;
   lead?: readonly [number, number];
-  leadEdge?: "right" | "left" | "top";
+  leadEdge?: "right" | "left";
   strike?: boolean;
   opacity: number;
+  /** operable: this chip's chapter is on stage and the filter has not excluded it.
+   *  Deliberately NOT derived from `opacity` — a chip dimmed merely because a
+   *  sibling has focus is still visible, so it must stay focusable and announced. */
+  active: boolean;
   selected: boolean;
   onSelect: (cell: Cell, focusId: string) => void;
   onHover: (cell: Cell | null) => void;
@@ -181,10 +284,9 @@ function Callout({
   const w = chipWidth(text);
   const X = x ?? CHIP_RIGHT_EDGE - w;
   const hid = `cvt-co-${cell.id}`;
-  const active = opacity > 0.5;
-  const start: [number, number] =
-    leadEdge === "right" ? [w, -6] : leadEdge === "left" ? [0, -6] : [w / 2, -23];
+  const start: readonly [number, number] = leadEdge === "right" ? [w, -6] : [0, -6];
   return (
+    // biome-ignore lint/a11y/useSemanticElements: SVG has no <button>; a role on <g> is the only way to make an in-drawing hotspot operable
     <g
       id={hid}
       className="cvt-co"
@@ -198,7 +300,7 @@ function Callout({
       style={{
         opacity,
         pointerEvents: active ? undefined : "none",
-        ["--hue" as string]: SCALE_HUE[cell.scale],
+        "--hue": SCALE_VAR[cell.scale],
       }}
       onClick={() => onSelect(cell, hid)}
       onKeyDown={(e) => {
@@ -220,7 +322,7 @@ function Callout({
       <text className="cvt-co-letter" x="35" y="1">
         {letter}
       </text>
-      <text className="cvt-co-text" x={CHIP_TEXT_X} y="0">
+      <text className="cvt-co-text" x={CHIP_TEXT_X} y="0" fontSize={CHIP_FONT}>
         {text}
       </text>
       {strike && <line className="ov-strike" x1={CHIP_TEXT_X - 2} y1="-5" x2={w - 9} y2="-5" />}
@@ -237,6 +339,7 @@ export function Fan({
   onHover,
   reduceMotion,
   compact = false,
+  viewBox,
 }: {
   /** global scroll progress 0..1 */
   p: number;
@@ -249,7 +352,13 @@ export function Fan({
   reduceMotion: boolean;
   /** mobile: fan + annotations, no floating chips */
   compact?: boolean;
+  /** camera viewBox (from useCamera). Desktop zooms to the selected cell;
+   *  the stepper drives per-step frames. Omitted: the static full box. */
+  viewBox?: string;
 }) {
+  // scoped, so a second Fan on the page cannot steal this one's clip path
+  const ocrClip = useId();
+
   const e = seg(p, TIMELINE.explode[0], TIMELINE.explode[1]);
   const m = seg(p, TIMELINE.drift[0], TIMELINE.drift[1]);
   const k = e + 0.1 * m;
@@ -260,16 +369,15 @@ export function Fan({
   const sy = (y: number) => (y - O[1]) * s + O[1];
 
   // chapter presence per scale, faded in/out with scroll
-  const win = (w: readonly number[]) => seg(p, w[0], w[1]) * (1 - seg(p, w[2], w[3]));
   const presence: Record<Cell["scale"], number> = {
-    Product: win(TIMELINE.presence.Product),
-    Component: win(TIMELINE.presence.Component),
-    Material: win(TIMELINE.presence.Material),
+    Product: presenceAt(TIMELINE.presence.Product, p),
+    Component: presenceAt(TIMELINE.presence.Component, p),
+    Material: presenceAt(TIMELINE.presence.Material, p),
   };
 
   // pseudo-3D: the whole sheet tilts with scroll (flat at hero/outro, max
   // mid-explode); exploded parts get a small depth parallax so the stack
-  // reads as layered, not flat
+  // reads as layered, not flat.
   const ry = compact ? 0 : 6 * Math.sin(p * Math.PI); // degrees
   const par = (z: number) => z * ry * 1.8 * k; // px shift, only when exploded
 
@@ -290,18 +398,127 @@ export function Fan({
   const deco = (c: Cell, base = 0.85) =>
     presence[c.scale] * (isDim(c) ? 0 : focus ? (focus.id === c.id ? 1 : 0.05) : base);
 
-  const co = (id: string) => ({
-    cell: cell(id),
-    opacity: chip(cell(id)),
-    selected: focus?.id === cell(id).id,
-    onSelect,
-    onHover,
-  });
+  // Operability tracks the chapter and the filter, never the focus dimming: a chip
+  // faded to 0.45 because a sibling is hovered is still on screen, so it stays
+  // tabbable. Deriving this from opacity made Tab skip every chip but the focused
+  // one — the chips are the controls, so that stranded keyboard users.
+  const interactive = (c: Cell) => presence[c.scale] > ON_STAGE && !isDim(c);
+
+  const co = (id: string) => {
+    const c = cell(id);
+    return {
+      cell: c,
+      opacity: chip(c),
+      active: interactive(c),
+      selected: focus?.id === c.id,
+      onSelect,
+      onHover,
+    };
+  };
 
   // a worn fan shouldn't spin merrily: hovering a Condition cell stops it
   const spinning = !compact && !reduceMotion && e < 0.15 && focus?.informationType !== "Condition";
   const segO = deco(cell("component-structure"), 0.6);
   const matO = deco(cell("material-identity"), 0.7);
+
+  // Compact: the read-outs grow (same viewBox units, roughly half the pixels)
+  // and each annotation layer becomes the tap target for its cell's modal —
+  // the compact fan has no chips, so the labels are the controls.
+  const ts = compact ? 1.6 : 1;
+  const tapFor = (id: string): LayerTap | undefined =>
+    compact ? { cell: cell(id), onSelect } : undefined;
+
+  // The twelve chips, one per taxonomy cell. `id` is looked up through cellById,
+  // so a typo throws at first render rather than rendering a blank chip. Declared
+  // in render because the leader targets read the live part centres.
+  const CALLOUTS: {
+    id: string;
+    x?: number;
+    y: number;
+    text: string;
+    lead?: readonly [number, number];
+    leadEdge?: "right" | "left";
+    strike?: boolean;
+  }[] = [
+    // product (assembled fan)
+    {
+      id: "product-identity",
+      x: CHIP_LEFT_EDGE,
+      y: 770,
+      text: "OCR + db-match ok",
+      lead: [sx(196), sy(737)],
+    },
+    {
+      id: "product-quantity",
+      y: 430,
+      text: "H ~ 430 · Ø ~ 300",
+      leadEdge: "left",
+      lead: [sx(500) + 14, sy(400)],
+    },
+    {
+      id: "product-condition",
+      x: CHIP_LEFT_EDGE,
+      y: 580,
+      text: "wear? (unvalidated)",
+      lead: [baC[0] - 92 * s, baC[1] + 12 * s],
+    },
+    // clear of the HUD's scale indicator, which owns the bottom-left corner
+    { id: "product-structure", x: CHIP_LEFT_EDGE, y: 676, text: "structure -> component" },
+
+    // component (exploded fan)
+    {
+      id: "component-identity",
+      x: CHIP_LEFT_EDGE,
+      y: 140,
+      text: "detect > 6 parts",
+      lead: [blC[0] - 106, blC[1] - 112],
+    },
+    {
+      id: "component-structure",
+      y: 300,
+      text: "segment · attached-to? E",
+      leadEdge: "left",
+      lead: [rgC[0] + 100, rgC[1] - 52],
+    },
+    {
+      id: "component-quantity",
+      x: CHIP_LEFT_EDGE,
+      y: 560,
+      text: "dims > motor ~ 135 mm",
+      lead: [moC[0] - 64, moC[1] + 62],
+    },
+    {
+      id: "component-condition",
+      x: CHIP_LEFT_EDGE,
+      y: 690,
+      text: "brush wear? (unvalidated)",
+      lead: [moC[0] - 76, moC[1] + 44],
+    },
+
+    // material (drifted parts)
+    {
+      id: "material-identity",
+      y: 170,
+      text: "steel · ABS · Cu · PCB",
+      leadEdge: "left",
+      lead: [fgC[0] + 30, fgC[1] - 52],
+    },
+    {
+      id: "material-quantity",
+      x: CHIP_LEFT_EDGE,
+      y: 140,
+      text: "mass (derived only)",
+      strike: true,
+    },
+    { id: "material-structure", y: 470, text: "structure -> component" },
+    {
+      id: "material-condition",
+      y: 640,
+      text: "corrosion? (unvalidated)",
+      leadEdge: "left",
+      lead: [moC[0] + 130, moC[1] - 36],
+    },
+  ];
 
   // each part's primary silhouette, defined once and reused by the part, its
   // segmentation mask and its material tint (they must stay pixel-aligned)
@@ -312,9 +529,10 @@ export function Fan({
   const fgRing = { cx: 300, cy: 400, r: 122 };
 
   return (
+    // biome-ignore lint/a11y/useSemanticElements: an <svg> cannot become a <fieldset>; the explicit role keeps the aria-label exposed on engines that prune a role-less svg, without flattening the operable chips inside the way role="img" would
     <svg
       className={compact ? "cvt-fan cvt-fan-compact" : "cvt-fan"}
-      viewBox={compact ? "120 -40 420 910" : "-250 -25 1070 950"}
+      viewBox={viewBox ?? (compact ? "120 -25 420 910" : frameToViewBox(VIEW))}
       role="group"
       aria-label="Exploding desk fan; the computer-vision read-outs around it open task details"
       preserveAspectRatio="xMidYMid meet"
@@ -328,11 +546,7 @@ export function Fan({
       <g transform={`translate(${O[0] * (1 - s)} ${O[1] * (1 - s)}) scale(${s})`}>
         <g className="fan-part" transform={at(V.nk, Z.nk)}>
           <rect {...nkR} />
-          <rect
-            className="ov-segfill"
-            {...nkR}
-            style={{ opacity: segO, ["--c" as string]: SEG.nk }}
-          />
+          <rect className="ov-segfill" {...nkR} style={{ opacity: segO, "--c": SEG.nk }} />
           <rect className="mat-tint mat-steel" {...nkR} style={{ opacity: matO }} />
         </g>
 
@@ -348,32 +562,17 @@ export function Fan({
             <line x1="340" y1="665" x2="374" y2="665" />
             <line x1="340" y1="670" x2="366" y2="670" />
           </g>
-          <rect
-            className="ov-segfill"
-            {...baR}
-            style={{ opacity: segO, ["--c" as string]: SEG.ba }}
-          />
+          <rect className="ov-segfill" {...baR} style={{ opacity: segO, "--c": SEG.ba }} />
           <rect className="mat-tint mat-pcb" {...baR} style={{ opacity: matO }} />
         </g>
 
         <g className="fan-part" transform={at(V.mo, Z.mo)}>
           <rect {...moR} />
-          {Array.from({ length: 6 }, (_, i) => (
-            <line
-              key={i}
-              className="fan-winding"
-              x1={296 + i * 9}
-              y1="384"
-              x2={296 + i * 9}
-              y2="440"
-            />
+          {Array.from({ length: 6 }, (_, i) => 296 + i * 9).map((x) => (
+            <line key={x} className="fan-winding" x1={x} y1="384" x2={x} y2="440" />
           ))}
           <circle cx="262" cy="412" r="8" />
-          <rect
-            className="ov-segfill"
-            {...moR}
-            style={{ opacity: segO, ["--c" as string]: SEG.mo }}
-          />
+          <rect className="ov-segfill" {...moR} style={{ opacity: segO, "--c": SEG.mo }} />
           <rect className="mat-tint mat-cu" {...moR} style={{ opacity: matO }} />
         </g>
 
@@ -384,7 +583,7 @@ export function Fan({
           <circle
             className="ov-segfill"
             {...rgRing}
-            style={{ opacity: segO * 0.6, ["--c" as string]: SEG.rg }}
+            style={{ opacity: segO * 0.6, "--c": SEG.rg }}
           />
           <circle className="mat-tint mat-steel" {...rgRing} style={{ opacity: matO }} />
         </g>
@@ -393,7 +592,7 @@ export function Fan({
           <g className="fan-spin" data-spin={spinning}>
             {[
               { cls: "fan-petal", style: undefined },
-              { cls: "ov-segfill", style: { opacity: segO, ["--c" as string]: SEG.bl } },
+              { cls: "ov-segfill", style: { opacity: segO, "--c": SEG.bl } },
               { cls: "mat-tint mat-abs", style: { opacity: matO } },
             ].map((layer) =>
               BLADES.map((a) => (
@@ -419,26 +618,29 @@ export function Fan({
           <circle
             className="ov-segfill"
             {...fgRing}
-            style={{ opacity: segO * 0.5, ["--c" as string]: SEG.fg }}
+            style={{ opacity: segO * 0.5, "--c": SEG.fg }}
           />
           <circle className="mat-tint mat-steel" {...fgRing} style={{ opacity: matO }} />
         </g>
       </g>
 
-      {/* ---- CV annotations painted on the product ---- */}
+      {/* ---- CV annotations painted on the product. Every read-out here is a mock;
+             on desktop <Layer> keeps the lot out of the accessibility tree, and on
+             the compact fan each layer is the tappable control for its cell. ---- */}
       {/* product · identity: whole-object detection box + OCR read-out on the label */}
-      <g className="ov-layer" style={{ opacity: deco(cell("product-identity")) }}>
+      <Layer opacity={deco(cell("product-identity"))} tap={tapFor("product-identity")}>
         <BBox
           x={sx(150)}
           y={fgC[1] - 132 * s}
           w={sx(455) - sx(150)}
           h={baC[1] + 40 * s - (fgC[1] - 132 * s)}
           label="desk_fan · 0.94"
-          color={SCALE_HUE.Product}
+          color={SCALE_VAR.Product}
+          s={ts}
         />
         <rect
           className="ov-bbox-r"
-          style={{ ["--c" as string]: SCALE_HUE.Product }}
+          style={{ "--c": SCALE_VAR.Product }}
           x={sx(332 + 16 * k)}
           y={sy(656 + 124 * k)}
           width={52 * s}
@@ -454,30 +656,35 @@ export function Fan({
         {/* OCR read-out types itself when the chapter arrives */}
         <g
           className="ov-tag ov-ocr"
-          data-active={presence.Product > 0.5}
+          data-active={presence.Product > ON_STAGE}
           transform={`translate(${sx(196)} ${sy(728)})`}
-          style={{
-            ["--ocr-w" as string]: `${OCR_W}px`,
-            ["--ocr-caret" as string]: `${OCR_W - 11}px`,
-          }}
+          style={{ "--ocr-w": `${OCR_W * ts}px`, "--ocr-caret": `${(OCR_W - 11) * ts}px` }}
         >
-          <clipPath id="cvt-ocr-clip">
-            <rect className="ov-ocr-reveal" x="0" y="0" width={OCR_W} height={TAG_H} />
+          <clipPath id={ocrClip}>
+            <rect className="ov-ocr-reveal" x="0" y="0" width={OCR_W * ts} height={TAG_H * ts} />
           </clipPath>
-          <rect width={OCR_W} height={TAG_H} rx="2" fill={SCALE_HUE.Product} />
-          <g clipPath="url(#cvt-ocr-clip)">
-            <text x="5" y="15">
+          <rect width={OCR_W * ts} height={TAG_H * ts} rx="2" fill={SCALE_VAR.Product} />
+          <g clipPath={`url(#${ocrClip})`}>
+            <text x={5 * ts} y={15 * ts} fontSize={TAG_FONT * ts}>
               {OCR_TEXT}
             </text>
           </g>
-          <rect className="ov-caret" y="4" width="7" height="14" />
+          <rect className="ov-caret" y={4 * ts} width={7 * ts} height={14 * ts} />
         </g>
-      </g>
-      <g className="ov-layer" style={{ opacity: deco(cell("product-quantity")) }}>
-        <DimV x={sx(500)} y1={fgC[1] - 122 * s} y2={baC[1] + 26 * s} label="≈ 430 mm" />
-        <DimH y={fgC[1] - 140 * s} x1={fgC[0] - 122 * s} x2={fgC[0] + 122 * s} label="⌀ ≈ 300 mm" />
-      </g>
-      <g className="ov-layer" style={{ opacity: deco(cell("product-condition")) }}>
+      </Layer>
+      <Layer opacity={deco(cell("product-quantity"))} tap={tapFor("product-quantity")}>
+        <DimV x={sx(500)} y1={fgC[1] - 122 * s} y2={baC[1] + 26 * s} label="~ 430 mm" s={ts} />
+        <DimH
+          /* the compact fan's grown desk_fan tag reaches higher; keep the
+             diameter line above it rather than through it */
+          y={fgC[1] - 140 * s - (ts - 1) * 60}
+          x1={fgC[0] - 122 * s}
+          x2={fgC[0] + 122 * s}
+          label="Ø ~ 300 mm"
+          s={ts}
+        />
+      </Layer>
+      <Layer opacity={deco(cell("product-condition"))} tap={tapFor("product-condition")}>
         <ellipse
           className="ov-blob"
           cx={baC[0] - 60 * s}
@@ -485,11 +692,17 @@ export function Fan({
           rx={24 * s}
           ry={12 * s}
         />
-        <Tag x={baC[0] - 90 * s} y={baC[1] + 20 * s} label="anomaly? · 0.4" color={SEG.warn} />
-      </g>
+        <Tag
+          x={baC[0] - 90 * s}
+          y={baC[1] + 20 * s}
+          label="anomaly? · 0.4"
+          color={SEG.warn}
+          s={ts}
+        />
+      </Layer>
 
       {/* component · identity: YOLO-style boxes with class tags */}
-      <g className="ov-layer" style={{ opacity: deco(cell("component-identity")) }}>
+      <Layer opacity={deco(cell("component-identity"))} tap={tapFor("component-identity")}>
         <BBox
           x={blC[0] - 106}
           y={blC[1] - 104}
@@ -497,11 +710,20 @@ export function Fan({
           h={208}
           label="blade ×3 · 0.91"
           color={SEG.bl}
+          s={ts}
         />
-        <BBox x={moC[0] - 62} y={moC[1] - 42} w={124} h={84} label="motor · 0.87" color={SEG.mo} />
-      </g>
+        <BBox
+          x={moC[0] - 62}
+          y={moC[1] - 42}
+          w={124}
+          h={84}
+          label="motor · 0.87"
+          color={SEG.mo}
+          s={ts}
+        />
+      </Layer>
       {/* component · structure: instance masks (on the parts) + relation queries */}
-      <g className="ov-layer" style={{ opacity: deco(cell("component-structure")) }}>
+      <Layer opacity={deco(cell("component-structure"))} tap={tapFor("component-structure")}>
         <path
           className="ov-rel"
           d={`M ${moC[0] - 40} ${moC[1] - 10} Q ${(moC[0] + blC[0]) / 2 + 60} ${(moC[1] + blC[1]) / 2 - 40} ${blC[0] + 44} ${blC[1] + 24}`}
@@ -510,110 +732,39 @@ export function Fan({
           className="ov-rel"
           d={`M ${blC[0] + 30} ${blC[1] - 60} Q ${(blC[0] + fgC[0]) / 2 + 80} ${(blC[1] + fgC[1]) / 2} ${fgC[0] + 90} ${fgC[1] + 70}`}
         />
-        <Tag x={rgC[0] + 96} y={rgC[1] - 66} label="attached-to?" color={SEG.rg} />
-      </g>
-      <g className="ov-layer" style={{ opacity: deco(cell("component-quantity")) }}>
-        <DimH y={moC[1] + 64} x1={moC[0] - 62} x2={moC[0] + 62} label="≈ 135 mm" />
-      </g>
-      <g className="ov-layer" style={{ opacity: deco(cell("component-condition")) }}>
+        <Tag x={rgC[0] + 96} y={rgC[1] - 66} label="attached-to?" color={SEG.rg} s={ts} />
+      </Layer>
+      <Layer opacity={deco(cell("component-quantity"))} tap={tapFor("component-quantity")}>
+        <DimH y={moC[1] + 64} x1={moC[0] - 62} x2={moC[0] + 62} label="~ 135 mm" s={ts} />
+      </Layer>
+      <Layer opacity={deco(cell("component-condition"))} tap={tapFor("component-condition")}>
         <ellipse className="ov-blob" cx={moC[0] - 40} cy={moC[1] + 18} rx="18" ry="12" />
         {/* clear of the motor box's left edge, which sits at moC − 62 */}
-        <Tag x={moC[0] - 190} y={moC[1] + 2} label="anomaly? · 0.6" color={SEG.warn} />
-      </g>
+        <Tag x={moC[0] - 190} y={moC[1] + 2} label="anomaly? · 0.6" color={SEG.warn} s={ts} />
+      </Layer>
 
       {/* material · identity: material tags on the tinted parts */}
-      <g className="ov-layer" style={{ opacity: deco(cell("material-identity")) }}>
-        <Tag x={fgC[0] - 20} y={fgC[1] - 60} label="steel" color="#9ba7b0" />
-        <Tag x={blC[0] - 96} y={blC[1] + 26} label="ABS" color="#8b97a3" />
-        <Tag x={moC[0] + 8} y={moC[1] - 6} label="Cu" color="#b87333" />
-        <Tag x={baC[0] - 20} y={baC[1] - 8} label="PCB" color="#2e7d4f" />
-      </g>
-      <g className="ov-layer" style={{ opacity: deco(cell("material-condition")) }}>
+      <Layer opacity={deco(cell("material-identity"))} tap={tapFor("material-identity")}>
+        <Tag x={fgC[0] - 20} y={fgC[1] - 60} label="steel" color="#9ba7b0" s={ts} />
+        <Tag x={blC[0] - 96} y={blC[1] + 26} label="ABS" color="#8b97a3" s={ts} />
+        <Tag x={moC[0] + 8} y={moC[1] - 6} label="Cu" color="#b87333" s={ts} />
+        <Tag x={baC[0] - 20} y={baC[1] - 8} label="PCB" color="#2e7d4f" s={ts} />
+      </Layer>
+      <Layer opacity={deco(cell("material-condition"))} tap={tapFor("material-condition")}>
         <ellipse className="ov-blob" cx={moC[0] + 42} cy={moC[1] - 24} rx="16" ry="11" />
-        <Tag x={moC[0] + 62} y={moC[1] - 44} label="corrosion? · 0.3" color={SEG.warn} />
-      </g>
+        <Tag x={moC[0] + 62} y={moC[1] - 44} label="corrosion? · 0.3" color={SEG.warn} s={ts} />
+      </Layer>
 
       {compact ? null : (
         <>
-          {/* ---- floating info chips (the controls), one chapter at a time ---- */}
-          {/* product (assembled fan) */}
-          <Callout
-            {...co("product-identity")}
-            x={-240}
-            y={770}
-            text="OCR + db-match ✓"
-            lead={[sx(196), sy(737)]}
-          />
-          <Callout
-            {...co("product-quantity")}
-            y={430}
-            text="H ≈ 430 · ⌀ ≈ 300"
-            leadEdge="left"
-            lead={[sx(500) + 14, sy(400)]}
-          />
-          <Callout
-            {...co("product-condition")}
-            x={-240}
-            y={580}
-            text="wear? (unvalidated)"
-            lead={[baC[0] - 92 * s, baC[1] + 12 * s]}
-          />
-          {/* clear of the HUD's scale indicator, which owns the bottom-left corner */}
-          <Callout {...co("product-structure")} x={-240} y={676} text="structure → component" />
-
-          {/* component (exploded fan) */}
-          <Callout
-            {...co("component-identity")}
-            x={-245}
-            y={140}
-            text="detect ▸ 6 parts"
-            lead={[blC[0] - 106, blC[1] - 112]}
-          />
-          <Callout
-            {...co("component-structure")}
-            y={300}
-            text="segment · attached-to? E"
-            leadEdge="left"
-            lead={[rgC[0] + 100, rgC[1] - 52]}
-          />
-          <Callout
-            {...co("component-quantity")}
-            x={-245}
-            y={560}
-            text="dims ▸ motor ≈ 135 mm"
-            lead={[moC[0] - 64, moC[1] + 62]}
-          />
-          <Callout
-            {...co("component-condition")}
-            x={-245}
-            y={690}
-            text="brush wear? (unvalidated)"
-            lead={[moC[0] - 76, moC[1] + 44]}
-          />
-
-          {/* material (drifted parts) */}
-          <Callout
-            {...co("material-identity")}
-            y={170}
-            text="steel · ABS · Cu · PCB"
-            leadEdge="left"
-            lead={[fgC[0] + 30, fgC[1] - 52]}
-          />
-          <Callout
-            {...co("material-quantity")}
-            x={-245}
-            y={140}
-            text="mass (derived only)"
-            strike
-          />
-          <Callout {...co("material-structure")} y={470} text="structure → component" />
-          <Callout
-            {...co("material-condition")}
-            y={640}
-            text="corrosion? (unvalidated)"
-            leadEdge="left"
-            lead={[moC[0] + 130, moC[1] - 36]}
-          />
+          {/* ---- floating info chips (the controls), one chapter at a time.
+                 Left-gutter chips anchor to CHIP_LEFT_EDGE, right-gutter chips
+                 omit `x` and anchor to CHIP_RIGHT_EDGE, so both columns track
+                 the viewBox instead of being re-tuned by hand. Leader targets
+                 are read off the live part centres. ---- */}
+          {CALLOUTS.map(({ id, ...chip }) => (
+            <Callout key={id} {...co(id)} {...chip} />
+          ))}
         </>
       )}
     </svg>

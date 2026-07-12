@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Verdict } from "./data/types";
+import { contrast, luminance } from "./test-helpers";
 import { SURFACE, VERDICT_RAMP } from "./theme";
 
 /**
@@ -8,18 +9,6 @@ import { SURFACE, VERDICT_RAMP } from "./theme";
  * applies to a sequential scale, pinned here so an edit to theme.ts cannot
  * quietly flatten the order.
  */
-
-// relative luminance, WCAG 2.x
-const luminance = (hex: string) => {
-  const ch = [1, 3, 5]
-    .map((i) => Number.parseInt(hex.slice(i, i + 2), 16) / 255)
-    .map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
-  return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2];
-};
-const contrast = (a: string, b: string) => {
-  const [lo, hi] = [luminance(a), luminance(b)].sort((x, y) => x - y);
-  return (hi + 0.05) / (lo + 0.05);
-};
 
 // Absent is deliberately not here: it is the hollow no-data cell, not a ramp step.
 const ORDER: Verdict[] = ["Strong", "Partial", "Emerging-but-narrow", "Plausible-but-unvalidated"];
@@ -39,12 +28,16 @@ describe.each(["light", "dark"] as const)("verdict ramp (%s)", (theme) => {
 
   it("separates adjacent steps by a visible lightness gap", () => {
     for (const [i, step] of steps.slice(1).entries()) {
-      expect(Math.abs(luminance(step) - luminance(steps[i]))).toBeGreaterThanOrEqual(0.06);
+      const previous = steps[i];
+      if (previous === undefined) throw new Error(`no step before index ${i + 1}`);
+      expect(Math.abs(luminance(step) - luminance(previous))).toBeGreaterThanOrEqual(0.06);
     }
   });
 
   it("keeps the faintest step above a 2:1 contrast floor", () => {
-    expect(contrast(steps[steps.length - 1], surface)).toBeGreaterThanOrEqual(2);
+    const faintest = steps.at(-1);
+    if (faintest === undefined) throw new Error("the ramp has no steps");
+    expect(contrast(faintest, surface)).toBeGreaterThanOrEqual(2);
   });
 
   it("leaves Absent hollow, so it reads as no-data rather than a low rank", () => {

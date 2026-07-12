@@ -1,19 +1,17 @@
 import { describe, expect, it } from "vitest";
 import type { Scale } from "./data/types";
-import { TIMELINE } from "./theme";
+import { presence, seg, TIMELINE } from "./timeline";
 
 /**
  * The pacing contract: an overlay is at full strength while the prose that
  * explains it is on screen, and the fan never rearranges itself underneath an
  * annotation pointing at it. Both are properties of TIMELINE alone, so they can
  * be checked without a browser.
+ *
+ * These import the very `seg`/`presence` the Fan renders with. A local copy of
+ * the easing would keep passing after Fan's changed, which is exactly the drift
+ * this test exists to catch.
  */
-
-// mirrors Fan.tsx
-const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
-const smoothstep = (t: number) => t * t * (3 - 2 * t);
-const seg = (p: number, a: number, b: number) => smoothstep(clamp01((p - a) / (b - a)));
-const presence = (w: readonly number[], p: number) => seg(p, w[0], w[1]) * (1 - seg(p, w[2], w[3]));
 
 /** scroll progress at which each chapter's prose sits centred, measured against
  *  the rendered rail at viewport heights 793px and 1200px (mean, ±0.02) */
@@ -46,6 +44,13 @@ describe("scroll pacing", () => {
     expect(TIMELINE.drift[1]).toBeLessThanOrEqual(TIMELINE.presence.Material[1]);
   });
 
+  it("starts each motion beat only after the overlays riding the parts begin to fade", () => {
+    // otherwise the fan stretches under fixed-value dimensions at full opacity:
+    // explode may not begin inside the Product plateau, nor drift inside Component's
+    expect(TIMELINE.explode[0]).toBeGreaterThanOrEqual(TIMELINE.presence.Product[2]);
+    expect(TIMELINE.drift[0]).toBeGreaterThanOrEqual(TIMELINE.presence.Component[2]);
+  });
+
   it("keeps each plateau inside its own chapter band", () => {
     const band: Record<Scale, [number, number]> = {
       Product: [TIMELINE.heroEnd, TIMELINE.productEnd],
@@ -57,6 +62,24 @@ describe("scroll pacing", () => {
       const [lo, hi] = band[scale];
       expect(plateauStart, `${scale} plateau starts before its band`).toBeGreaterThanOrEqual(lo);
       expect(plateauEnd, `${scale} plateau ends after its band`).toBeLessThanOrEqual(hi);
+    }
+  });
+
+  it("treats a zero-width window as a step, never as 0/0", () => {
+    // A retune to a === b used to divide by zero: clamp01(NaN) is NaN, and the
+    // NaN reached every transform in Fan, blanking the drawing with no error.
+    expect(seg(0.5, 0.5, 0.5)).toBe(1);
+    expect(seg(0.4, 0.5, 0.5)).toBe(0);
+    for (const p of [0, 0.25, 0.5, 0.75, 1]) {
+      expect(Number.isFinite(seg(p, 0.5, 0.5)), `seg(${p}, .5, .5) is not finite`).toBe(true);
+    }
+  });
+
+  it("stays finite across the whole scroll for every real window", () => {
+    for (const scale of ["Product", "Component", "Material"] as const) {
+      for (let p = 0; p <= 1; p += 0.01) {
+        expect(Number.isFinite(presence(TIMELINE.presence[scale], p))).toBe(true);
+      }
     }
   });
 });

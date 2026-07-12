@@ -15,7 +15,11 @@ const SPRING = { stiffness: 120, damping: 25, mass: 0.7 } as const;
  * profiler shows scrub jank, drive Fan's transforms off the MotionValue
  * directly (useTransform + motion.g) to skip the re-render — not before.
  */
-export function useScrollProgress(ref: RefObject<HTMLElement | null>, smooth: boolean): number {
+export function useScrollProgress(
+  ref: RefObject<HTMLElement | null>,
+  smooth: boolean,
+  active = true,
+): number {
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start start", "end end"],
@@ -25,9 +29,13 @@ export function useScrollProgress(ref: RefObject<HTMLElement | null>, smooth: bo
 
   const [p, setP] = useState(0);
   useEffect(() => {
+    // When the scroll narrative isn't rendered (mobile stepper), don't subscribe:
+    // the target ref is null so `source` would track the window and re-render on
+    // every page scroll, driving a fan nobody sees.
+    if (!active) return;
     setP(source.get());
     return source.on("change", setP);
-  }, [source]);
+  }, [source, active]);
 
-  return p;
+  return active ? p : 0;
 }

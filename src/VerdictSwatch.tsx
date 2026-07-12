@@ -1,5 +1,6 @@
 import { useId } from "react";
 import type { Verdict } from "./data/types";
+import { VERDICT_VAR } from "./theme";
 
 /**
  * The maturity glyph: a verdict shown by ink weight and letter, never hue.
@@ -15,14 +16,6 @@ import type { Verdict } from "./data/types";
  * Self-contained <svg> with scoped pattern defs, so it drops into HTML flow
  * (legend, matrix, panel) or nests inside another SVG via x/y (the fan chips).
  */
-const RAMP: Record<Verdict, string | null> = {
-  Strong: "var(--cvt-v-strong)",
-  Partial: "var(--cvt-v-partial)",
-  "Emerging-but-narrow": "var(--cvt-v-emerging)",
-  "Plausible-but-unvalidated": "var(--cvt-v-plausible)",
-  Absent: null,
-};
-
 /** forced-colors / print fallback: ink coverage, ordered 100 · 25 · 17 · 8 · 0 % */
 const textureOf = (verdict: Verdict, id: string) =>
   verdict === "Strong"
@@ -33,8 +26,12 @@ const textureOf = (verdict: Verdict, id: string) =>
         ? `url(#${id}d)`
         : "none";
 
-// the diagonal halves of a split cell: top-left, then bottom-right
-const HALF = ["M1.5 1.5 L24.5 1.5 L1.5 24.5 Z", "M24.5 1.5 L24.5 24.5 L1.5 24.5 Z"] as const;
+// The diagonal halves of a split cell (top-left, then bottom-right), each with
+// its triangle's centroid — where a half's own texture mark (the U ring) sits.
+const HALF = [
+  { d: "M1.5 1.5 L24.5 1.5 L1.5 24.5 Z", cx: 9.2, cy: 9.2 },
+  { d: "M24.5 1.5 L24.5 24.5 L1.5 24.5 Z", cx: 16.8, cy: 16.8 },
+] as const;
 
 export function VerdictSwatch({
   verdict,
@@ -52,7 +49,7 @@ export function VerdictSwatch({
   y?: number;
 }) {
   const id = useId();
-  const ramp = RAMP[verdict];
+  const ramp = VERDICT_VAR[verdict];
   const texture = textureOf(verdict, id);
   const box = { x: 1.5, y: 1.5, width: 23, height: 23, rx: 5 };
   return (
@@ -62,7 +59,7 @@ export function VerdictSwatch({
       width={size}
       height={size}
       viewBox="0 0 26 26"
-      aria-hidden
+      aria-hidden="true"
       className="cvt-glyphbox"
     >
       <defs>
@@ -85,12 +82,34 @@ export function VerdictSwatch({
 
       {split ? (
         <g clipPath={`url(#${id}c)`}>
-          {split.map((v, i) => (
-            <g key={v}>
-              <path className="v-fill" d={HALF[i]} fill={RAMP[v] ?? "none"} />
-              <path className="v-tex" d={HALF[i]} fill={textureOf(v, id)} />
-            </g>
-          ))}
+          {/* Keyed by half, not verdict: two equal sub-verdicts are legal data.
+              A U half carries its ring at its own centroid, so the ink-coverage
+              order survives forced-colors/print; an Absent half stays blank —
+              0% ink IS its step, and the letters beside the glyph name it. */}
+          {(
+            [
+              [HALF[0], split[0]],
+              [HALF[1], split[1]],
+            ] as const
+          ).map(([half, v]) => {
+            return (
+              <g key={half.d}>
+                <path className="v-fill" d={half.d} fill={VERDICT_VAR[v] ?? "none"} />
+                <path className="v-tex" d={half.d} fill={textureOf(v, id)} />
+                {v === "Plausible-but-unvalidated" && (
+                  <circle
+                    className="v-tex"
+                    cx={half.cx}
+                    cy={half.cy}
+                    r="4"
+                    fill="none"
+                    stroke="var(--cvt-ink)"
+                    strokeWidth="1.2"
+                  />
+                )}
+              </g>
+            );
+          })}
           <line x1="24.5" y1="1.5" x2="1.5" y2="24.5" stroke="var(--cvt-ink)" strokeWidth="1.2" />
         </g>
       ) : (

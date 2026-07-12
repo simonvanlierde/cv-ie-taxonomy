@@ -1,14 +1,19 @@
 # What can a machine actually see? — CV × Industrial Ecology
 
+[![CI & Deploy](https://github.com/simonvanlierde/cv-ie-taxonomy/actions/workflows/ci.yml/badge.svg)](https://github.com/simonvanlierde/cv-ie-taxonomy/actions/workflows/ci.yml)
+[![Live demo](https://img.shields.io/badge/live-demo-2b7a78?logo=githubpages&logoColor=white)](https://simonvanlierde.github.io/cv-ie-taxonomy/)
+[![License: MIT](https://img.shields.io/badge/code-MIT-blue)](LICENSE)
+[![License: CC BY 4.0](https://img.shields.io/badge/content-CC%20BY%204.0-lightgrey)](LICENSE-CONTENT)
+
 An interactive exploded-teardown map of the computer-vision-for-industrial-ecology
 taxonomy from **Paper 2** (JIE Review): which vision task recovers which product
 data, at which physical scale, and how far you can trust it. A self-contained
 React + TypeScript island: runs standalone, drops into an Astro/Next portfolio,
 and doubles as the interactive companion to the paper's Table S1.
 
-![Exploded fan with interactive CV read-outs](docs/screenshot.png)
+![Exploded fan with interactive CV read-outs](public/screenshot.png)
 
-<!-- Live link: TODO once deployed -->
+**[▶ Open the live demo](https://simonvanlierde.github.io/cv-ie-taxonomy/)**
 
 ## What it does
 
@@ -24,8 +29,10 @@ Each annotation connects by leader line to a floating info chip carrying the
 cell's maturity texture + letter. **Those chips are the controls.** Hovering
 isolates a cell's annotations; clicking opens a panel with the task, verdict,
 dominant failure mode, example, rubric marks, and sources. Filter chips narrow by
-information type. On mobile the annotations render on a compact sticky fan synced
-with scroll, with each chapter's cells as tappable rows.
+information type. On mobile the narrative pages instead of scrolling: the fan is a
+full-screen backdrop that comes apart as you advance, each chapter's prose rides a
+fold-away peek sheet over its lower third, and the annotations themselves are the
+tap targets — each opens its cell's bottom-sheet panel.
 
 At the end, the full 3 × 4 matrix appears as a **paper-figure-style recap**
 (texture + letter, captioned, screenshot-ready), each cell still clickable, and
@@ -50,7 +57,9 @@ in lightness and stepped against each theme's own surface (S darkest → U light
 A the hollow no-data cell). Under `forced-colors` and print, where fills flatten, a
 texture layer takes over — ordered by ink coverage, so the ranks survive (solid = S,
 diagonal hatch = P, dots = E, ring = U, dashed hollow = A). Colour is reserved for
-physical scale (colourblind-safe Okabe–Ito triad), and carried by swatches rather than
+physical scale (colourblind-safe Okabe–Ito triad, selected per theme like the
+segmentation hues: the light arms darken to the 3:1 mark floor), and carried by
+swatches rather than
 by coloured text, which would not clear 4.5:1 on either surface;
 material tints are true material colours
 (copper, steel, ABS, PCB). The instance-segmentation overlay hues — a deliberate quote of
@@ -72,26 +81,36 @@ src/
     types.ts            # typed schema for the JSON
     taxonomy.ts         # typed loader + helpers
     taxonomy.test.ts    # data-layer invariants (vitest)
-  CvTaxonomy.tsx        # orchestration: sticky stage, narrative rail, matrix, panel
+  CvTaxonomy.tsx        # orchestration: sticky stage, narrative rail, panel, shared pieces
   Fan.tsx               # the exploding fan + interactive CV read-outs (SVG)
-  useScrollProgress.ts  # hand-rolled scroll scrub with lerp smoothing
-  theme.ts              # scale-hue tokens
+  MobileStepper.tsx     # mobile act one: fan-first pages with a peek sheet
+  Explorable.tsx        # act two: the matrix driving an inline detail
+  MiniMatrix.tsx        # the selectable 3 × 4 grid itself
+  chapters.ts           # narrative prose (figures test-locked to taxonomy.json)
+  timeline.ts           # scroll pacing: presence windows, explode/drift beats
+  frames.ts             # camera frames per cell (and the home view)
+  useCamera.ts          # spring-animated viewBox camera
+  useScrollProgress.ts  # spring-smoothed scroll scrub (Motion)
+  theme.ts              # scale/seg/verdict hue tokens, per theme
   CvTaxonomy.css        # blueprint / teardown visual identity
   main.tsx              # standalone demo mount + dev deep links
 ```
 
-No animation library: the scrub is a ~40-line hook, everything else is CSS
-(including the OCR typing effect and the pseudo-3D tilt on the exploding stack).
-Display face: **Bricolage Grotesque** (OFL), self-hosted variable woff2. Bundle:
-~57 kB gzipped JS including React, +77 kB font.
+Motion powers only the scroll scrub and the camera (both springs — the camera
+zooms to the clicked cell on desktop and pages between step frames on mobile);
+everything else is CSS — the OCR typing effect, the pseudo-3D tilt on the
+exploding stack, and the panel's `@starting-style` transitions.
+Type: **Overpass** for display, its **Overpass Mono** sibling for the machine
+read-outs, **IBM Plex Sans** for body (all OFL, self-hosted woff2). Bundle:
+~102 kB gzipped JS including React and Motion, +~108 kB fonts.
 
 ## Develop
 
 ```sh
-npm install
-npm run dev      # http://localhost:5173
-npm test         # data-layer tests
-npm run build    # typecheck + production build
+pnpm install
+pnpm dev         # http://localhost:5173
+pnpm test        # data + interaction tests (vitest)
+pnpm build       # typecheck + production build
 ```
 
 Dev deep links (demo shell only): `?cell=component-structure` opens a panel,
