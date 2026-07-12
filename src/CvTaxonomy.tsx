@@ -431,7 +431,7 @@ export function Hero({ hint }: { hint?: string }) {
         computer vision could answer — each judged by how well it actually works today.
         {hint ? ` ${hint} ` : " "}Every verdict comes straight from the paper's{" "}
         <span className="cvt-cite">Table&nbsp;S1</span>:{" "}
-        <em>the darker the square, the stronger the evidence</em>. Colour never carries meaning.
+        <em>the heavier the square, the stronger the evidence</em>. Colour never carries meaning.
       </p>
       <ul className="cvt-legendline" aria-label="Maturity legend">
         {taxonomy.meta.maturityLevels.map((m) => (

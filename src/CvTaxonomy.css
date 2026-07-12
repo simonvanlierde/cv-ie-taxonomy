@@ -727,9 +727,10 @@
   position: sticky;
   top: 8vh;
   /* fixed height, scrolling inside: this column sits in .cvt-scroll, the element
-     the scroll timeline is measured over, so opening a tall DetailBody (or its
-     "More detail") must not change the outer height — that would remap every
-     calibrated presence window (see timeline.ts, and the same reasoning on
+     the scroll timeline is measured over. Selecting the first cell grows the
+     outer height once, by design; from then on the height is pinned, so moving
+     cell to cell or opening "More detail" cannot remap the calibrated presence
+     windows under a reader mid-scan (see timeline.ts, and the same reasoning on
      TableView) */
   height: 70vh;
   overflow-y: auto;
