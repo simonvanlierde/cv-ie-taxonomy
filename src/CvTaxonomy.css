@@ -1035,6 +1035,36 @@
   flex: 1;
   min-height: 0;
 }
+/* Landscape phones: a bottom sheet would leave the fan a sliver, so it docks
+   right instead and the fan keeps the full height. Safe as a viewport query:
+   only the stepper DOM carries these classes, and it only renders below the
+   container breakpoint. */
+@media (max-height: 520px) {
+  .cvt-step {
+    flex-direction: row;
+    justify-content: flex-end;
+    padding: 0 0.6rem 0;
+  }
+  .cvt-step-body {
+    max-height: none;
+    width: min(46%, 400px);
+    border-bottom: none;
+    border-radius: 16px 16px 0 0;
+  }
+  .cvt-step-stage {
+    inset: 0 min(46%, 400px) 0 0;
+    transition: none;
+  }
+  .cvt-step[data-collapsed="true"] .cvt-step-stage {
+    inset: 0 4rem 0 0;
+  }
+  .cvt-step[data-collapsed="true"] .cvt-step-body {
+    width: 3.4rem;
+  }
+  .cvt-step[data-step="Matrix"] .cvt-step-body {
+    width: 100%;
+  }
+}
 .cvt-stepper-nav {
   position: relative;
   z-index: 2;
