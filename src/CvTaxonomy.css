@@ -872,6 +872,100 @@
 }
 
 /* ---- footer -------------------------------------------------------------------------------- */
+/* ---- mobile stepper: act one, paged instead of scrolled ------------------------------- */
+.cvt-stepper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+@supports (min-height: 100dvh) {
+  .cvt-stepper {
+    min-height: 100dvh;
+  }
+}
+.cvt-stepper-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.6rem clamp(1rem, 4vw, 1.5rem) 0.2rem;
+}
+.cvt-step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0 clamp(1rem, 4vw, 1.5rem) 1rem;
+}
+.cvt-step-stage {
+  height: 34dvh;
+  flex-shrink: 0;
+}
+.cvt-step-stage .cvt-fan {
+  max-height: none;
+}
+.cvt-step-body {
+  min-width: 0;
+}
+.cvt-step-body > h2 {
+  font-family: var(--cvt-display);
+  font-size: clamp(1.4rem, 6vw, 1.9rem);
+  line-height: 1.1;
+  margin: 0.2rem 0 0.6rem;
+}
+.cvt-step-body > h2.cvt-step-thesis {
+  font-size: clamp(1.15rem, 5vw, 1.5rem);
+}
+/* the nav sticks to the bottom of the viewport while a tall step scrolls */
+.cvt-stepper-nav {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.7rem clamp(1rem, 4vw, 1.5rem);
+  background: var(--cvt-bg);
+  border-top: 1px solid var(--cvt-line);
+}
+.cvt-stepper-btn {
+  font-family: var(--cvt-mono);
+  font-size: 0.8rem;
+  padding: 0.5rem 0.95rem;
+  border: 1px solid var(--cvt-line);
+  border-radius: 999px;
+  background: var(--cvt-card);
+  color: var(--cvt-ink);
+  cursor: pointer;
+}
+.cvt-stepper-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.cvt-stepper-next {
+  background: var(--cvt-ink);
+  color: var(--cvt-bg);
+  border-color: var(--cvt-ink);
+}
+.cvt-stepper-dots {
+  display: flex;
+  gap: 0.45rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.cvt-stepper-dots li {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1px solid var(--cvt-ink-dim);
+}
+.cvt-stepper-dots li[data-active="true"] {
+  background: var(--cvt-ink);
+  border-color: var(--cvt-ink);
+}
+
 .cvt-footer {
   max-width: 1440px;
   margin: 0 auto;
