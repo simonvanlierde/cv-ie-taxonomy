@@ -37,3 +37,12 @@ export function maturityLevel(verdict: Verdict) {
   if (!level) throw new Error(`no maturity level for verdict ${verdict}`);
   return level;
 }
+
+/** Exactly two sub-verdicts render as a diagonal split (matrix cells, cell-list
+ *  rows); anything else is one verdict. Compound cells must never flatten to
+ *  their primary maturity alone — the split IS the paper's verdict. */
+export function splitOf(cell: Cell): readonly [Verdict, Verdict] | undefined {
+  const [first, second, ...rest] = cell.subVerdicts ?? [];
+  if (!first || !second || rest.length > 0) return undefined;
+  return [first.maturity, second.maturity];
+}

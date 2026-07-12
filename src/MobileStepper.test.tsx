@@ -38,19 +38,24 @@ describe("MobileStepper", () => {
     const { container } = render(<MobileStepper {...baseProps()} onOpen={onOpen} />);
 
     await user.click(container.querySelector(".cvt-stepper-next") as HTMLButtonElement); // → Product
-    // scope to the cell list: the filter chips answer to the same info-type names
     const list = container.querySelector(".cvt-mgroup") as HTMLElement;
     await user.click(within(list).getByRole("button", { name: /identity/i }));
     expect(onOpen).toHaveBeenCalledTimes(1);
   });
 
-  it("dims non-matching cells when an info-type filter chip is toggled", async () => {
+  it("shows both sub-verdicts on the compound structure cell, not a flattened letter", async () => {
+    const user = userEvent.setup();
+    const { container } = render(<MobileStepper {...baseProps()} />);
+    // → Product → Component, whose Structure cell is the paper's split verdict
+    await user.click(container.querySelector(".cvt-stepper-next") as HTMLButtonElement);
+    await user.click(container.querySelector(".cvt-stepper-next") as HTMLButtonElement);
+    expect(screen.getByText("P / E")).toBeInTheDocument();
+  });
+
+  it("carries no info-type filter — a four-row list needs none", async () => {
     const user = userEvent.setup();
     const { container } = render(<MobileStepper {...baseProps()} />);
     await user.click(container.querySelector(".cvt-stepper-next") as HTMLButtonElement); // → Product
-
-    await user.click(screen.getByRole("button", { name: "Identity" })); // the filter chip
-    expect(container.querySelectorAll('.cvt-mcell[data-dim="true"]')).toHaveLength(3);
-    expect(container.querySelectorAll('.cvt-mcell[data-dim="false"]')).toHaveLength(1);
+    expect(container.querySelector(".cvt-filtergroup")).toBeNull();
   });
 });

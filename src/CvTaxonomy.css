@@ -62,7 +62,11 @@
   --cvt-card: light-dark(rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.035));
   --cvt-card-hi: light-dark(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.07));
   --cvt-panel: light-dark(#e7eff7, #101f30);
-  --cvt-warn: light-dark(#b45309, #ffb454);
+  /* status text sits on --cvt-panel at ~11px, so both arms hold the 4.5:1 text
+     floor there (theme.test.ts): the old #b45309/#2ea043 light arms read at 4.3
+     and 2.9 */
+  --cvt-warn: light-dark(#9a4a08, #ffb454);
+  --cvt-ok: light-dark(#116329, #2ea043);
 
   --cvt-mono: "Overpass Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --cvt-display: "Overpass", "IBM Plex Sans", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
@@ -685,12 +689,18 @@
 /* ---- explorable: act two — the full matrix as a driveable instrument ------------------- */
 .cvt-explorable {
   display: grid;
-  /* matrix takes its natural width (its cells are wide), detail gets a fixed,
-     readable column beside it; the matrix never crushes the detail */
-  grid-template-columns: minmax(0, max-content) minmax(300px, 400px);
+  /* one column until a cell is selected: the hint lives above the matrix, so an
+     empty detail column would only reserve dead space */
+  grid-template-columns: minmax(0, max-content);
   gap: clamp(1.5rem, 4vw, 3.5rem);
   align-items: start;
   margin: 2rem 0 0;
+}
+/* matrix takes its natural width (its cells are wide), detail gets a fixed,
+   readable column beside it; the matrix never crushes the detail. The matrix
+   track is max-content either way, so opening the detail shifts nothing. */
+.cvt-explorable[data-open="true"] {
+  grid-template-columns: minmax(0, max-content) minmax(300px, 400px);
 }
 /* the matrix's own min-width would otherwise force its track wider than the
    canvas, same reason .cvt-matrixwrap used to scroll the old figure */
@@ -698,27 +708,36 @@
   min-width: 0;
   overflow-x: auto;
 }
-.cvt-inline-detail {
+/* empty, the live region sits in a zero-height implicit row; open, it becomes
+   the second column */
+.cvt-explorable[data-open="true"] .cvt-inline-detail {
   /* the detail stays put beside the grid while the reader scans cells */
   position: sticky;
   top: 8vh;
   /* fixed height, scrolling inside: this column sits in .cvt-scroll, the element
-     the scroll timeline is measured over, so swapping the prompt for a tall
-     DetailBody (or opening its "More detail") must not change the outer height —
-     that would remap every calibrated presence window (see timeline.ts, and the
-     same reasoning on TableView) */
+     the scroll timeline is measured over, so opening a tall DetailBody (or its
+     "More detail") must not change the outer height — that would remap every
+     calibrated presence window (see timeline.ts, and the same reasoning on
+     TableView) */
   height: 70vh;
   overflow-y: auto;
+}
+.cvt-inline-title {
+  font-family: var(--cvt-display);
+  font-size: 1.15rem;
+  line-height: 1.2;
+  margin: 0 0 0.9rem;
 }
 .cvt-inline-prompt {
   color: var(--cvt-ink-dim);
   font-size: 0.95rem;
+  margin: 2rem 0 0;
 }
 @container cvt (width < 881px) {
-  .cvt-explorable {
+  .cvt-explorable[data-open="true"] {
     grid-template-columns: minmax(0, 1fr);
   }
-  .cvt-inline-detail {
+  .cvt-explorable[data-open="true"] .cvt-inline-detail {
     position: static;
     /* no scroll timeline on mobile (the stepper pages), so let it flow */
     height: auto;
@@ -785,6 +804,12 @@
 }
 .cvt-mx-cell:hover {
   background: var(--cvt-card-hi);
+}
+/* the instrument shows its state: the selected cell reads as pressed-in ink */
+.cvt-mx-cell[aria-pressed="true"] {
+  background: var(--cvt-card-hi);
+  border-color: var(--cvt-ink);
+  box-shadow: inset 0 0 0 1px var(--cvt-ink);
 }
 .cvt-mx-cell[data-ghost="true"] {
   border-style: dashed;
@@ -1016,7 +1041,9 @@
   right: 0;
   margin: 0;
   z-index: 50;
-  width: min(440px, 94vw);
+  /* wide enough that "Why this verdict" prose sets at a comfortable measure;
+     the fan keeps the rest of the canvas, zoomed to the part being read about */
+  width: min(520px, 94vw);
   max-width: none;
   height: 100vh;
   max-height: 100vh;
@@ -1079,8 +1106,9 @@
 }
 .cvt-panel h2 {
   font-family: var(--cvt-display);
-  font-size: 1.4rem;
-  line-height: 1.15;
+  font-size: 1.55rem;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
   margin: 0;
 }
 .cvt-panel-close {
@@ -1212,8 +1240,8 @@
   border: 1px solid var(--cvt-line);
 }
 .cvt-status-published {
-  color: #2ea043;
-  border-color: #2ea043;
+  color: var(--cvt-ok);
+  border-color: var(--cvt-ok);
 }
 .cvt-status-preprint {
   color: var(--cvt-warn);
@@ -1287,8 +1315,7 @@
      every mock read-out, so hiding its label would leave invented confidences
      and dimensions on the product uncaveated. It shrinks; it never disappears. */
   .cvt-ind,
-  .cvt-hud-top .cvt-eyebrow,
-  .cvt-filters-label {
+  .cvt-hud-top .cvt-eyebrow {
     display: none;
   }
   .cvt-hud-top {
@@ -1308,22 +1335,8 @@
   .cvt-hud {
     padding: 0.5rem;
   }
-  .cvt-filtergroup {
-    align-items: stretch;
-  }
-  .cvt-filters {
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-  }
-  .cvt-filters::-webkit-scrollbar {
-    display: none;
-  }
-  .cvt-chip {
-    flex: 0 0 auto;
-  }
+  /* no chip-row rules here: the stepper renders no InfoFilter — a four-row
+     list needs no filtering, and the chips only crowded the small stage */
   .cvt-hero {
     min-height: 46vh;
     padding: 2rem 0;
@@ -1335,6 +1348,31 @@
   .cvt-outro {
     min-height: auto;
     padding: 3rem 0 6rem;
+  }
+  /* All four columns fit the phone instead of scrolling half the figure
+     off-screen: the spelled-out verdict names go (they exist because "at full
+     width the figure has room" — here it does not; letters + swatches are
+     legend-backed and the inline detail spells everything out), and the cells
+     tighten around what remains. (This lives in the late mobile block so it
+     out-cascades the base .cvt-matrix rules at equal specificity.) */
+  .cvt-matrix {
+    min-width: 0;
+    gap: 0.3rem;
+  }
+  .cvt-mx-name {
+    display: none;
+  }
+  .cvt-mx-cell {
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.7rem 0.3rem;
+  }
+  .cvt-mx-h {
+    font-size: 0.56rem;
+    letter-spacing: 0.04em;
+  }
+  .cvt-mx-row {
+    padding-right: 0.3rem;
   }
   /* the callouts live on the desktop svg; on mobile each chapter lists its cells */
   .cvt-mgroup {

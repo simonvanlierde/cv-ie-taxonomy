@@ -30,9 +30,12 @@ export const FRAMES: Record<string, Frame> = {
   "component-identity": { x: 160, y: 180, w: 340, h: 380 },
   "component-structure": { x: 180, y: 220, w: 340, h: 320 },
   "component-quantity": { x: 200, y: 360, w: 300, h: 260 },
-  "component-condition": { x: 200, y: 360, w: 300, h: 260 },
+  // wider than the quantity frame above: the anomaly tag hangs ~190 units left
+  // of the motor centre and the blob rides its left edge — both stay in frame
+  "component-condition": { x: 140, y: 340, w: 380, h: 320 },
   "material-identity": { x: 150, y: 120, w: 360, h: 560 },
   "material-quantity": { x: 150, y: 120, w: 360, h: 560 },
   "material-structure": { x: 150, y: 120, w: 360, h: 560 },
-  "material-condition": { x: 220, y: 360, w: 300, h: 280 },
+  // the corrosion tag extends right of the drifted motor; keep its full width
+  "material-condition": { x: 180, y: 340, w: 380, h: 320 },
 };
