@@ -5,11 +5,22 @@ import type { Cell, Scale } from "./data/types";
 import { Explorable } from "./Explorable";
 import { Fan } from "./Fan";
 import { SCALE_HUE, type Theme } from "./theme";
+import { TIMELINE } from "./timeline";
 import { VerdictSwatch } from "./VerdictSwatch";
 
 /** The fan's explode state per scale step: assembled → exploded → drifted, so
- *  stepping forward literally takes the fan apart (the plateaus from timeline.ts). */
-const STEP_P: Record<Scale, number> = { Product: 0.23, Component: 0.51, Material: 0.78 };
+ *  stepping forward literally takes the fan apart. Derived as the centre of each
+ *  scale's presence plateau, so these stay on-plateau if TIMELINE is retuned
+ *  rather than drifting off a hand-tuned magic number. */
+const plateauCentre = (scale: Scale) => {
+  const [, plateauStart, plateauEnd] = TIMELINE.presence[scale];
+  return (plateauStart + plateauEnd) / 2;
+};
+const STEP_P: Record<Scale, number> = {
+  Product: plateauCentre("Product"),
+  Component: plateauCentre("Component"),
+  Material: plateauCentre("Material"),
+};
 
 /**
  * Mobile act one, paged instead of scrolled. Five steps — intro, the three

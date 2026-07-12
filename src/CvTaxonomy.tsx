@@ -167,7 +167,7 @@ export function CvTaxonomy({
     };
   }, [forcedTheme]);
 
-  const scrollP = useScrollProgress(scrollRef, !reduceMotion);
+  const scrollP = useScrollProgress(scrollRef, !reduceMotion, !isMobile);
   const p = debugProgress ?? scrollP;
   const chapter = chapterAt(p);
 
