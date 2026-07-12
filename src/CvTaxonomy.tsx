@@ -368,7 +368,7 @@ const Rail = memo(function Rail({
   return (
     <div className="cvt-rail">
       <section className="cvt-hero">
-        <Hero hint="The read-outs on the fan are the controls. Click one." />
+        <Hero hint="Click any read-out on the fan to see the evidence." />
         <p className="cvt-scrollhint" aria-hidden>
           scroll to take it apart <span className="cvt-scrollhint-arrow">↓</span>
         </p>
@@ -420,10 +420,12 @@ export function Hero({ hint }: { hint?: string }) {
         actually see?
       </h1>
       <p className="cvt-sub">
-        An end-of-life desk fan, taken apart by the twelve tasks computer vision is asked to do in
-        industrial ecology.{hint ? ` ${hint} ` : " "}Every verdict is the paper's own (
-        <span className="cvt-cite">Table&nbsp;S1</span>), shown by <em>ink weight and letter</em>,
-        never colour.
+        Circular-economy research keeps asking cameras to judge discarded products: what is this,
+        what's inside it, what's it worth? Here is one worn-out desk fan and the twelve ways
+        computer vision could answer — each judged by how well it actually works today.
+        {hint ? ` ${hint} ` : " "}Every verdict comes straight from the paper's{" "}
+        <span className="cvt-cite">Table&nbsp;S1</span>:{" "}
+        <em>the darker the square, the stronger the evidence</em>. Colour never carries meaning.
       </p>
       <ul className="cvt-legendline" aria-label="Maturity legend">
         {taxonomy.meta.maturityLevels.map((m) => (
@@ -470,7 +472,9 @@ export function CellList({
             <VerdictSwatch verdict={cell.maturity} split={split} size={20} />
             <span className="cvt-mcell-info">{info}</span>
             <span className="cvt-mcell-task">
-              {cell.structurallyEmpty ? "resolved at component scale" : cell.task.split(/[,;]/)[0]}
+              {cell.structurallyEmpty
+                ? "answered at the component scale"
+                : cell.task.split(/[,;]/)[0]}
             </span>
             <b>
               {split
@@ -540,8 +544,8 @@ export const Outro = memo(function Outro() {
     <section className="cvt-outro" id="cvt-matrix" aria-label="Full taxonomy matrix">
       <p className="cvt-eyebrow">The full matrix</p>
       <h2>
-        Read against its own rubric, the map is largely negative: no task-level cell reaches Strong
-        under end-of-life capture.
+        The honest map is mostly gaps: judged by the paper's own rubric, none of the twelve tasks
+        earns a Strong on worn, real-world products.
       </h2>
       <Explorable />
       <p className="cvt-foot">
@@ -580,14 +584,14 @@ function TableView() {
           setOpen(true);
         }}
       >
-        Table view — the same twelve cells as text
+        The same twelve verdicts, as a plain table
       </button>
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: native <dialog> already closes on Esc; onClick only adds backdrop-click for mouse users */}
       {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: a backdrop click lands on the <dialog> itself, so the handler has nowhere else to live */}
       <dialog
         ref={ref}
         className="cvt-panel cvt-tablepanel"
-        aria-label="Table view — the same twelve cells as text"
+        aria-label="The same twelve verdicts, as a plain table"
         onClose={() => setOpen(false)}
         onClick={(e) => {
           if (e.target === ref.current) ref.current?.close();

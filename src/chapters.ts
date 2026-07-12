@@ -12,14 +12,14 @@ import type { Scale } from "./data/types";
 export const CHAPTER_COPY: Record<Scale, { title: string; body: string }> = {
   Product: {
     title: "One product, seen whole",
-    body: "Identity is the workhorse: read the rating label, match a database. 95.7% of labels read in professional repair, 39.7% at the recycler. Geometry from a single view stays approximate, and “worth repairing?” is a verdict no benchmark yet validates.",
+    body: "Whole products are where vision already earns its keep: read the rating label, look the product up. In a repair shop, 95.7% of labels read correctly; on a recycler's line that falls to 39.7%. Size from a single camera stays a rough estimate — and the question that decides everything, is this worth repairing?, has no benchmark yet.",
   },
   Component: {
     title: "Pulled apart",
-    body: "Detection and segmentation can name and count parts, after domain tuning. The gap is relations: which part attaches to which (the bill of components) holds ~82% in-domain and collapses to ~39% out-of-distribution.",
+    body: "Opened up, the fan can be searched: vision can find and count parts like blades and motors, once tuned on similar products. What it can't yet do is say how parts connect. That map of what-attaches-to-what holds ~82% on familiar products and drops to ~39% on ones it hasn't seen before.",
   },
   Material: {
     title: "Down to matter",
-    body: "Surface material ID works under controlled light and fails under field shift. Mass and volume are never seen, only derived (geometry × material class × density prior), and every error compounds.",
+    body: "Can a camera tell steel from plastic? Often, in a lab — far less reliably under the mixed lighting of a real recycling plant. And no camera weighs anything: mass is always computed from estimated shape, guessed material, and a density looked up in a table, so every small error multiplies.",
   },
 };

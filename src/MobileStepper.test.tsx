@@ -29,7 +29,7 @@ describe("MobileStepper", () => {
     for (let i = 0; i < 4; i++) {
       await user.click(container.querySelector(".cvt-stepper-next") as HTMLButtonElement);
     }
-    expect(screen.getByRole("button", { name: /table view/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /as a plain table/i })).toBeInTheDocument();
   });
 
   it("opens a cell's panel via onOpen from a scale step", async () => {

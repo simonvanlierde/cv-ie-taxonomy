@@ -269,7 +269,8 @@ export function Fan({
   reduceMotion: boolean;
   /** mobile: fan + annotations, no floating chips */
   compact?: boolean;
-  /** desktop camera viewBox (from useCamera); ignored when compact */
+  /** camera viewBox (from useCamera). Desktop zooms to the selected cell;
+   *  the stepper drives per-step frames. Omitted: the static full box. */
   viewBox?: string;
 }) {
   // scoped, so a second Fan on the page cannot steal this one's clip path
@@ -441,7 +442,7 @@ export function Fan({
     // biome-ignore lint/a11y/useSemanticElements: an <svg> cannot become a <fieldset>; the explicit role keeps the aria-label exposed on engines that prune a role-less svg, without flattening the operable chips inside the way role="img" would
     <svg
       className={compact ? "cvt-fan cvt-fan-compact" : "cvt-fan"}
-      viewBox={compact ? "120 -40 420 910" : (viewBox ?? frameToViewBox(VIEW))}
+      viewBox={viewBox ?? (compact ? "120 -25 420 910" : frameToViewBox(VIEW))}
       role="group"
       aria-label="Exploding desk fan; the computer-vision read-outs around it open task details"
       preserveAspectRatio="xMidYMid meet"

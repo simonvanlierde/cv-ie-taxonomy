@@ -4,8 +4,10 @@ import { CHAPTER_COPY } from "./chapters";
 import { SCALES } from "./data/taxonomy";
 import type { Cell, InfoType, Scale } from "./data/types";
 import { Fan } from "./Fan";
+import type { Frame } from "./frames";
 import { SCALE_VAR } from "./theme";
 import { plateauCentre } from "./timeline";
+import { useCamera } from "./useCamera";
 
 /** The fan's explode state per scale step: assembled → exploded → drifted, so
  *  stepping forward literally takes the fan apart. Pinned to each scale's
@@ -17,15 +19,28 @@ const STEP_P: Record<Scale, number> = {
   Material: plateauCentre("Material"),
 };
 
+/** Camera frame per fan-bearing step, hand-tuned like FRAMES: the intro holds
+ *  the assembled silhouette, the product step pulls back for its dimension
+ *  lines and OCR read-out, the explode steps take the full vertical stack.
+ *  useCamera springs between them, so paging IS the camera move. */
+const INTRO_FRAME: Frame = { x: 150, y: 130, w: 320, h: 640 }; // assembled, no overlays yet
+const STEP_FRAMES: Frame[] = [
+  INTRO_FRAME,
+  { x: 105, y: 90, w: 470, h: 700 }, // product: dims, boxes and OCR in frame
+  { x: 120, y: -25, w: 420, h: 920 }, // component: exploded stack
+  { x: 130, y: -25, w: 400, h: 900 }, // material: drifted parts
+];
+
 // one stable empty set: the stepper has no info-type filter, and a fresh Set
 // each render would defeat CellList's referential quiet
 const NO_FILTER: Set<InfoType> = new Set();
 
 /**
  * Mobile act one, paged instead of scrolled. Five steps — intro, the three
- * physical scales, then the full matrix — navigated by arrows, so the fan and
- * the prose never crowd one screen the way the sticky scrub did. Cells still
- * open the shared modal via `onOpen`.
+ * physical scales, then the full matrix — navigated by arrows. The fan owns the
+ * whole screen; each step's prose and cells ride a peek sheet at the bottom
+ * that scrolls internally, so text never crowds the stage. Cells still open
+ * the shared modal via `onOpen`.
  */
 export function MobileStepper({
   onOpen,
@@ -40,6 +55,8 @@ export function MobileStepper({
   const scale: Scale | null = step >= 1 && step <= 3 ? (SCALES[step - 1] ?? null) : null;
   const isMatrix = step === 4;
   const labels = ["Intro", ...SCALES, "Matrix"];
+  // paging morphs the camera between step frames (reduced motion cuts)
+  const viewBox = useCamera(STEP_FRAMES[Math.min(step, 3)] ?? INTRO_FRAME, reduceMotion);
 
   return (
     <div className="cvt-stepper">
@@ -48,9 +65,10 @@ export function MobileStepper({
         {themeToggle}
       </div>
       <div className="cvt-step" data-step={labels[step]}>
-        {/* the fan rides every step but the matrix, walking apart as you advance */}
+        {/* the fan is the full-screen backdrop on every step but the matrix,
+            walking apart as you advance; the sheet floats over its lower third */}
         {!isMatrix && (
-          <div className="cvt-step-stage">
+          <div className="cvt-step-stage" aria-hidden="true">
             <Fan
               p={scale ? STEP_P[scale] : 0}
               focus={null}
@@ -59,6 +77,7 @@ export function MobileStepper({
               onHover={() => {}}
               reduceMotion={reduceMotion}
               compact
+              viewBox={viewBox}
             />
           </div>
         )}
