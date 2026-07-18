@@ -25,6 +25,7 @@ import { Explorable } from "./Explorable";
 import { Fan } from "./Fan";
 import { FRAMES, HOME_FRAME } from "./frames";
 import { MobileStepper } from "./MobileStepper";
+import { Cite, ReferenceList } from "./References";
 import { BREAKPOINT_PX, SCALE_VAR, SURFACE, THEME_VARS, type Theme } from "./theme";
 import { plateauCentre, TIMELINE } from "./timeline";
 import { useCamera } from "./useCamera";
@@ -326,6 +327,10 @@ export function CvTaxonomy({
           <Outro />
         </div>
       )}
+
+      {/* outside .cvt-scroll: the scroll timeline is measured over that container,
+          so the reference list must not lengthen it (see timeline.ts) */}
+      <ReferenceList />
 
       {/* licences live in the repo (LICENSE + README), not the chrome */}
       <footer className="cvt-footer">
@@ -761,8 +766,8 @@ export function DetailBody({ cell }: { cell: Cell }) {
         {cell.citations.length > 0 && (
           <ul className="cvt-cites">
             {cell.citations.map((c) => (
-              <li key={c} className="cvt-cite-key">
-                @{c}
+              <li key={c}>
+                <Cite citeKey={c} />
               </li>
             ))}
           </ul>

@@ -115,7 +115,11 @@
       "hardware": "Edge-feasible in principle; capability unproven",
       "failureMode": "No validation under realistic capture; triage today is value/material sorting, not per-unit grading.",
       "example": "Exterior vehicle damage assessment (Hasan et al. 2025).",
-      "citations": ["hasanVehicleDamageDetection2025"],
+      "citations": [
+        "hasanVehicleDamageDetection2025",
+        "jeongWinCLIPZeroFewShot2023",
+        "zhouAnomalyCLIPObjectagnosticPrompt2026"
+      ],
       "sourceStatus": "Published"
     },
     {
