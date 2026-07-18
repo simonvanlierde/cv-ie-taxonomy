@@ -297,7 +297,9 @@ export function CvTaxonomy({
                   <div className="cvt-hud-top">
                     <span className="cvt-eyebrow">CV × industrial ecology</span>
                     <div className="cvt-hud-actions">
-                      <span className="cvt-hud-tag">overlays illustrative, not model output</span>
+                      <span className="cvt-hud-tag">
+                        illustrative read-outs — no model ran here
+                      </span>
                       <ThemeToggle
                         theme={effectiveTheme}
                         onToggle={() =>
@@ -436,7 +438,8 @@ export function Hero({ hint }: { hint?: string }) {
         computer vision could answer — each judged by how well it actually works today.
         {hint ? ` ${hint} ` : " "}Every verdict comes straight from the paper's{" "}
         <span className="cvt-cite">Table&nbsp;S1</span>:{" "}
-        <em>the heavier the square, the stronger the evidence</em>. Colour never carries meaning.
+        <em>the heavier the square, the stronger the evidence</em>. Colour just tells the three
+        scales apart.
       </p>
       <ul className="cvt-legendline" aria-label="Maturity legend">
         {taxonomy.meta.maturityLevels.map((m) => (
@@ -555,8 +558,8 @@ export const Outro = memo(function Outro() {
     <section className="cvt-outro" id="cvt-matrix" aria-label="Full taxonomy matrix">
       <p className="cvt-eyebrow">The full matrix</p>
       <h2>
-        The honest map is mostly gaps: judged by the paper's own rubric, none of the twelve tasks
-        earns a Strong on worn, real-world products.
+        The honest map is mostly gaps: by the paper's own rubric, none of the twelve tasks earns a
+        Strong on worn, real-world products.
       </h2>
       <Explorable />
       <p className="cvt-foot">
@@ -568,9 +571,9 @@ export const Outro = memo(function Outro() {
             <b>{m.letter}</b> {m.verdict.toLowerCase()}
           </span>
         ))}
-        . Dashed cells are structurally empty (structure resolves at the component scale). A cell
-        split on the diagonal carries two verdicts, one per sub-task. Verdicts: Paper 2, Table S1 ·{" "}
-        {taxonomy.meta.scanDate} snapshot.
+        . Dashed cells are structurally empty: no task of their own, because structure is a
+        component-scale question. A cell split on the diagonal carries two verdicts, one per
+        sub-task. Verdicts from Paper 2, Table S1; literature as of {taxonomy.meta.scanDate}.
       </p>
       <TableView />
     </section>
@@ -622,7 +625,7 @@ function TableView() {
         <div className="cvt-tablewrap">
           <table>
             <caption>
-              Table S1, verbatim. Compound cells list one row per sub-task, as the paper does.
+              The paper&rsquo;s Table S1 as text. Cells with two sub-tasks get a row each.
             </caption>
             <thead>
               <tr>
@@ -743,19 +746,17 @@ export function DetailBody({ cell }: { cell: Cell }) {
 
       <dl className="cvt-panel-grid">
         <Row label="Why this verdict" value={cell.maturityNote} />
-        {cell.failureMode && (
-          <Row label="Dominant failure mode" value={cell.failureMode} mode="warn" />
-        )}
+        {cell.failureMode && <Row label="Where it breaks" value={cell.failureMode} mode="warn" />}
       </dl>
 
       <details className="cvt-panel-more">
         <summary>More detail</summary>
         <dl className="cvt-panel-grid">
-          {cell.methodFamily && <Row label="Candidate method family" value={cell.methodFamily} />}
-          {cell.example && <Row label="Adjacent-field example" value={cell.example} />}
-          {cell.hardware && <Row label="Hardware tendency" value={cell.hardware} />}
+          {cell.methodFamily && <Row label="Typical methods" value={cell.methodFamily} />}
+          {cell.example && <Row label="Proven in a nearby field" value={cell.example} />}
+          {cell.hardware && <Row label="Typical hardware" value={cell.hardware} />}
           <Row label="Rubric marks (i·ii·iii·m)" value={cell.rubricMarks} mono />
-          <Row label="Recommended handling" value={level.handling} />
+          <Row label="How to handle the output" value={level.handling} />
         </dl>
       </details>
 

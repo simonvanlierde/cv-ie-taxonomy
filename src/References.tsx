@@ -70,8 +70,8 @@ export const ReferenceList = memo(function ReferenceList() {
       </p>
       <h2 id="cvt-refs-title">References</h2>
       <p className="cvt-refs-lede">
-        The sources behind the verdicts — published papers and preprints alike; each cell&rsquo;s
-        panel flags its source status. Every entry below names the cells it backs.
+        The sources behind the verdicts, each with the matrix cells it backs. Some are still
+        preprints — the cell&rsquo;s panel says which.
       </p>
       <ol className="cvt-reflist">
         {REFERENCES.map((r) => (

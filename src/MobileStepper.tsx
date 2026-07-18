@@ -66,7 +66,7 @@ export function MobileStepper({
   return (
     <div className="cvt-stepper">
       <div className="cvt-stepper-top">
-        <span className="cvt-hud-tag">overlays illustrative, not model output</span>
+        <span className="cvt-hud-tag">illustrative read-outs — no model ran here</span>
         {themeToggle}
       </div>
       <div className="cvt-step" data-step={labels[step]} data-collapsed={sheetCollapsed}>

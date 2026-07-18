@@ -44,7 +44,7 @@
   {
     "key": "liMaterialSeg3DSegmentingDense2024",
     "short": "Li et al., 2024",
-    "apa": "Li, Z., Gan, R., Luo, C., Wang, Y., Liu, J., Zhu, Z., Zhang, M., Li, Q., Yin, X., Zhang, Z., & Peng, J. (2024). MaterialSeg3D: Segmenting dense materials from 2D priors for 3D assets. *arXiv*. arXiv:2404.13923.",
+    "apa": "Li, Z., Gan, R., Luo, C., Wang, Y., Liu, J., Zhang, Z., Li, Q., Yin, X., Zhang, Z., & Peng, J. (2024). MaterialSeg3D: Segmenting dense materials from 2D priors for 3D assets. *arXiv*. arXiv:2404.13923.",
     "url": "https://doi.org/10.48550/ARXIV.2404.13923"
   },
   {
