@@ -38,31 +38,31 @@
   {
     "key": "liMaterialSeg3DSegmentingDense2024",
     "short": "Li et al., 2024",
-    "apa": "Li, Z., Gan, R., Luo, C., Wang, Y., Liu, J., Zhang, Z. Z. M., Li, Q., Yin, X., Zhang, Z., & Peng, J. (2024). MaterialSeg3D: Segmenting dense materials from 2D priors for 3D assets. *arXiv*. arXiv:2404.13923.",
+    "apa": "Li, Z., Gan, R., Luo, C., Wang, Y., Liu, J., Zhu, Z., Zhang, M., Li, Q., Yin, X., Zhang, Z., & Peng, J. (2024). MaterialSeg3D: Segmenting dense materials from 2D priors for 3D assets. *arXiv*. arXiv:2404.13923.",
     "url": "https://doi.org/10.48550/ARXIV.2404.13923"
   },
   {
     "key": "liuRAISERobotAssistedSelective2025",
-    "short": "Liu et al., 2025a",
-    "apa": "Liu, C., Balasubramaniam, B., Yancey, N., Severson, M., Shine, A., Bove, P., Li, B., Liang, X., & Zheng, M. (2025a). RAISE: A robot-assisted selective disassembly and sorting system for end-of-life phones. *arXiv*. arXiv:2509.23048.",
+    "short": "Liu, Balasubramaniam, et al., 2025",
+    "apa": "Liu, C., Balasubramaniam, B., Yancey, N., Severson, M., Shine, A., Bove, P., Li, B., Liang, X., & Zheng, M. (2025). RAISE: A robot-assisted selective disassembly and sorting system for end-of-life phones. *arXiv*. arXiv:2509.23048.",
     "url": "https://doi.org/10.48550/ARXIV.2509.23048"
   },
   {
     "key": "liuVisionLanguageActionModelsSelective2025",
-    "short": "Liu et al., 2025b",
-    "apa": "Liu, C., Tian, S., Behdad, S., Liang, X., & Zheng, M. (2025b). Vision-language-action models for selective robotic disassembly: A case study on critical component extraction from desktops. *arXiv*. arXiv:2512.04446.",
+    "short": "Liu, Tian, et al., 2025",
+    "apa": "Liu, C., Tian, S., Behdad, S., Liang, X., & Zheng, M. (2025). Vision-language-action models for selective robotic disassembly: A case study on critical component extraction from desktops. *arXiv*. arXiv:2512.04446.",
     "url": "https://doi.org/10.48550/ARXIV.2512.04446"
   },
   {
     "key": "liuSINGAPOSingleImage2025",
-    "short": "Liu et al., 2025c",
-    "apa": "Liu, J., Iliash, D., Chang, A. X., Savva, M., & Mahdavi-Amiri, A. (2025c). SINGAPO: Single image controlled generation of articulated parts in objects. In *13th international conference on learning representations (ICLR 2025)*. International Conference on Learning Representations (ICLR).",
+    "short": "J. Liu et al., 2025",
+    "apa": "Liu, J., Iliash, D., Chang, A. X., Savva, M., & Mahdavi-Amiri, A. (2025). SINGAPO: Single image controlled generation of articulated parts in objects. In *13th international conference on learning representations (ICLR 2025)*. International Conference on Learning Representations (ICLR).",
     "url": "https://doi.org/10.48550/arXiv.2410.16499"
   },
   {
     "key": "liuGroundingDINOMarrying2025",
-    "short": "Liu et al., 2025d",
-    "apa": "Liu, S., Zeng, Z., Ren, T., Li, F., Zhang, H., Yang, J., Jiang, Q., Li, C., Yang, J., Su, H., Zhu, J., & Zhang, L. (2025d). Grounding DINO: Marrying DINO with grounded pre-training for open-set object detection. In Leonardis, A., Ricci, E., Roth, S., Russakovsky, O., Sattler, T., & Varol, G. (Eds.), *Computer vision – ECCV 2024* (Vol. 15105, pp. 38–55). Springer Nature Switzerland.",
+    "short": "S. Liu et al., 2025",
+    "apa": "Liu, S., Zeng, Z., Ren, T., Li, F., Zhang, H., Yang, J., Jiang, Q., Li, C., Yang, J., Su, H., Zhu, J., & Zhang, L. (2025). Grounding DINO: Marrying DINO with grounded pre-training for open-set object detection. In Leonardis, A., Ricci, E., Roth, S., Russakovsky, O., Sattler, T., & Varol, G. (Eds.), *Computer vision – ECCV 2024* (Vol. 15105, pp. 38–55). Springer Nature Switzerland.",
     "url": "https://doi.org/10.1007/978-3-031-72970-6_3"
   },
   {
@@ -75,7 +75,7 @@
     "key": "standleyImage2massEstimatingMass2017",
     "short": "Standley et al., 2017",
     "apa": "Standley, T., Sener, O., Chen, D., & Savarese, S. (2017). Image2mass: Estimating the mass of an object from its image. In *Proceedings of the 1st annual conference on robot learning* (pp. 324–333). PMLR.",
-    "url": "https://doi.org/10.1109/ICARSC58346.2023.10129573"
+    "url": "https://proceedings.mlr.press/v78/standley17a.html"
   },
   {
     "key": "sterkensProductLabelIdentification2023",
