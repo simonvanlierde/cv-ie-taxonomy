@@ -139,7 +139,7 @@ describe("the illustrative caveat", () => {
   // that owns the layers; this is the integration-level half of that guarantee
   it("is rendered alongside the mock overlays", () => {
     render(<CvTaxonomy />);
-    expect(screen.getByText(/overlays illustrative, not model output/i)).toBeInTheDocument();
+    expect(screen.getByText(/illustrative read-outs: no model ran here/i)).toBeInTheDocument();
   });
 });
 
@@ -200,7 +200,7 @@ describe("panel progressive disclosure", () => {
     const dialog = await screen.findByRole("dialog");
 
     // primary: failure mode is not inside the collapsible
-    const failure = within(dialog).getByText(/dominant failure mode/i);
+    const failure = within(dialog).getByText(/where it breaks/i);
     expect(failure.closest("details")).toBeNull();
 
     // secondary: rubric marks live inside a closed <details>

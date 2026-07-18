@@ -1,5 +1,6 @@
 import {
   memo,
+  type ReactNode,
   type RefObject,
   useCallback,
   useEffect,
@@ -25,6 +26,7 @@ import { Explorable } from "./Explorable";
 import { Fan } from "./Fan";
 import { FRAMES, HOME_FRAME } from "./frames";
 import { MobileStepper } from "./MobileStepper";
+import { Cite, CitedProse } from "./References";
 import { BREAKPOINT_PX, SCALE_VAR, SURFACE, THEME_VARS, type Theme } from "./theme";
 import { plateauCentre, TIMELINE } from "./timeline";
 import { useCamera } from "./useCamera";
@@ -296,7 +298,7 @@ export function CvTaxonomy({
                   <div className="cvt-hud-top">
                     <span className="cvt-eyebrow">CV × industrial ecology</span>
                     <div className="cvt-hud-actions">
-                      <span className="cvt-hud-tag">overlays illustrative, not model output</span>
+                      <span className="cvt-hud-tag">illustrative read-outs: no model ran here</span>
                       <ThemeToggle
                         theme={effectiveTheme}
                         onToggle={() =>
@@ -428,10 +430,11 @@ export function Hero({ hint }: { hint?: string }) {
       <p className="cvt-sub">
         Circular-economy research keeps asking cameras to judge discarded products: what is this,
         what's inside it, what's it worth? Here is one worn-out desk fan and the twelve ways
-        computer vision could answer — each judged by how well it actually works today.
+        computer vision could answer, each judged by how well it actually works today.
         {hint ? ` ${hint} ` : " "}Every verdict comes straight from the paper's{" "}
         <span className="cvt-cite">Table&nbsp;S1</span>:{" "}
-        <em>the heavier the square, the stronger the evidence</em>. Colour never carries meaning.
+        <em>the heavier the square, the stronger the evidence</em>. Colour just tells the three
+        scales apart.
       </p>
       <ul className="cvt-legendline" aria-label="Maturity legend">
         {taxonomy.meta.maturityLevels.map((m) => (
@@ -550,10 +553,11 @@ export const Outro = memo(function Outro() {
     <section className="cvt-outro" id="cvt-matrix" aria-label="Full taxonomy matrix">
       <p className="cvt-eyebrow">The full matrix</p>
       <h2>
-        The honest map is mostly gaps: judged by the paper's own rubric, none of the twelve tasks
-        earns a Strong on worn, real-world products.
+        The honest map is mostly gaps: by the paper's own rubric, none of the twelve tasks earns a
+        Strong on worn, real-world products.
       </h2>
       <Explorable />
+      <TableView />
       <p className="cvt-foot">
         Maturity of candidate CV tasks per physical scale × information type, shown by ink weight
         and letter:{" "}
@@ -563,11 +567,10 @@ export const Outro = memo(function Outro() {
             <b>{m.letter}</b> {m.verdict.toLowerCase()}
           </span>
         ))}
-        . Dashed cells are structurally empty (structure resolves at the component scale). A cell
-        split on the diagonal carries two verdicts, one per sub-task. Verdicts: Paper 2, Table S1 ·{" "}
-        {taxonomy.meta.scanDate} snapshot.
+        . Dashed cells are structurally empty: no task of their own, because structure is a
+        component-scale question. A cell split on the diagonal carries two verdicts, one per
+        sub-task. Verdicts from Paper 2, Table S1; literature as of {taxonomy.meta.scanDate}.
       </p>
-      <TableView />
     </section>
   );
 });
@@ -590,14 +593,14 @@ function TableView() {
           setOpen(true);
         }}
       >
-        The same twelve verdicts, as a plain table
+        <TableIcon /> View as a plain table
       </button>
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: native <dialog> already closes on Esc; onClick only adds backdrop-click for mouse users */}
       {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: a backdrop click lands on the <dialog> itself, so the handler has nowhere else to live */}
       <dialog
         ref={ref}
         className="cvt-panel cvt-tablepanel"
-        aria-label="The same twelve verdicts, as a plain table"
+        aria-label="The twelve verdicts as a plain table"
         onClose={() => setOpen(false)}
         onClick={(e) => {
           if (e.target === ref.current) ref.current?.close();
@@ -617,7 +620,7 @@ function TableView() {
         <div className="cvt-tablewrap">
           <table>
             <caption>
-              Table S1, verbatim. Compound cells list one row per sub-task, as the paper does.
+              The paper&rsquo;s Table S1 as text. Cells with two sub-tasks get a row each.
             </caption>
             <thead>
               <tr>
@@ -687,6 +690,14 @@ function ShareLink({ cellId }: { cellId: string }) {
   );
 }
 
+// What the paper's source-status flag means for a reader; n/a cells (nothing
+// cited) show no chip at all rather than an unexplained "n/a".
+const STATUS_LABEL: Record<string, string> = {
+  Published: "peer-reviewed sources",
+  Mixed: "peer-reviewed + preprint sources",
+  Preprint: "preprint sources, not yet peer reviewed",
+};
+
 // ---- detail panel ------------------------------------------------------------
 function DetailPanel({ cell, onClose }: { cell: Cell; onClose: () => void }) {
   return (
@@ -737,32 +748,51 @@ export function DetailBody({ cell }: { cell: Cell }) {
       )}
 
       <dl className="cvt-panel-grid">
-        <Row label="Why this verdict" value={cell.maturityNote} />
+        <Row
+          label="Why this verdict"
+          value={<CitedProse text={cell.maturityNote} citeKeys={cell.citations} />}
+        />
         {cell.failureMode && (
-          <Row label="Dominant failure mode" value={cell.failureMode} mode="warn" />
+          <Row
+            label="Where it breaks"
+            value={<CitedProse text={cell.failureMode} citeKeys={cell.citations} />}
+            mode="warn"
+          />
         )}
       </dl>
 
       <details className="cvt-panel-more">
         <summary>More detail</summary>
         <dl className="cvt-panel-grid">
-          {cell.methodFamily && <Row label="Candidate method family" value={cell.methodFamily} />}
-          {cell.example && <Row label="Adjacent-field example" value={cell.example} />}
-          {cell.hardware && <Row label="Hardware tendency" value={cell.hardware} />}
+          {cell.methodFamily && (
+            <Row
+              label="Typical methods"
+              value={<CitedProse text={cell.methodFamily} citeKeys={cell.citations} />}
+            />
+          )}
+          {cell.example && (
+            <Row
+              label="Proven in a nearby field"
+              value={<CitedProse text={cell.example} citeKeys={cell.citations} />}
+            />
+          )}
+          {cell.hardware && <Row label="Typical hardware" value={cell.hardware} />}
           <Row label="Rubric marks (i·ii·iii·m)" value={cell.rubricMarks} mono />
-          <Row label="Recommended handling" value={level.handling} />
+          <Row label="How to handle the output" value={level.handling} />
         </dl>
       </details>
 
       <div className="cvt-panel-foot">
-        <span className={`cvt-status cvt-status-${cell.sourceStatus.toLowerCase()}`}>
-          {cell.sourceStatus}
-        </span>
+        {STATUS_LABEL[cell.sourceStatus] && (
+          <span className={`cvt-status cvt-status-${cell.sourceStatus.toLowerCase()}`}>
+            {STATUS_LABEL[cell.sourceStatus]}
+          </span>
+        )}
         {cell.citations.length > 0 && (
           <ul className="cvt-cites">
             {cell.citations.map((c) => (
-              <li key={c} className="cvt-cite-key">
-                @{c}
+              <li key={c}>
+                <Cite citeKey={c} />
               </li>
             ))}
           </ul>
@@ -780,7 +810,7 @@ function Row({
   mode,
 }: {
   label: string;
-  value: string;
+  value: ReactNode;
   mono?: boolean;
   mode?: "warn";
 }) {
@@ -812,6 +842,24 @@ function MoonIcon() {
         strokeLinejoin="round"
         d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"
       />
+    </svg>
+  );
+}
+
+// a small table glyph, so the table-view button reads as "this opens a table"
+function TableIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="14"
+      height="14"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      aria-hidden="true"
+    >
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M3 10h18M9 10v10M15 10v10" />
     </svg>
   );
 }

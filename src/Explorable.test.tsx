@@ -14,7 +14,7 @@ describe("Explorable", () => {
     // inline detail is present, still no modal dialog; the prompt has done its job
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(screen.queryByText(/select any cell/i)).not.toBeInTheDocument();
-    expect(screen.getByText(/dominant failure mode/i)).toBeInTheDocument();
+    expect(screen.getByText(/where it breaks/i)).toBeInTheDocument();
   });
 
   it("names the selected cell in the inline detail (scale · info type and task)", async () => {

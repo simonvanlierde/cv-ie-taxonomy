@@ -114,8 +114,12 @@
       "rubricMarks": "i ✗ · ii ✗ᵘ · iii ✗ · m a",
       "hardware": "Edge-feasible in principle; capability unproven",
       "failureMode": "No validation under realistic capture; triage today is value/material sorting, not per-unit grading.",
-      "example": "Exterior vehicle damage assessment (Hasan et al. 2025).",
-      "citations": ["hasanVehicleDamageDetection2025"],
+      "example": "Exterior vehicle damage assessment (Hasan et al. 2025); kiosk device grading, narrow class under instrumented capture (Bowles et al. 2012; Li & Huang 2021).",
+      "citations": [
+        "hasanVehicleDamageDetection2025",
+        "bowlesKioskRecyclingElectronic2012",
+        "liEnhancedAutomaticCosmetic2021"
+      ],
       "sourceStatus": "Published"
     },
     {
