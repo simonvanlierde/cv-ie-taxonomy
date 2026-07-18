@@ -1,5 +1,11 @@
 [
   {
+    "key": "bowlesKioskRecyclingElectronic2012",
+    "short": "Bowles et al., 2012",
+    "apa": "Bowles, M. V., Tullie, T. L., Beane, J. A., Ploetner, J., Miller, J., & Vesco, N. (2012). *Kiosk for recycling electronic devices* (U.S. Patent Application Publication No. US20120191562A1). U.S. Patent and Trademark Office.",
+    "url": "https://patents.google.com/patent/US20120191562A1/en"
+  },
+  {
     "key": "chenURDFormerPipelineConstructing2024",
     "short": "Chen et al., 2024",
     "apa": "Chen, Z., Walsman, A., Memmel, M., Mo, K., Fang, A., Vemuri, K., Wu, A., Fox, D., & Gupta, A. (2024). URDFormer: A pipeline for constructing articulated simulation environments from real-world images. *arXiv*. arXiv:2405.11656.",
@@ -30,10 +36,10 @@
     "url": "https://doi.org/10.1109/TPAMI.2024.3444912"
   },
   {
-    "key": "jeongWinCLIPZeroFewShot2023",
-    "short": "Jeong et al., 2023",
-    "apa": "Jeong, J., Zou, Y., Kim, T., Zhang, D., Ravichandran, A., & Dabeer, O. (2023). WinCLIP: Zero-/few-shot anomaly classification and segmentation. In *Proceedings of the IEEE/CVF conference on computer vision and pattern recognition* (pp. 19606–19616).",
-    "url": "https://doi.org/10.1109/CVPR52729.2023.01878"
+    "key": "liEnhancedAutomaticCosmetic2021",
+    "short": "Li & Huang, 2021",
+    "apa": "Li, J., & Huang, G. (2021). *Enhanced automatic cosmetic grading* (U.S. Patent No. US11205259B2). U.S. Patent and Trademark Office.",
+    "url": "https://patents.google.com/patent/US11205259B2/en"
   },
   {
     "key": "liMaterialSeg3DSegmentingDense2024",
@@ -106,11 +112,5 @@
     "short": "Zhang et al., 2026",
     "apa": "Zhang, X., Liu, C., Liang, X., Zheng, M., & Behdad, S. (2026). Evaluating large and lightweight vision models for irregular component segmentation in E-waste disassembly. *arXiv*. arXiv:2603.27441.",
     "url": "https://doi.org/10.48550/ARXIV.2603.27441"
-  },
-  {
-    "key": "zhouAnomalyCLIPObjectagnosticPrompt2026",
-    "short": "Zhou et al., 2023",
-    "apa": "Zhou, Q., Pang, G., Tian, Y., He, S., & Chen, J. (2023). AnomalyCLIP: Object-agnostic prompt learning for zero-shot anomaly detection. *arXiv*. arXiv:2310.18961.",
-    "url": "https://doi.org/10.48550/ARXIV.2310.18961"
   }
 ]
