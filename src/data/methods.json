@@ -1,0 +1,14 @@
+[
+  { "name": "WinCLIP", "key": "jeongWinCLIPZeroFewShot2023" },
+  { "name": "AnomalyCLIP", "key": "zhouAnomalyCLIPObjectagnosticPrompt2026" },
+  { "name": "Grounding DINO", "key": "liuGroundingDINOMarrying2025" },
+  { "name": "Metric3D v2", "key": "huMetric3Dv2VersatileMonocular2024" },
+  { "name": "VGGT", "key": "wangVGGTVisualGeometry2025" },
+  { "name": "SINGAPO", "key": "liuSINGAPOSingleImage2025" },
+  { "name": "URDFormer", "key": "chenURDFormerPipelineConstructing2024" },
+  { "name": "LARM", "key": "yuanLARMLargeArticulatedObject2025" },
+  { "name": "RAISE", "key": "liuRAISERobotAssistedSelective2025" },
+  { "name": "MaterialSeg3D", "key": "liMaterialSeg3DSegmentingDense2024" },
+  { "name": "TrashNet", "key": "funkEvaluationVisionLanguage2026" },
+  { "name": "MultiWaste", "key": "funkEvaluationVisionLanguage2026" }
+]

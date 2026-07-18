@@ -1,12 +1,15 @@
-// The literature layer: every citation is an author–year chip that opens the
-// full APA entry in a native popover, with the DOI link inside it. One surface,
-// used both in a panel's source row and inline in its prose. Citation keys stay
+// The literature layer: every citation is a chip that opens the full APA entry
+// in a native popover, with the DOI link inside it. One surface, used in a
+// panel's source row and inline in its prose — both for author–year mentions
+// and for named systems (WinCLIP, VGGT, MaterialSeg3D…). Citation keys stay
 // internal — they are a reference-manager artifact, never shown to the reader.
 //
-// references.json mirrors the paper's reference library: corrections land in
-// the library first, then here.
+// references.json mirrors the paper's reference library and methods.json the
+// model attributions of its Table S4 (method-family primer): corrections land
+// in the library and the paper first, then here.
 
 import { type ReactNode, useId } from "react";
+import rawMethods from "./data/methods.json";
 import raw from "./data/references.json";
 
 export interface Reference {
@@ -20,6 +23,13 @@ export interface Reference {
 
 export const REFERENCES = raw as Reference[];
 const BY_KEY = new Map(REFERENCES.map((r) => [r.key, r]));
+
+/** Named models the prose mentions, each pointing at the paper that introduced
+ *  it — the paper's own Table S4 attributions. A name may appear in prose the
+ *  cell's Table S1 row does not cite (WinCLIP under Product · Condition); that
+ *  is the point, and why this map is separate from a cell's citations. */
+export const METHODS = rawMethods as { name: string; key: string }[];
+const METHOD_BY_NAME = new Map(METHODS.map((m) => [m.name, m.key]));
 
 /** Renders the *italic* runs of a generated APA string. */
 function apaText(apa: string) {
@@ -72,35 +82,66 @@ export function Cite({ citeKey, label }: { citeKey: string; label?: string }) {
   );
 }
 
-/** Prose with its author–year mentions turned into citation chips. Each mention
- *  is matched to one of the cell's own citations by first-author surname and
- *  year, consuming them in citation order so two same-named mentions ("Liu et
- *  al. 2025" twice) land on distinct references. A mention whose year the
- *  library disagrees with (a stale preprint date) falls back to the surname
- *  alone when that is unambiguous; anything unmatched stays plain text. */
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+// One pass over the prose for both kinds of mention. Author–year comes first so
+// "Li et al. 2024, MaterialSeg3D" is read as a citation plus a model name, not
+// two competing matches; the model names are sorted longest-first so a name that
+// prefixes another cannot shadow it.
+const MENTION_RE = new RegExp(
+  [
+    /([A-ZÀ-Ž][\w'’-]+(?: et al\.| & [A-ZÀ-Ž][\w'’-]+)?),? (\d{4})\b/.source,
+    `(?<![\\w-])(${METHODS.map((m) => escapeRe(m.name))
+      .sort((a, b) => b.length - a.length)
+      .join("|")})(?![\\w-])`,
+  ].join("|"),
+  "g",
+);
+
+/** Prose with its citations made clickable: author–year mentions, and the named
+ *  models of the paper's Table S4.
+ *
+ *  An author–year mention is matched to one of the cell's own citations by
+ *  first-author surname and year, consuming them in citation order so two
+ *  same-named mentions ("Liu et al. 2025" twice) land on distinct references. A
+ *  mention whose year the library disagrees with (a stale preprint date) falls
+ *  back to the surname alone when that is unambiguous.
+ *
+ *  A model name defers to a citation of the same paper already chipped in this
+ *  block, so "Li et al. 2024, MaterialSeg3D" carries one link rather than the
+ *  same paper twice. Two model names sharing a paper each keep their own chip
+ *  ("TrashNet -> MultiWaste"): they are different things to look up. Anything
+ *  unmatched stays plain text. */
 export function CitedProse({ text, citeKeys }: { text: string; citeKeys: readonly string[] }) {
   const pool = citeKeys.map((k) => BY_KEY.get(k)).filter((r): r is Reference => r !== undefined);
+  const cited = new Set<string>();
   const parts: ReactNode[] = [];
   let last = 0;
-  const mentions = text.matchAll(
-    /([A-ZÀ-Ž][\w'’-]+(?: et al\.| & [A-ZÀ-Ž][\w'’-]+)?),? (\d{4})\b/g,
-  );
-  for (const m of mentions) {
-    const surname = m[1]?.split(" ")[0];
-    let i = pool.findIndex((r) => surnameOf(r) === surname && yearOf(r) === m[2]);
-    if (i < 0) {
-      const sameName = pool.filter((r) => surnameOf(r) === surname);
-      if (sameName.length === 1 && sameName[0]) i = pool.indexOf(sameName[0]);
+
+  for (const m of text.matchAll(MENTION_RE)) {
+    let key: string | undefined;
+    if (m[3]) {
+      key = METHOD_BY_NAME.get(m[3]);
+      if (key && cited.has(key)) continue;
+    } else {
+      const surname = m[1]?.split(" ")[0];
+      let i = pool.findIndex((r) => surnameOf(r) === surname && yearOf(r) === m[2]);
+      if (i < 0) {
+        const sameName = pool.filter((r) => surnameOf(r) === surname);
+        if (sameName.length === 1 && sameName[0]) i = pool.indexOf(sameName[0]);
+      }
+      key = pool[i]?.key;
+      if (i >= 0) pool.splice(i, 1);
+      if (key) cited.add(key);
     }
-    const ref = pool[i];
-    if (i < 0 || !ref) continue;
-    pool.splice(i, 1);
+    if (!key || !BY_KEY.has(key)) continue;
     parts.push(
       text.slice(last, m.index),
-      <Cite key={`${ref.key}-${m.index}`} citeKey={ref.key} label={m[0]} />,
+      <Cite key={`${key}-${m.index}`} citeKey={key} label={m[0]} />,
     );
     last = m.index + m[0].length;
   }
+
   parts.push(text.slice(last));
   return parts;
 }

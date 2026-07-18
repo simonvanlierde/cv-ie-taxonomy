@@ -748,14 +748,28 @@ export function DetailBody({ cell }: { cell: Cell }) {
       )}
 
       <dl className="cvt-panel-grid">
-        <Row label="Why this verdict" value={cell.maturityNote} />
-        {cell.failureMode && <Row label="Where it breaks" value={cell.failureMode} mode="warn" />}
+        <Row
+          label="Why this verdict"
+          value={<CitedProse text={cell.maturityNote} citeKeys={cell.citations} />}
+        />
+        {cell.failureMode && (
+          <Row
+            label="Where it breaks"
+            value={<CitedProse text={cell.failureMode} citeKeys={cell.citations} />}
+            mode="warn"
+          />
+        )}
       </dl>
 
       <details className="cvt-panel-more">
         <summary>More detail</summary>
         <dl className="cvt-panel-grid">
-          {cell.methodFamily && <Row label="Typical methods" value={cell.methodFamily} />}
+          {cell.methodFamily && (
+            <Row
+              label="Typical methods"
+              value={<CitedProse text={cell.methodFamily} citeKeys={cell.citations} />}
+            />
+          )}
           {cell.example && (
             <Row
               label="Proven in a nearby field"

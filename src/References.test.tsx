@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { cellAt, cells } from "./data/taxonomy";
-import { Cite, CitedProse, REFERENCES } from "./References";
+import { Cite, CitedProse, METHODS, REFERENCES } from "./References";
 
 const BY_KEY = new Map(REFERENCES.map((r) => [r.key, r]));
 
@@ -12,8 +12,15 @@ describe("references", () => {
   });
 
   it("carries no reference nothing cites (regenerate references.json)", () => {
-    const used = new Set(cells.flatMap((c) => c.citations));
+    // a reference earns its place by backing a cell's verdict, or by being the
+    // paper that introduced a model the prose names (Table S4)
+    const used = new Set([...cells.flatMap((c) => c.citations), ...METHODS.map((m) => m.key)]);
     for (const r of REFERENCES) expect(used.has(r.key), r.key).toBe(true);
+  });
+
+  it("resolves every named model to a reference in the library", () => {
+    const byKey = new Map(REFERENCES.map((r) => [r.key, r]));
+    for (const m of METHODS) expect(byKey.has(m.key), m.name).toBe(true);
   });
 
   it("renders every entry as APA: authors, year in parentheses, balanced italics", () => {
@@ -59,10 +66,39 @@ describe("CitedProse", () => {
     for (const cell of cells) {
       if (!cell.example || cell.citations.length === 0) continue;
       const { unmount } = render(<CitedProse text={cell.example} citeKeys={cell.citations} />);
+      const chipped = screen.getAllByRole("button").map((b) => b.textContent);
       const mentions = cell.example.match(/[A-Z][\w'’-]+(?: et al\.| & [A-Z][\w'’-]+)?,? \d{4}/g);
-      expect(screen.getAllByRole("button"), cell.id).toHaveLength(mentions?.length ?? 0);
+      for (const mention of mentions ?? []) expect(chipped, cell.id).toContain(mention);
       unmount();
     }
+  });
+
+  it("links a named model whose paper the cell's own citations do not include", () => {
+    // Table S1's Product · Condition row does not cite WinCLIP or AnomalyCLIP;
+    // Table S4 attributes both, so the names are still one click from their paper
+    const cell = cellAt("Product", "Condition");
+    render(<CitedProse text={cell.methodFamily ?? ""} citeKeys={cell.citations} />);
+    for (const name of ["WinCLIP", "AnomalyCLIP"]) {
+      const chip = screen.getByRole("button", { name });
+      const pop = document.getElementById(chip.getAttribute("popovertarget") as string);
+      expect(pop, name).toHaveTextContent(name);
+    }
+  });
+
+  it("does not link a model name twice over its own citation", () => {
+    // "(Li et al. 2024, MaterialSeg3D)" — one paper, one link
+    const cell = cellAt("Material", "Condition");
+    render(<CitedProse text={cell.example ?? ""} citeKeys={cell.citations} />);
+    const chips = screen.getAllByRole("button").map((b) => b.textContent);
+    expect(chips).toEqual(["Li et al. 2024"]);
+  });
+
+  it("keeps a chip on each model name when two share one paper", () => {
+    // "~90% TrashNet -> ~40% MultiWaste" — two datasets, one source, two lookups
+    const cell = cellAt("Material", "Identity");
+    render(<CitedProse text={cell.failureMode ?? ""} citeKeys={cell.citations} />);
+    const chips = screen.getAllByRole("button").map((b) => b.textContent);
+    expect(chips).toEqual(["TrashNet", "MultiWaste"]);
   });
 
   it("maps two same-named mentions to distinct references, in citation order", () => {
