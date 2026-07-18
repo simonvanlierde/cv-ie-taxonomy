@@ -1,18 +1,18 @@
-// The literature layer. Citation keys are the paper's, and references.json is
-// generated from the paper's reference manager — a reference changes there and
-// is regenerated, never edited by hand here.
+// The literature layer, kept to two quiet surfaces: an author–year link in a
+// cell's detail panel that goes straight to the source, and the alphabetical
+// list at the foot of the page. Citation keys stay internal — they are a
+// reference-manager artifact, never shown to the reader.
 //
-// Two surfaces, one source: a chip inside a cell's detail panel that opens the
-// full reference in place (native popover, so it escapes the panel's scroll box),
-// and the alphabetical list at the foot of the page.
+// references.json mirrors the paper's reference library: corrections land in
+// the library first, then here.
 
-import { useId } from "react";
+import { memo } from "react";
 import raw from "./data/references.json";
 import { cells } from "./data/taxonomy";
 
 export interface Reference {
   key: string;
-  /** APA in-text form: "Liu et al., 2025d". */
+  /** APA in-text form: "Sterkens et al., 2023". */
   short: string;
   /** Full APA 7 entry; *asterisks* mark the italic runs. */
   apa: string;
@@ -27,7 +27,9 @@ const BY_KEY = new Map(REFERENCES.map((r) => [r.key, r]));
 const CITED_BY = new Map<string, string[]>();
 for (const c of cells) {
   for (const key of c.citations) {
-    CITED_BY.set(key, [...(CITED_BY.get(key) ?? []), `${c.scale} · ${c.informationType}`]);
+    const backs = CITED_BY.get(key) ?? [];
+    CITED_BY.set(key, backs);
+    backs.push(`${c.scale} · ${c.informationType}`);
   }
 }
 
@@ -41,41 +43,26 @@ function doiLabel(url: string) {
   return url.replace(/^https?:\/\//, "");
 }
 
-/** One citation in a detail panel: the APA in-text form, opening the full entry. */
+/** One citation in a detail panel: the APA in-text form, linking to the source. */
 export function Cite({ citeKey }: { citeKey: string }) {
-  // the same cell can be on screen twice (Explorable's inline panel and the
-  // dialog), so the ids are per-instance, not per-key
-  const uid = useId().replace(/[^\w-]/g, "");
   const ref = BY_KEY.get(citeKey);
-  // an unknown key means references.json is stale — show the key rather than nothing
-  if (!ref) return <span className="cvt-cite-key">@{citeKey}</span>;
-
-  const popId = `cvt-cite-${uid}`;
-  // the anchor name has to be unique per chip, so it rides in on a custom
-  // property; the CSS reads it as both anchor-name and position-anchor
-  const anchor = { "--cite-anchor": `--anchor-${uid}` };
+  // References.test.tsx guarantees every taxonomy key resolves
+  if (!ref) return null;
   return (
-    <>
-      <button type="button" className="cvt-cite-chip" popoverTarget={popId} style={anchor}>
-        {ref.short}
-      </button>
-      <div id={popId} popover="auto" className="cvt-cite-pop" style={anchor}>
-        <p className="cvt-cite-apa">{apaText(ref.apa)}</p>
-        <p className="cvt-cite-meta">
-          <span className="cvt-mono">@{ref.key}</span>
-          {ref.url && (
-            <a href={ref.url} target="_blank" rel="noreferrer">
-              {doiLabel(ref.url)}
-            </a>
-          )}
-        </p>
-      </div>
-    </>
+    <a
+      className="cvt-cite-link"
+      href={ref.url}
+      target="_blank"
+      rel="noreferrer"
+      title={ref.apa.replace(/\*/g, "")}
+    >
+      {ref.short}
+    </a>
   );
 }
 
-/** The page's reference list: every source behind a verdict, and which cells it backs. */
-export function ReferenceList() {
+/** The page's reference list: the sources behind the verdicts, and which cells each backs. */
+export const ReferenceList = memo(function ReferenceList() {
   return (
     <section className="cvt-refs" aria-labelledby="cvt-refs-title">
       <p className="cvt-eyebrow">
@@ -83,15 +70,14 @@ export function ReferenceList() {
       </p>
       <h2 id="cvt-refs-title">References</h2>
       <p className="cvt-refs-lede">
-        Every verdict in the matrix is anchored to published work. Each entry lists the cells it
-        backs; the key is the one used in the paper.
+        The sources behind the verdicts — published papers and preprints alike; each cell&rsquo;s
+        panel flags its source status. Every entry below names the cells it backs.
       </p>
       <ol className="cvt-reflist">
         {REFERENCES.map((r) => (
-          <li key={r.key} id={`cvt-ref-${r.key}`}>
+          <li key={r.key}>
             <p className="cvt-ref-apa">{apaText(r.apa)}</p>
             <p className="cvt-ref-meta">
-              <span className="cvt-ref-key">@{r.key}</span>
               <span className="cvt-ref-cells">{(CITED_BY.get(r.key) ?? []).join(", ")}</span>
               {r.url && (
                 <a href={r.url} target="_blank" rel="noreferrer">
@@ -104,4 +90,4 @@ export function ReferenceList() {
       </ol>
     </section>
   );
-}
+});

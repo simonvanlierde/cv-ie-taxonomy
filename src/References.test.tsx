@@ -24,15 +24,16 @@ describe("references", () => {
     }
   });
 
-  it("disambiguates identical in-text forms (APA 8.19)", () => {
+  it("keeps in-text forms unique (APA 8.17–8.20 disambiguation)", () => {
     const shorts = REFERENCES.map((r) => r.short);
     expect(new Set(shorts).size).toBe(shorts.length);
   });
 
-  it("shows the in-text form on the chip and the full entry in its popover", () => {
+  it("links the in-text form straight to the source", () => {
     render(<Cite citeKey="sterkensProductLabelIdentification2023" />);
-    expect(screen.getByRole("button", { name: "Sterkens et al., 2023" })).toBeInTheDocument();
-    expect(screen.getByText(/Product label identification with OCR/)).toBeInTheDocument();
+    const link = screen.getByRole("link", { name: "Sterkens et al., 2023" });
+    expect(link).toHaveAttribute("href", "https://doi.org/10.1111/jiec.13279");
+    expect(link).toHaveAccessibleDescription(/Product label identification with OCR/);
   });
 
   it("lists every reference with the cells it backs", () => {
@@ -40,5 +41,17 @@ describe("references", () => {
     expect(screen.getAllByRole("listitem")).toHaveLength(REFERENCES.length);
     // Sterkens is the product-identity source in Table S1
     expect(screen.getByText("Product · Identity")).toBeInTheDocument();
+  });
+
+  it("never surfaces a citation key to the reader", () => {
+    render(
+      <>
+        <ReferenceList />
+        {REFERENCES.map((r) => (
+          <Cite key={r.key} citeKey={r.key} />
+        ))}
+      </>,
+    );
+    expect(screen.queryByText(/@\w/)).toBeNull();
   });
 });
