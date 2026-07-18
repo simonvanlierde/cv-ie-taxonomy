@@ -139,7 +139,7 @@ describe("the illustrative caveat", () => {
   // that owns the layers; this is the integration-level half of that guarantee
   it("is rendered alongside the mock overlays", () => {
     render(<CvTaxonomy />);
-    expect(screen.getByText(/illustrative read-outs — no model ran here/i)).toBeInTheDocument();
+    expect(screen.getByText(/illustrative read-outs: no model ran here/i)).toBeInTheDocument();
   });
 });
 

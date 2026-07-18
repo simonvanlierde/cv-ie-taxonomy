@@ -297,9 +297,7 @@ export function CvTaxonomy({
                   <div className="cvt-hud-top">
                     <span className="cvt-eyebrow">CV × industrial ecology</span>
                     <div className="cvt-hud-actions">
-                      <span className="cvt-hud-tag">
-                        illustrative read-outs — no model ran here
-                      </span>
+                      <span className="cvt-hud-tag">illustrative read-outs: no model ran here</span>
                       <ThemeToggle
                         theme={effectiveTheme}
                         onToggle={() =>
@@ -435,7 +433,7 @@ export function Hero({ hint }: { hint?: string }) {
       <p className="cvt-sub">
         Circular-economy research keeps asking cameras to judge discarded products: what is this,
         what's inside it, what's it worth? Here is one worn-out desk fan and the twelve ways
-        computer vision could answer — each judged by how well it actually works today.
+        computer vision could answer, each judged by how well it actually works today.
         {hint ? ` ${hint} ` : " "}Every verdict comes straight from the paper's{" "}
         <span className="cvt-cite">Table&nbsp;S1</span>:{" "}
         <em>the heavier the square, the stronger the evidence</em>. Colour just tells the three

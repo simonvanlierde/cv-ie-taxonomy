@@ -14,7 +14,7 @@ export function Explorable() {
           column only earns its grid track once there is a detail to fill it */}
       {!selected && (
         <p className="cvt-inline-prompt">
-          Select any cell to see why it earned its verdict — and where it breaks.
+          Select any cell to see why it earned its verdict, and where it breaks.
         </p>
       )}
       <div className="cvt-explorable" data-open={selected !== null}>
