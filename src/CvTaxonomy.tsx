@@ -1,5 +1,6 @@
 import {
   memo,
+  type ReactNode,
   type RefObject,
   useCallback,
   useEffect,
@@ -25,7 +26,7 @@ import { Explorable } from "./Explorable";
 import { Fan } from "./Fan";
 import { FRAMES, HOME_FRAME } from "./frames";
 import { MobileStepper } from "./MobileStepper";
-import { Cite, ReferenceList } from "./References";
+import { Cite, CitedProse } from "./References";
 import { BREAKPOINT_PX, SCALE_VAR, SURFACE, THEME_VARS, type Theme } from "./theme";
 import { plateauCentre, TIMELINE } from "./timeline";
 import { useCamera } from "./useCamera";
@@ -328,10 +329,6 @@ export function CvTaxonomy({
         </div>
       )}
 
-      {/* outside .cvt-scroll: the scroll timeline is measured over that container,
-          so the reference list must not lengthen it (see timeline.ts) */}
-      <ReferenceList />
-
       {/* licences live in the repo (LICENSE + README), not the chrome */}
       <footer className="cvt-footer">
         <span>© 2026 Simon van Lierde</span>
@@ -560,6 +557,7 @@ export const Outro = memo(function Outro() {
         Strong on worn, real-world products.
       </h2>
       <Explorable />
+      <TableView />
       <p className="cvt-foot">
         Maturity of candidate CV tasks per physical scale × information type, shown by ink weight
         and letter:{" "}
@@ -573,7 +571,6 @@ export const Outro = memo(function Outro() {
         component-scale question. A cell split on the diagonal carries two verdicts, one per
         sub-task. Verdicts from Paper 2, Table S1; literature as of {taxonomy.meta.scanDate}.
       </p>
-      <TableView />
     </section>
   );
 });
@@ -596,14 +593,14 @@ function TableView() {
           setOpen(true);
         }}
       >
-        The same twelve verdicts, as a plain table
+        <TableIcon /> View as a plain table
       </button>
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: native <dialog> already closes on Esc; onClick only adds backdrop-click for mouse users */}
       {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: a backdrop click lands on the <dialog> itself, so the handler has nowhere else to live */}
       <dialog
         ref={ref}
         className="cvt-panel cvt-tablepanel"
-        aria-label="The same twelve verdicts, as a plain table"
+        aria-label="The twelve verdicts as a plain table"
         onClose={() => setOpen(false)}
         onClick={(e) => {
           if (e.target === ref.current) ref.current?.close();
@@ -693,6 +690,14 @@ function ShareLink({ cellId }: { cellId: string }) {
   );
 }
 
+// What the paper's source-status flag means for a reader; n/a cells (nothing
+// cited) show no chip at all rather than an unexplained "n/a".
+const STATUS_LABEL: Record<string, string> = {
+  Published: "peer-reviewed sources",
+  Mixed: "peer-reviewed + preprint sources",
+  Preprint: "preprint sources, not yet peer reviewed",
+};
+
 // ---- detail panel ------------------------------------------------------------
 function DetailPanel({ cell, onClose }: { cell: Cell; onClose: () => void }) {
   return (
@@ -751,7 +756,12 @@ export function DetailBody({ cell }: { cell: Cell }) {
         <summary>More detail</summary>
         <dl className="cvt-panel-grid">
           {cell.methodFamily && <Row label="Typical methods" value={cell.methodFamily} />}
-          {cell.example && <Row label="Proven in a nearby field" value={cell.example} />}
+          {cell.example && (
+            <Row
+              label="Proven in a nearby field"
+              value={<CitedProse text={cell.example} citeKeys={cell.citations} />}
+            />
+          )}
           {cell.hardware && <Row label="Typical hardware" value={cell.hardware} />}
           <Row label="Rubric marks (i·ii·iii·m)" value={cell.rubricMarks} mono />
           <Row label="How to handle the output" value={level.handling} />
@@ -759,9 +769,11 @@ export function DetailBody({ cell }: { cell: Cell }) {
       </details>
 
       <div className="cvt-panel-foot">
-        <span className={`cvt-status cvt-status-${cell.sourceStatus.toLowerCase()}`}>
-          {cell.sourceStatus}
-        </span>
+        {STATUS_LABEL[cell.sourceStatus] && (
+          <span className={`cvt-status cvt-status-${cell.sourceStatus.toLowerCase()}`}>
+            {STATUS_LABEL[cell.sourceStatus]}
+          </span>
+        )}
         {cell.citations.length > 0 && (
           <ul className="cvt-cites">
             {cell.citations.map((c) => (
@@ -784,7 +796,7 @@ function Row({
   mode,
 }: {
   label: string;
-  value: string;
+  value: ReactNode;
   mono?: boolean;
   mode?: "warn";
 }) {
@@ -816,6 +828,24 @@ function MoonIcon() {
         strokeLinejoin="round"
         d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"
       />
+    </svg>
+  );
+}
+
+// a small table glyph, so the table-view button reads as "this opens a table"
+function TableIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="14"
+      height="14"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      aria-hidden="true"
+    >
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M3 10h18M9 10v10M15 10v10" />
     </svg>
   );
 }

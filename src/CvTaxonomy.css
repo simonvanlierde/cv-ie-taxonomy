@@ -848,23 +848,26 @@
 
 /* ---- table view: the figure's WCAG-clean twin ------------------------------------------- */
 .cvt-tableview {
-  margin-top: 2.4rem;
-  border-top: 1px solid var(--cvt-line);
-  padding-top: 1rem;
+  margin: 1.2rem 0 1.6rem;
 }
 .cvt-tableview-open {
-  background: none;
-  border: 0;
-  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--cvt-card);
+  border: 1px solid var(--cvt-line);
+  border-radius: 999px;
+  padding: 0.45rem 0.95rem;
   font-family: var(--cvt-mono);
   font-size: 0.72rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--cvt-ink-dim);
+  color: var(--cvt-ink);
   cursor: pointer;
 }
 .cvt-tableview-open:hover {
-  color: var(--cvt-ink);
+  background: var(--cvt-card-hi);
+  border-color: var(--cvt-ink-dim);
 }
 /* wide content scrolls inside its own box; the page never scrolls sideways */
 .cvt-tablewrap {
@@ -1367,88 +1370,83 @@
   margin: 0;
   padding: 0;
 }
-/* A citation reads as its APA in-text form and goes straight to the source;
-   dotted underline as on .cvt-cite, the page's one "citation" affordance. */
-.cvt-cite-link {
+/* A citation reads as its APA in-text form; the dotted underline is the
+   footnote convention for "there is more behind this word". The chip is a
+   plain-text button (it inherits the surrounding prose's font) so it can sit
+   inline in a sentence as well as in the panel foot's source row. */
+.cvt-cite-chip {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--cvt-ink-dim);
+  cursor: pointer;
+  text-decoration: underline dotted var(--cvt-line);
+  text-underline-offset: 2px;
+  anchor-name: var(--cite-anchor);
+}
+.cvt-cites .cvt-cite-chip {
   font-family: var(--cvt-sans);
   font-size: 0.74rem;
   line-height: 1.3;
-  color: var(--cvt-ink-dim);
-  text-decoration: underline dotted var(--cvt-line);
-  text-underline-offset: 2px;
 }
-.cvt-cite-link:hover {
+.cvt-cite-chip:hover {
   color: var(--cvt-ink);
   text-decoration-color: var(--cvt-ink);
 }
-.cvt-ref-meta a {
-  color: var(--cvt-ink-dim);
-}
-.cvt-ref-meta a:hover {
-  color: var(--cvt-ink);
-}
 
-/* ---- reference list: the drawing's sources block ---------------------------------------- */
-.cvt-refs {
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 4rem clamp(1rem, 2.5vw, 2.5rem) 3rem;
-}
-.cvt-refs h2 {
-  font-family: var(--cvt-display);
-  font-size: clamp(1.3rem, 2vw, 1.7rem);
-  font-weight: 700;
-  letter-spacing: -0.015em;
-  margin: 0 0 0.6rem;
-}
-.cvt-refs-lede {
-  max-width: 60ch;
-  margin: 0 0 1.8rem;
-  font-size: 0.9rem;
-  line-height: 1.6;
-  color: var(--cvt-ink-dim);
-}
-.cvt-reflist {
-  list-style: none;
+/* The full reference, as a top-layer card so it clears the panel's scroll box. */
+.cvt-cite-pop {
+  position: fixed;
+  inset: auto;
   margin: 0;
-  padding: 0;
-  columns: 2;
-  column-gap: 3rem;
-  max-width: 120ch;
+  max-width: min(42ch, 92vw);
+  padding: 0.8rem 0.9rem;
+  color: var(--cvt-ink);
+  background: var(--cvt-panel);
+  border: 1px solid var(--cvt-line);
+  border-radius: 8px;
+  box-shadow: 0 14px 34px light-dark(rgba(14, 39, 64, 0.22), rgba(0, 0, 0, 0.5));
 }
-.cvt-reflist > li {
-  break-inside: avoid;
-  margin: 0 0 1.4rem;
-  padding-top: 0.9rem;
-  border-top: 1px solid var(--cvt-line);
+@supports (anchor-name: --a) {
+  .cvt-cite-pop {
+    position-anchor: var(--cite-anchor);
+    position-area: block-start span-inline-end;
+    margin-block-end: 8px;
+    position-try-fallbacks:
+      flip-block,
+      flip-inline,
+      flip-block flip-inline;
+  }
 }
-.cvt-ref-apa {
+@supports not (anchor-name: --a) {
+  /* no anchor positioning: dock it to the viewport foot, where it cannot
+     cover the chip that opened it */
+  .cvt-cite-pop {
+    inset: auto 0 0 0;
+    margin: 0 auto 1rem;
+  }
+}
+.cvt-cite-apa {
   margin: 0;
-  /* hanging indent, as the printed list has */
+  font-size: 0.82rem;
+  line-height: 1.5;
+  /* hanging indent, as a printed reference list has */
   padding-left: 1.4rem;
   text-indent: -1.4rem;
-  font-size: 0.85rem;
-  line-height: 1.5;
 }
-.cvt-ref-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.2rem 0.8rem;
-  margin: 0.45rem 0 0;
+.cvt-cite-meta {
+  margin: 0.6rem 0 0;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--cvt-line);
   font-family: var(--cvt-mono);
   font-size: 0.68rem;
-  line-height: 1.5;
+}
+.cvt-cite-meta a {
   color: var(--cvt-ink-dim);
 }
-.cvt-ref-cells {
+.cvt-cite-meta a:hover {
   color: var(--cvt-ink);
-  opacity: 0.75;
-}
-/* 881 = theme.ts BREAKPOINT_PX */
-@container cvt (width < 881px) {
-  .cvt-reflist {
-    columns: 1;
-  }
 }
 
 /* ---- focus --------------------------------------------------------------------------------- */
