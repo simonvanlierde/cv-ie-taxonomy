@@ -2,7 +2,7 @@
   "meta": {
     "title": "Computer Vision for Product Data Collection in Industrial Ecology",
     "subtitle": "A taxonomy of CV applications, mapped to physical scale and information type",
-    "source": "Paper 2 (JIE Review), Table S1 + Table S2. Verdicts are the paper's; do not alter without changing the draft.",
+    "source": "Paper 2 (JIE Review), Table S2 (per-task descriptors). Verdicts are the paper's; do not alter without changing the draft.",
     "scanDate": "2026-06",
     "axes": {
       "scale": ["Product", "Component", "Material"],
@@ -43,7 +43,7 @@
   },
   "product": {
     "name": "End-of-life desk fan",
-    "note": "Representative multi-component WEEE product chosen for the visualization; the taxonomy is product-general (the paper's Table S2 walks a laptop through the same cells).",
+    "note": "Representative multi-component WEEE product chosen for the visualization. The taxonomy is product-general: its axes are physical scale and information type, and the evidence behind the verdicts spans washing machines, laptops, smartphones and vehicles. The paper's Table S3 and Figure S1 walk this same desk fan through three disassembly stages.",
     "components": ["Front grille", "Blades", "Rear grille", "Motor", "Neck", "Base"],
     "materials": [
       "Steel wire (grille)",

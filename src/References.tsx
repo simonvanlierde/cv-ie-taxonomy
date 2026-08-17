@@ -26,7 +26,7 @@ const BY_KEY = new Map(REFERENCES.map((r) => [r.key, r]));
 
 /** Named models the prose mentions, each pointing at the paper that introduced
  *  it — the paper's own Table S4 attributions. A name may appear in prose the
- *  cell's Table S1 row does not cite (WinCLIP under Product · Condition); that
+ *  cell's Table S2 row does not cite (WinCLIP under Product · Condition); that
  *  is the point, and why this map is separate from a cell's citations. */
 export const METHODS = rawMethods as { name: string; key: string }[];
 const METHOD_BY_NAME = new Map(METHODS.map((m) => [m.name, m.key]));

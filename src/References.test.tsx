@@ -74,7 +74,7 @@ describe("CitedProse", () => {
   });
 
   it("links a named model whose paper the cell's own citations do not include", () => {
-    // Table S1's Product · Condition row does not cite WinCLIP or AnomalyCLIP;
+    // Table S2's Product · Condition row does not cite WinCLIP or AnomalyCLIP;
     // Table S4 attributes both, so the names are still one click from their paper
     const cell = cellAt("Product", "Condition");
     render(<CitedProse text={cell.methodFamily ?? ""} citeKeys={cell.citations} />);

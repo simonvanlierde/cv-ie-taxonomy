@@ -432,7 +432,7 @@ export function Hero({ hint }: { hint?: string }) {
         what's inside it, what's it worth? Here is one worn-out desk fan, and the twelve ways
         computer vision could answer. Each way is judged by how well it works today.
         {hint ? ` ${hint} ` : " "}Every verdict comes straight from the paper's{" "}
-        <span className="cvt-cite">Table&nbsp;S1</span>:{" "}
+        <span className="cvt-cite">Table&nbsp;S2</span>:{" "}
         <em>the heavier the square, the stronger the evidence</em>. Colour just tells the three
         scales apart.
       </p>
@@ -569,7 +569,7 @@ export const Outro = memo(function Outro() {
         ))}
         . Dashed cells are structurally empty: no task of their own, because structure is a
         component-scale question. A cell split on the diagonal carries two verdicts, one per
-        sub-task. Verdicts from Paper 2, Table S1; literature as of {taxonomy.meta.scanDate}.
+        sub-task. Verdicts from Paper 2, Table S2; literature as of {taxonomy.meta.scanDate}.
       </p>
     </section>
   );
@@ -600,14 +600,14 @@ function TableView() {
       <dialog
         ref={ref}
         className="cvt-panel cvt-tablepanel"
-        aria-label="Table S1 as a plain table"
+        aria-label="Table S2 as a plain table"
         onClose={() => setOpen(false)}
         onClick={(e) => {
           if (e.target === ref.current) ref.current?.close();
         }}
       >
         <div className="cvt-panel-head">
-          <p className="cvt-eyebrow">Table S1 · text view</p>
+          <p className="cvt-eyebrow">Table S2 · text view</p>
           <button
             type="button"
             className="cvt-panel-close"
@@ -620,7 +620,7 @@ function TableView() {
         <div className="cvt-tablewrap">
           <table>
             <caption>
-              The paper&rsquo;s Table S1 as text. Cells with two sub-tasks get a row each.
+              The paper&rsquo;s Table S2 as text. Cells with two sub-tasks get a row each.
             </caption>
             <thead>
               <tr>

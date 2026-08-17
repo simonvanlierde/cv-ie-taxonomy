@@ -11,7 +11,7 @@ and how far you can trust the answer.
 
 It is one self-contained React + TypeScript island. It runs standalone, drops
 into an Astro or Next portfolio, and doubles as the interactive companion to the
-paper's Table S1.
+paper's Table S2.
 
 ![Exploded fan with interactive CV read-outs](public/screenshot.png)
 
@@ -51,7 +51,7 @@ All overlays are labelled *illustrative, not model output.*
 
 ## Data is the source of truth
 
-[`src/data/taxonomy.json`](src/data/taxonomy.json) mirrors **Table S1** verbatim:
+[`src/data/taxonomy.json`](src/data/taxonomy.json) mirrors **Table S2** verbatim:
 all twelve grid cells, the five-level maturity verdicts, rubric marks
 (i·ii·iii·*m*), failure modes, examples, and citation keys. Ten of those cells
 carry a task; the two structurally empty Structure cells do not. Nothing here is
@@ -94,7 +94,7 @@ host can force either.
 ```text
 src/
   data/
-    taxonomy.json       # source of truth: mirrors Table S1
+    taxonomy.json       # source of truth: mirrors Table S2
     types.ts            # typed schema for the JSON
     taxonomy.ts         # typed loader + helpers
     taxonomy.test.ts    # data-layer invariants (vitest)
@@ -151,8 +151,10 @@ media-query default; `initialCell: string` opens a cell's panel on load.
 
 - **Representative product = desk fan.** A real WEEE product with an iconic axial
   explode and a clean materials story (steel grille, ABS blades, copper windings,
-  PCB base). The taxonomy itself is product-general; the paper's Table S2 walks a
-  *laptop* through the same cells.
+  PCB base). It is the paper's own worked example: Table S3 and Figure S1 walk this
+  same fan through three disassembly stages. The taxonomy itself is product-general,
+  since its axes are physical scale and information type, and the evidence behind the
+  verdicts spans washing machines, laptops, smartphones and vehicles.
 - Overlay numbers on the fan are **mock values** showing what each technique's
   output looks like. They claim nothing. Verdict letters on chips are the paper's.
 - The fan drawing is schematic, not to scale.
@@ -164,5 +166,5 @@ media-query default; `initialCell: string` opens a cell's panel on load.
 Split so the software is freely reusable while the research stays citable:
 
 - **Code**: [MIT](LICENSE).
-- **Taxonomy data** (`src/data/taxonomy.json`, mirroring Table S1), **figures, and
+- **Taxonomy data** (`src/data/taxonomy.json`, mirroring Table S2), **figures, and
   content**: [CC BY 4.0](LICENSE-CONTENT).
