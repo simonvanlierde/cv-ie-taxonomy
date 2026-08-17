@@ -21,13 +21,13 @@ import {
   taxonomy,
   VERDICT_LETTER,
 } from "./data/taxonomy";
-import type { Cell, InfoType, Scale } from "./data/types";
+import type { Cell, InfoType, Scale, Verdict } from "./data/types";
 import { Explorable } from "./Explorable";
 import { Fan } from "./Fan";
 import { FRAMES, HOME_FRAME } from "./frames";
 import { MobileStepper } from "./MobileStepper";
 import { Cite, CitedProse } from "./References";
-import { BREAKPOINT_PX, SCALE_VAR, SURFACE, THEME_VARS, type Theme } from "./theme";
+import { BREAKPOINT_PX, SCALE_VAR, SURFACE, THEME_VARS, type Theme, VERDICT_VAR } from "./theme";
 import { plateauCentre, TIMELINE } from "./timeline";
 import { useCamera } from "./useCamera";
 import { useScrollProgress } from "./useScrollProgress";
@@ -279,6 +279,9 @@ export function CvTaxonomy({
         />
       ) : (
         <div className="cvt-scroll" ref={scrollRef}>
+          <SheetFrame />
+          <TitleBlock />
+          <MaturityInstrument live={CLAIMED_VERDICTS} />
           {/* The stage + chapters share one wrapper, placed directly by the grid. */}
           <div className="cvt-pinwrap">
             {/* ---- sticky stage: the fan IS the interface ---- */}
@@ -296,7 +299,13 @@ export function CvTaxonomy({
                 />
                 <div className="cvt-hud">
                   <div className="cvt-hud-top">
-                    <span className="cvt-eyebrow">CV × industrial ecology</span>
+                    <ol className="cvt-ind" aria-label="Physical scale chapters">
+                      {SCALES.map((s) => (
+                        <li key={s} data-active={chapter === s} style={{ "--hue": SCALE_VAR[s] }}>
+                          {s}
+                        </li>
+                      ))}
+                    </ol>
                     <div className="cvt-hud-actions">
                       <span className="cvt-hud-tag">illustrative read-outs: no model ran here</span>
                       <ThemeToggle
@@ -308,13 +317,6 @@ export function CvTaxonomy({
                     </div>
                   </div>
                   <div className="cvt-hud-bottom">
-                    <ol className="cvt-ind" aria-label="Physical scale chapters">
-                      {SCALES.map((s) => (
-                        <li key={s} data-active={chapter === s} style={{ "--hue": SCALE_VAR[s] }}>
-                          {s}
-                        </li>
-                      ))}
-                    </ol>
                     <InfoFilter active={activeInfo} onChange={setActiveInfo} />
                   </div>
                 </div>
@@ -361,6 +363,98 @@ export function CvTaxonomy({
     </div>
   );
 }
+
+// ---- sheet furniture ---------------------------------------------------------
+// The page is one drawing sheet, so its border, graticule references, title block
+// and maturity instrument are fixed to the viewport rather than scrolling with the
+// content: you stay on the sheet and the drawing moves under it. All of it is
+// decorative chrome over a live document, so it takes no pointer events and is
+// hidden from the accessibility tree — every fact it shows is stated in the
+// document proper (the title block repeats the figure caption's provenance, the
+// instrument repeats the legend).
+
+/** I is skipped, as on a real drawing: it reads as a 1 against the row numbers. */
+const COLUMN_REFS = "ABCDEFGHJKLMNPQRSTUVWXYZ".split("");
+const ROW_REFS = Array.from({ length: 20 }, (_, i) => i + 1);
+
+const SheetFrame = memo(function SheetFrame() {
+  return (
+    <div className="cvt-sheet" aria-hidden>
+      <div className="cvt-sheet-border" />
+      <div className="cvt-ruler cvt-ruler-x">
+        {COLUMN_REFS.map((c) => (
+          <span key={c}>{c}</span>
+        ))}
+      </div>
+      <div className="cvt-ruler cvt-ruler-y">
+        {ROW_REFS.map((r) => (
+          <span key={r}>{r}</span>
+        ))}
+      </div>
+    </div>
+  );
+});
+
+/** ISO 7200 corner. The DOI row is deliberately empty rather than absent: the
+ *  deposit is planned, and a labelled blank says so without implying one exists. */
+const TitleBlock = memo(function TitleBlock() {
+  return (
+    <dl className="cvt-titleblock" aria-hidden>
+      <div className="cvt-tb-title">{taxonomy.meta.title}</div>
+      <div className="cvt-tb-row">
+        <dt>drawn</dt>
+        <dd>S. van Lierde</dd>
+      </div>
+      <div className="cvt-tb-row">
+        <dt>source</dt>
+        <dd>Paper 2 · Table S2</dd>
+      </div>
+      <div className="cvt-tb-row">
+        <dt>scan</dt>
+        <dd>{taxonomy.meta.scanDate}</dd>
+      </div>
+      <div className="cvt-tb-row">
+        <dt>sheet</dt>
+        <dd>1 of 1</dd>
+      </div>
+      <div className="cvt-tb-row">
+        <dt>doi</dt>
+        <dd className="cvt-tb-blank">not yet deposited</dd>
+      </div>
+    </dl>
+  );
+});
+
+/** The ramp as a permanent instrument. It replaces a legend that appeared once in
+ *  the hero and scrolled away, leaving every letter after it to be recalled; the
+ *  unclaimed Strong rung is drawn, because the empty top of the ramp is the
+ *  paper's finding and belongs on screen the whole way down. */
+const MaturityInstrument = memo(function MaturityInstrument({ live }: { live: Set<Verdict> }) {
+  return (
+    <div className="cvt-instrument" aria-hidden>
+      <p className="cvt-instrument-head">maturity</p>
+      {taxonomy.meta.maturityLevels.map((level) => (
+        <p
+          className="cvt-rung"
+          key={level.verdict}
+          data-claimed={live.has(level.verdict)}
+          data-verdict={level.letter}
+        >
+          <i style={{ background: VERDICT_VAR[level.verdict] ?? "none" }} />
+          <b>{level.letter}</b>
+          {level.verdict}
+          {live.has(level.verdict) ? "" : " — unclaimed"}
+        </p>
+      ))}
+    </div>
+  );
+});
+
+/** Which rungs any cell actually reaches, so "unclaimed" is read off the data
+ *  rather than hard-coded to Strong — a later verdict change updates the drawing. */
+const CLAIMED_VERDICTS = new Set<Verdict>(
+  cells.flatMap((c) => [c.maturity, ...(c.subVerdicts ?? []).map((s) => s.maturity)]),
+);
 
 // ---- narrative rail (memoized: only re-renders on chapter/filter change,
 // not on every scroll frame) -------------------------------------------------
@@ -436,16 +530,6 @@ export function Hero({ hint }: { hint?: string }) {
         <em>the heavier the square, the stronger the evidence</em>. Colour just tells the three
         scales apart.
       </p>
-      <ul className="cvt-legendline" aria-label="Maturity legend">
-        {taxonomy.meta.maturityLevels.map((m) => (
-          <li key={m.verdict} title={m.gloss}>
-            <VerdictSwatch verdict={m.verdict} size={18} />
-            <span>
-              <b>{m.letter}</b> {m.verdict}
-            </span>
-          </li>
-        ))}
-      </ul>
     </>
   );
 }
