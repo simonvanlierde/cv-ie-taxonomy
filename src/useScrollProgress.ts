@@ -1,5 +1,5 @@
 import { useScroll, useSpring } from "motion/react";
-import { type RefObject, useEffect, useState } from "react";
+import { type RefObject, useEffect, useMemo, useState } from "react";
 
 // Weighty, overdamped spring: the fan is heavy hardware being taken apart, so
 // parts glide and settle — no cartoon overshoot. This is the feel knob.
@@ -20,8 +20,27 @@ export function useScrollProgress(
   smooth: boolean,
   active = true,
 ): number {
+  // motion memoizes its scroll attachment on the target ref's *identity*. The
+  // narrative container isn't rendered on mobile, so on a mobile-first mount the
+  // ref is null and motion parks; crossing the breakpoint back to desktop mounts
+  // the container but leaves the identity unchanged, so motion never re-attaches
+  // and progress stays pinned at 0 while the page scrolls under it. Handing it a
+  // fresh forwarding ref per layout mode makes it re-attach. While the narrative
+  // is unrendered we hand over no target at all: a ref pointing at nothing is an
+  // error to motion, and the subscription below is gated anyway.
+  const target = useMemo(
+    () =>
+      active
+        ? {
+            get current() {
+              return ref.current;
+            },
+          }
+        : undefined,
+    [ref, active],
+  );
   const { scrollYProgress } = useScroll({
-    target: ref,
+    target,
     offset: ["start start", "end end"],
   });
   const smoothed = useSpring(scrollYProgress, SPRING);
