@@ -54,16 +54,16 @@
     "url": "https://doi.org/10.48550/ARXIV.2404.13923"
   },
   {
+    "key": "liuGroundingDINOMarrying2025",
+    "short": "S. Liu et al., 2025",
+    "apa": "Liu, S., Zeng, Z., Ren, T., Li, F., Zhang, H., Yang, J., Jiang, Q., Li, C., Yang, J., Su, H., Zhu, J., & Zhang, L. (2025). Grounding DINO: Marrying DINO with grounded pre-training for open-set object detection. In Leonardis, A., Ricci, E., Roth, S., Russakovsky, O., Sattler, T., & Varol, G. (Eds.), *Computer vision – ECCV 2024* (Vol. 15105, pp. 38–55). Springer Nature Switzerland.",
+    "url": "https://doi.org/10.1007/978-3-031-72970-6_3"
+  },
+  {
     "key": "liuRAISERobotAssistedSelective2025",
     "short": "Liu, Balasubramaniam, et al., 2025",
     "apa": "Liu, C., Balasubramaniam, B., Yancey, N., Severson, M., Shine, A., Bove, P., Li, B., Liang, X., & Zheng, M. (2025). RAISE: A robot-assisted selective disassembly and sorting system for end-of-life phones. *arXiv*. arXiv:2509.23048.",
     "url": "https://doi.org/10.48550/ARXIV.2509.23048"
-  },
-  {
-    "key": "liuVisionLanguageActionModelsSelective2025",
-    "short": "Liu, Tian, et al., 2025",
-    "apa": "Liu, C., Tian, S., Behdad, S., Liang, X., & Zheng, M. (2025). Vision-language-action models for selective robotic disassembly: A case study on critical component extraction from desktops. *arXiv*. arXiv:2512.04446.",
-    "url": "https://doi.org/10.48550/ARXIV.2512.04446"
   },
   {
     "key": "liuSINGAPOSingleImage2025",
@@ -72,10 +72,16 @@
     "url": "https://doi.org/10.48550/arXiv.2410.16499"
   },
   {
-    "key": "liuGroundingDINOMarrying2025",
-    "short": "S. Liu et al., 2025",
-    "apa": "Liu, S., Zeng, Z., Ren, T., Li, F., Zhang, H., Yang, J., Jiang, Q., Li, C., Yang, J., Su, H., Zhu, J., & Zhang, L. (2025). Grounding DINO: Marrying DINO with grounded pre-training for open-set object detection. In Leonardis, A., Ricci, E., Roth, S., Russakovsky, O., Sattler, T., & Varol, G. (Eds.), *Computer vision – ECCV 2024* (Vol. 15105, pp. 38–55). Springer Nature Switzerland.",
-    "url": "https://doi.org/10.1007/978-3-031-72970-6_3"
+    "key": "liuVisionLanguageActionModelsSelective2025",
+    "short": "Liu, Tian, et al., 2025",
+    "apa": "Liu, C., Tian, S., Behdad, S., Liang, X., & Zheng, M. (2025). Vision-language-action models for selective robotic disassembly: A case study on critical component extraction from desktops. *arXiv*. arXiv:2512.04446.",
+    "url": "https://doi.org/10.48550/ARXIV.2512.04446"
+  },
+  {
+    "key": "mohandasDeepLearningEnabled2025",
+    "short": "Mohandas et al., 2025",
+    "apa": "Mohandas, R., Southern, M., Fitzpatrick, C., & Hayes, M. (2025). Deep learning enabled computer vision in remanufacturing and refurbishment applications: Defect detection and grading for smart phones. *Journal of Remanufacturing*, *15*(1), 65–95.",
+    "url": "https://doi.org/10.1007/s13243-024-00147-2"
   },
   {
     "key": "penumuruIdentificationClassificationMaterials2020",
@@ -106,6 +112,12 @@
     "short": "Wang et al., 2025",
     "apa": "Wang, J., Chen, M., Karaev, N., Vedaldi, A., Rupprecht, C., & Novotny, D. (2025). VGGT: Visual geometry grounded transformer. *arXiv*. arXiv:2503.11651.",
     "url": "https://doi.org/10.48550/ARXIV.2503.11651"
+  },
+  {
+    "key": "wuSCESSurfaceCondition2026",
+    "short": "Wu et al., 2026",
+    "apa": "Wu, Y., Zhou, C., Sterkens, W., Goedemé, T., Dewulf, W., & Peeters, J. R. (2026). SCES: Surface condition evaluation system for electrical and electronic equipment reuse grading by combining defect detection and segmentation—A case study of laptops. *Resources, Conservation and Recycling*, *225*, 108608.",
+    "url": "https://doi.org/10.1016/j.resconrec.2025.108608"
   },
   {
     "key": "yuanLARMLargeArticulatedObject2025",

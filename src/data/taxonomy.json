@@ -114,8 +114,10 @@
       "rubricMarks": "N · ✗ᵘ · ✗",
       "hardware": "Edge-feasible in principle; validated capability rig-bound",
       "failureMode": "No validation under realistic capture (lighting sensitivity documented); single-class range; deployed triage remains value/material sorting.",
-      "example": "Instrumented laptop-cover A-E grading at 86.7% end-to-end, and severity-graded smartphone screens: both narrow-class and researcher-operated. Kiosk device grading, narrow class under instrumented capture (Bowles et al. 2012; Li & Huang 2021). Exterior vehicle damage assessment (Hasan et al. 2025) stays the adjacent-domain anchor.",
+      "example": "Instrumented laptop-cover A-E grading, 86.7% end-to-end (Wu et al. 2026); smartphone screen severity grading (Mohandas et al. 2025); kiosk device grading, narrow class under instrumented capture (Bowles et al. 2012; Li & Huang 2021). Exterior vehicle damage assessment (Hasan et al. 2025) stays the adjacent-domain anchor.",
       "citations": [
+        "wuSCESSurfaceCondition2026",
+        "mohandasDeepLearningEnabled2025",
         "hasanVehicleDamageDetection2025",
         "bowlesKioskRecyclingElectronic2012",
         "liEnhancedAutomaticCosmetic2021"
