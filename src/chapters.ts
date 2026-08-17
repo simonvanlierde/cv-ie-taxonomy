@@ -12,7 +12,7 @@ import type { Scale } from "./data/types";
 export const CHAPTER_COPY: Record<Scale, { title: string; body: string }> = {
   Product: {
     title: "One product, seen whole",
-    body: "Whole products are where vision already earns its keep: read the rating label, look the product up. In a repair shop, 95.7% of labels read correctly; on a recycler's line that falls to 39.7%. Size from a single camera stays a rough estimate, and the question that decides everything, is this worth repairing?, has no benchmark yet.",
+    body: "Whole products are where vision already earns its keep: read the rating label, look the product up. In a repair shop, 95.7% of labels read correctly; on a recycler's line that falls to 39.7%. Size from a single camera stays a rough estimate. The question that decides everything, is this worth repairing?, has only been answered for one product class at a time: laptop covers grade at 86.7% on a lit rig, and nothing has been tested on the photos a contributor would actually take.",
   },
   Component: {
     title: "Pulled apart",
