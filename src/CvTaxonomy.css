@@ -1321,6 +1321,19 @@
   font-family: var(--cvt-mono);
   font-size: 0.82rem;
 }
+/* the key that decodes the marks: subordinate to them, but still readable */
+.cvt-rubric-key {
+  margin: 0.45rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--cvt-ink-dim);
+  text-wrap: pretty;
+}
+.cvt-rubric-key b {
+  font-family: var(--cvt-mono);
+  font-weight: 600;
+  color: var(--cvt-ink);
+}
 .cvt-panel-more {
   margin-top: 0.4rem;
 }

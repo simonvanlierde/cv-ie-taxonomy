@@ -53,7 +53,8 @@ All overlays are labelled *illustrative, not model output.*
 
 [`src/data/taxonomy.json`](src/data/taxonomy.json) mirrors **Table S2** verbatim:
 all twelve grid cells, the five-level maturity verdicts, rubric marks
-(i·ii·iii·*m*), failure modes, examples, and citation keys. Ten of those cells
+(evidence mark · field-capture gate · deployment gate), failure modes, examples,
+and citation keys. Ten of those cells
 carry a task; the two structurally empty Structure cells do not. Nothing here is
 invented.
 

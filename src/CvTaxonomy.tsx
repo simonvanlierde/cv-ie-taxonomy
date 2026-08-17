@@ -621,6 +621,7 @@ function TableView() {
           <table>
             <caption>
               The paper&rsquo;s Table S2 as text. Cells with two sub-tasks get a row each.
+              <RubricKey />
             </caption>
             <thead>
               <tr>
@@ -628,7 +629,7 @@ function TableView() {
                 <th scope="col">Information type</th>
                 <th scope="col">Task</th>
                 <th scope="col">Maturity</th>
-                <th scope="col">Rubric marks (i·ii·iii·m)</th>
+                <th scope="col">{RUBRIC_LABEL}</th>
               </tr>
             </thead>
             <tbody>
@@ -697,6 +698,22 @@ const STATUS_LABEL: Record<string, string> = {
   Mixed: "peer-reviewed and preprint sources",
   Preprint: "preprint sources, not yet peer reviewed",
 };
+
+// The paper records each cell as an evidence mark and two gates. The marks are
+// opaque on their own, so the key travels with them wherever they are shown.
+const RUBRIC_LABEL = "Rubric marks (E · capture · deployed)";
+
+function RubricKey() {
+  return (
+    <p className="cvt-rubric-key">
+      <b>E</b>, how far a benchmarked capability reaches: <b>B</b> benchmarked product-general,{" "}
+      <b>N</b> narrow class only, <b>C</b> concept or adjacent domain only, <b>–</b> no method, or
+      derived. Then two gates, each ✓ or ✗: does it survive end-of-life capture, and is it deployed
+      on the task. A ✗ on capture records why: ✗<sup>m</sup> measured drop, ✗<sup>a</sup> inferred
+      from an adjacent domain, ✗<sup>u</sup> untested.
+    </p>
+  );
+}
 
 // ---- detail panel ------------------------------------------------------------
 function DetailPanel({ cell, onClose }: { cell: Cell; onClose: () => void }) {
@@ -777,7 +794,15 @@ export function DetailBody({ cell }: { cell: Cell }) {
             />
           )}
           {cell.hardware && <Row label="Typical hardware" value={cell.hardware} />}
-          <Row label="Rubric marks (i·ii·iii·m)" value={cell.rubricMarks} mono />
+          <Row
+            label={RUBRIC_LABEL}
+            value={
+              <>
+                <span className="cvt-mono">{cell.rubricMarks}</span>
+                <RubricKey />
+              </>
+            }
+          />
           <Row label="How to handle the output" value={level.handling} />
         </dl>
       </details>
