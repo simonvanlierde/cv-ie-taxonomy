@@ -1,7 +1,7 @@
 // Camera frames in Fan viewBox coordinates. VIEW is the whole desktop canvas and
 // the home frame; each cell frame zooms toward the part its read-out points at.
-// These are hand-tuned starting rects (like the callout positions in Fan.tsx) —
-// fine-tune visually in Task 3. Chips are only clickable at their chapter's
+// These are hand-tuned rects, like the callout positions in Fan.tsx: retune them
+// by eye, against the rendered fan. Chips are only clickable at their chapter's
 // plateau, so a plateau-state frame tracks the part closely enough.
 
 export type Frame = { x: number; y: number; w: number; h: number };

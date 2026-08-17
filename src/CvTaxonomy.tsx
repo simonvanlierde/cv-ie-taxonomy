@@ -421,7 +421,7 @@ const Rail = memo(function Rail({
 export function Hero({ hint }: { hint?: string }) {
   return (
     <>
-      <p className="cvt-eyebrow">Paper 2 · interactive supplement</p>
+      <p className="cvt-eyebrow">Review paper · interactive supplement</p>
       <h1 className="cvt-title">
         What can a machine
         <br />
@@ -429,8 +429,8 @@ export function Hero({ hint }: { hint?: string }) {
       </h1>
       <p className="cvt-sub">
         Circular-economy research keeps asking cameras to judge discarded products: what is this,
-        what's inside it, what's it worth? Here is one worn-out desk fan and the twelve ways
-        computer vision could answer, each judged by how well it actually works today.
+        what's inside it, what's it worth? Here is one worn-out desk fan, and the twelve ways
+        computer vision could answer. Each way is judged by how well it works today.
         {hint ? ` ${hint} ` : " "}Every verdict comes straight from the paper's{" "}
         <span className="cvt-cite">Table&nbsp;S1</span>:{" "}
         <em>the heavier the square, the stronger the evidence</em>. Colour just tells the three
@@ -600,7 +600,7 @@ function TableView() {
       <dialog
         ref={ref}
         className="cvt-panel cvt-tablepanel"
-        aria-label="The twelve verdicts as a plain table"
+        aria-label="Table S1 as a plain table"
         onClose={() => setOpen(false)}
         onClick={(e) => {
           if (e.target === ref.current) ref.current?.close();
@@ -638,7 +638,7 @@ function TableView() {
                     <th scope="row">{cell.scale}</th>
                     <td>{cell.informationType}</td>
                     <td>
-                      {cell.structurallyEmpty ? "— structurally empty —" : cell.task}
+                      {cell.structurallyEmpty ? "structurally empty" : cell.task}
                       {sub.label && <span className="cvt-subtask"> · {sub.label}</span>}
                     </td>
                     <td>
@@ -694,7 +694,7 @@ function ShareLink({ cellId }: { cellId: string }) {
 // cited) show no chip at all rather than an unexplained "n/a".
 const STATUS_LABEL: Record<string, string> = {
   Published: "peer-reviewed sources",
-  Mixed: "peer-reviewed + preprint sources",
+  Mixed: "peer-reviewed and preprint sources",
   Preprint: "preprint sources, not yet peer reviewed",
 };
 

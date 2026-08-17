@@ -10,10 +10,10 @@ const SPRING = { stiffness: 120, damping: 25, mass: 0.7 } as const;
  * Scroll progress (0..1) of a tall container, spring-smoothed for a scrubbed,
  * weighty feel. `smooth: false` (reduced motion) maps 1:1.
  *
- * Returns a plain number so the SVG coordinate math in Fan stays unchanged.
- * NOTE: per-frame React re-render is retained (same as before). If a
- * profiler shows scrub jank, drive Fan's transforms off the MotionValue
- * directly (useTransform + motion.g) to skip the re-render — not before.
+ * Returns a plain number, so the SVG coordinate math in Fan stays plain math.
+ * NOTE: that costs one React re-render per scroll frame. If a profiler shows
+ * scrub jank, drive Fan's transforms off the MotionValue directly
+ * (useTransform + motion.g) to skip the re-render — not before.
  */
 export function useScrollProgress(
   ref: RefObject<HTMLElement | null>,

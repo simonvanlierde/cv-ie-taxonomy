@@ -1,15 +1,17 @@
-# What can a machine actually see? — CV × Industrial Ecology
+# What can a machine actually see? · CV × Industrial Ecology
 
 [![CI & Deploy](https://github.com/simonvanlierde/cv-ie-taxonomy/actions/workflows/ci.yml/badge.svg)](https://github.com/simonvanlierde/cv-ie-taxonomy/actions/workflows/ci.yml)
 [![Live demo](https://img.shields.io/badge/live-demo-2b7a78?logo=githubpages&logoColor=white)](https://simonvanlierde.github.io/cv-ie-taxonomy/)
 [![License: MIT](https://img.shields.io/badge/code-MIT-blue)](LICENSE)
 [![License: CC BY 4.0](https://img.shields.io/badge/content-CC%20BY%204.0-lightgrey)](LICENSE-CONTENT)
 
-An interactive exploded-teardown map of the computer-vision-for-industrial-ecology
-taxonomy from **Paper 2** (JIE Review): which vision task recovers which product
-data, at which physical scale, and how far you can trust it. A self-contained
-React + TypeScript island: runs standalone, drops into an Astro/Next portfolio,
-and doubles as the interactive companion to the paper's Table S1.
+An interactive exploded-teardown map of the taxonomy in **Paper 2** (JIE Review).
+It asks which vision task recovers which product data, at which physical scale,
+and how far you can trust the answer.
+
+It is one self-contained React + TypeScript island. It runs standalone, drops
+into an Astro or Next portfolio, and doubles as the interactive companion to the
+paper's Table S1.
 
 ![Exploded fan with interactive CV read-outs](public/screenshot.png)
 
@@ -19,24 +21,30 @@ and doubles as the interactive companion to the paper's Table S1.
 
 An end-of-life **desk fan** comes apart patent-style as you scroll, through three
 chapters: **Product → Component → Material**, one per physical scale of the
-taxonomy. In each chapter, CV annotations paint onto the fan in the genre's own
-vernacular: YOLO-style detection boxes with class tags ("blade ×3 · 0.91") for
-Identity, per-instance segmentation masks for Structure, an OCR read-out on the
-rating label, dimension call-outs for Quantity, anomaly tags for Condition, and
-material tags over true-material tints at the Material scale.
+taxonomy. In each of them, CV annotations paint onto the fan in the genre's own
+vernacular:
+
+- YOLO-style detection boxes with class tags ("blade ×3 · 0.91") for Identity
+- per-instance segmentation masks for Structure
+- an OCR read-out on the rating label
+- dimension call-outs for Quantity
+- anomaly tags for Condition
+- material tags over true-material tints at the Material scale
 
 Each annotation connects by leader line to a floating info chip carrying the
-cell's maturity texture + letter. **Those chips are the controls.** Hovering
-isolates a cell's annotations; clicking opens a panel with the task, verdict,
-dominant failure mode, example, rubric marks, and sources. Filter chips narrow by
-information type. On mobile the narrative pages instead of scrolling: the fan is a
-full-screen backdrop that comes apart as you advance, each chapter's prose rides a
-fold-away peek sheet over its lower third, and the annotations themselves are the
-tap targets — each opens its cell's bottom-sheet panel.
+cell's maturity texture and letter. **Those chips are the controls.** Hover to
+isolate a cell's annotations. Click to open a panel with the task, verdict,
+dominant failure mode, example, rubric marks, and sources. Filter chips narrow
+the view by information type.
 
-At the end, the full 3 × 4 matrix appears as a **paper-figure-style recap**
-(texture + letter, captioned, screenshot-ready), each cell still clickable, and
-the paper's central finding: **no task-level cell reaches Strong under
+On mobile the narrative pages instead of scrolling. The fan is a full-screen
+backdrop that comes apart as you advance, and each chapter's prose rides a
+fold-away peek sheet over its lower third. There the annotations themselves are
+the tap targets: each one opens its cell's bottom-sheet panel.
+
+At the end, the full 3 × 4 matrix appears as a **paper-figure-style recap**:
+texture and letter, captioned, screenshot-ready, every cell still clickable. It
+carries the paper's central finding: **no task-level cell reaches Strong under
 end-of-life capture.**
 
 All overlays are labelled *illustrative, not model output.*
@@ -44,33 +52,42 @@ All overlays are labelled *illustrative, not model output.*
 ## Data is the source of truth
 
 [`src/data/taxonomy.json`](src/data/taxonomy.json) mirrors **Table S1** verbatim:
-all twelve grid cells (ten populated + the two structurally-empty Structure
-cells), the five-level maturity verdicts, rubric marks (i·ii·iii·*m*), failure
-modes, examples, and citation keys. Nothing is invented.
+all twelve grid cells, the five-level maturity verdicts, rubric marks
+(i·ii·iii·*m*), failure modes, examples, and citation keys. Ten of those cells
+carry a task; the two structurally empty Structure cells do not. Nothing here is
+invented.
+
 [`src/data/taxonomy.test.ts`](src/data/taxonomy.test.ts) enforces the invariants
-that would break if the JSON drifts from the paper.
+that would break if the JSON drifted from the paper.
 
 ## Accessibility
 
-Maturity is encoded by **ink weight + letter, never colour**: a neutral ramp, monotone
-in lightness and stepped against each theme's own surface (S darkest → U lightest, with
-A the hollow no-data cell). Under `forced-colors` and print, where fills flatten, a
-texture layer takes over — ordered by ink coverage, so the ranks survive (solid = S,
-diagonal hatch = P, dots = E, ring = U, dashed hollow = A). Colour is reserved for
-physical scale (colourblind-safe Okabe–Ito triad, selected per theme like the
-segmentation hues: the light arms darken to the 3:1 mark floor), and carried by
-swatches rather than
-by coloured text, which would not clear 4.5:1 on either surface;
-material tints are true material colours
-(copper, steel, ABS, PCB). The instance-segmentation overlay hues — a deliberate quote of
-COCO/YOLO output — are selected per theme rather than flipped: neon on the dark surface,
-darkened to the same hues on the light one, where the neon reads at 1.2–2.2:1. Every mask
-and box also carries a class label, so identity never rests on hue.
-The SVG read-outs are keyboard-operable buttons with
-full aria-labels, matrix cells and mobile rows are real buttons, the detail panel
-is a dialog closed with `Esc`, and `prefers-reduced-motion` disables the idle spin
-and scroll smoothing. Dark theme in dark mode, light in light. The host can force
-either.
+**Maturity is ink weight and letter, never colour.** The ramp is one hue, monotone in
+lightness and stepped against each theme's own surface: S darkest, U lightest. A is
+the hollow no-data cell.
+
+**Texture takes over where fills flatten.** Under `forced-colors` and in print, a
+texture layer carries the ranks, ordered by ink coverage. Solid = S, diagonal hatch = P,
+dots = E, ring = U, dashed hollow = A.
+
+**Colour means physical scale.** The triad is colourblind-safe (Okabe–Ito), selected per
+theme like the segmentation hues, and its light arms darken to the 3:1 mark floor.
+Swatches carry it rather than coloured text, which would not clear 4.5:1 on either
+surface. Material tints are the exception: those are true material colours (copper,
+steel, ABS, PCB).
+
+**The segmentation hues are a deliberate quote of COCO/YOLO output.** They are selected
+per theme rather than flipped: neon on the dark surface, the same hues darkened on the
+light one, where the neon itself would read at 1.2–2.2:1. Every mask and box also
+carries a class label, so identity never rests on hue.
+
+**Everything interactive is a real control.** The SVG read-outs are keyboard-operable
+buttons with full aria-labels. Matrix cells and mobile rows are buttons too, and the
+detail panel is a dialog that closes with `Esc`.
+
+**Motion and theme follow the reader.** `prefers-reduced-motion` disables the idle spin
+and the scroll smoothing. The island is dark in dark mode and light in light, and the
+host can force either.
 
 ## Structure
 
@@ -96,13 +113,15 @@ src/
   main.tsx              # standalone demo mount + dev deep links
 ```
 
-Motion powers only the scroll scrub and the camera (both springs — the camera
-zooms to the clicked cell on desktop and pages between step frames on mobile);
-everything else is CSS — the OCR typing effect, the pseudo-3D tilt on the
-exploding stack, and the panel's `@starting-style` transitions.
-Type: **Overpass** for display, its **Overpass Mono** sibling for the machine
-read-outs, **IBM Plex Sans** for body (all OFL, self-hosted woff2). Bundle:
-~102 kB gzipped JS including React and Motion, +~108 kB fonts.
+Motion powers only the scroll scrub and the camera, both springs. The camera zooms
+to the clicked cell on desktop, and pages between step frames on mobile. Everything
+else is CSS: the OCR typing effect, the pseudo-3D tilt on the exploding stack, and
+the panel's `@starting-style` transitions.
+
+Type is **Overpass** for display, its **Overpass Mono** sibling for the machine
+read-outs, and **IBM Plex Sans** for body text. All three are OFL, self-hosted as
+woff2. The bundle is ~102 kB of gzipped JS including React and Motion, plus ~108 kB
+of fonts.
 
 ## Develop
 

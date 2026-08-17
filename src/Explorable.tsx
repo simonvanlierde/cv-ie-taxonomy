@@ -29,7 +29,9 @@ export function Explorable() {
                 {selected.scale} · {selected.informationType}
               </p>
               <h3 className="cvt-inline-title">
-                {selected.structurallyEmpty ? "— structurally empty —" : selected.task}
+                {selected.structurallyEmpty
+                  ? "Structurally empty: answered at the component scale"
+                  : selected.task}
               </h3>
               <DetailBody key={selected.id} cell={selected} />
             </>
