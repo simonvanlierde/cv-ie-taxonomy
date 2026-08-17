@@ -68,6 +68,18 @@
   --cvt-warn: light-dark(#9a4a08, #ffb454);
   --cvt-ok: light-dark(#116329, #2ea043);
 
+  /* Six steps, and every rule picks one. The floor is 11px and it is reserved
+     for uppercase tracked mono, which reads a size larger than it measures;
+     anything sentence-case, and every verdict the reader is meant to weigh,
+     starts at t-2. Below t-4 the steps sit ~2px apart, which is the smallest
+     gap that still reads as a step rather than a rounding error. */
+  --cvt-t-1: 0.6875rem;
+  --cvt-t-2: 0.8125rem;
+  --cvt-t-3: 0.9375rem;
+  --cvt-t-4: 1.1875rem;
+  --cvt-t-5: clamp(1.55rem, 2.7vw, 2.15rem);
+  --cvt-t-6: clamp(2.35rem, 4vw, 3.4rem);
+
   --cvt-mono: "Overpass Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --cvt-display: "Overpass", "IBM Plex Sans", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
   --cvt-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -82,6 +94,10 @@
     linear-gradient(90deg, var(--cvt-grid) 1px, transparent 1px);
   background-size: 28px 28px;
   font-family: var(--cvt-sans);
+  /* the base of the scale, so anything that sets no size of its own — and every
+     control, now that they inherit instead of taking the UA's 13.3px Arial —
+     still lands on a step */
+  font-size: var(--cvt-t-3);
   overflow-x: clip;
 }
 
@@ -96,7 +112,7 @@
 /* ---- shared bits ------------------------------------------------------------- */
 .cvt-eyebrow {
   font-family: var(--cvt-mono);
-  font-size: 0.7rem;
+  font-size: var(--cvt-t-1);
   letter-spacing: 0.26em;
   text-transform: uppercase;
   color: var(--cvt-ink-dim);
@@ -466,7 +482,7 @@
 }
 .cvt-hud-tag {
   font-family: var(--cvt-mono);
-  font-size: 0.62rem;
+  font-size: var(--cvt-t-1);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--cvt-ink-dim);
@@ -484,7 +500,7 @@
 }
 .cvt-ind li {
   font-family: var(--cvt-mono);
-  font-size: 0.7rem;
+  font-size: var(--cvt-t-1);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--cvt-ink-dim);
@@ -526,7 +542,7 @@
   margin-inline-start: auto;
   padding: 0;
   font-family: var(--cvt-mono);
-  font-size: 0.6rem;
+  font-size: var(--cvt-t-1);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--cvt-ink-dim);
@@ -540,7 +556,7 @@
 }
 .cvt-chip {
   font-family: var(--cvt-mono);
-  font-size: 0.72rem;
+  font-size: var(--cvt-t-2);
   color: var(--cvt-ink);
   background: var(--cvt-panel);
   border: 1px solid var(--cvt-line);
@@ -572,14 +588,14 @@
 }
 .cvt-title {
   font-family: var(--cvt-display);
-  font-size: clamp(2.35rem, 4vw, 3.4rem);
+  font-size: var(--cvt-t-6);
   font-weight: 800;
   letter-spacing: -0.022em;
   line-height: 0.98;
   margin: 0 0 1.15rem;
 }
 .cvt-sub {
-  font-size: 1rem;
+  font-size: var(--cvt-t-3);
   line-height: 1.6;
   color: var(--cvt-ink-dim);
   margin: 0 0 1.4rem;
@@ -603,7 +619,7 @@
   align-items: center;
   gap: 0.4rem;
   font-family: var(--cvt-mono);
-  font-size: 0.72rem;
+  font-size: var(--cvt-t-2);
   color: var(--cvt-ink-dim);
 }
 .cvt-legendline b {
@@ -612,7 +628,7 @@
 }
 .cvt-scrollhint {
   font-family: var(--cvt-mono);
-  font-size: 0.72rem;
+  font-size: var(--cvt-t-1);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--cvt-ink-dim);
@@ -626,7 +642,7 @@
   display: inline-block;
   margin-top: 0.9rem;
   font-family: var(--cvt-mono);
-  font-size: 0.72rem;
+  font-size: var(--cvt-t-2);
   letter-spacing: 0.08em;
   color: var(--cvt-ink-dim);
   text-decoration: underline;
@@ -661,7 +677,7 @@
 .cvt-chapter h2,
 .cvt-outro h2 {
   font-family: var(--cvt-display);
-  font-size: clamp(1.55rem, 2.7vw, 2.15rem);
+  font-size: var(--cvt-t-5);
   font-weight: 700;
   letter-spacing: -0.015em;
   line-height: 1.1;
@@ -674,7 +690,7 @@
   text-underline-offset: 7px;
 }
 .cvt-body {
-  font-size: 0.93rem;
+  font-size: var(--cvt-t-3);
   line-height: 1.6;
   color: var(--cvt-ink-dim);
   max-width: 46ch;
@@ -737,13 +753,13 @@
 }
 .cvt-inline-title {
   font-family: var(--cvt-display);
-  font-size: 1.15rem;
+  font-size: var(--cvt-t-4);
   line-height: 1.2;
   margin: 0 0 0.9rem;
 }
 .cvt-inline-prompt {
   color: var(--cvt-ink-dim);
-  font-size: 0.95rem;
+  font-size: var(--cvt-t-3);
   margin: 2rem 0 0;
 }
 @container cvt (width < 881px) {
@@ -771,7 +787,7 @@
 }
 .cvt-mx-h {
   font-family: var(--cvt-mono);
-  font-size: 0.66rem;
+  font-size: var(--cvt-t-1);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--cvt-ink-dim);
@@ -811,7 +827,7 @@
   color: var(--cvt-ink);
   cursor: pointer;
   font-family: var(--cvt-display);
-  font-size: 0.95rem;
+  font-size: var(--cvt-t-3);
   text-align: left;
   transition: background 0.15s;
 }
@@ -832,7 +848,7 @@
    reachable only by decoding a glyph. */
 .cvt-mx-name {
   font-family: var(--cvt-mono);
-  font-size: 0.6rem;
+  font-size: var(--cvt-t-1);
   line-height: 1.35;
   letter-spacing: 0.02em;
   color: var(--cvt-ink-dim);
@@ -840,7 +856,7 @@
 }
 .cvt-foot {
   font-family: var(--cvt-mono);
-  font-size: 0.7rem;
+  font-size: var(--cvt-t-2);
   line-height: 1.6;
   color: var(--cvt-ink-dim);
   max-width: 92ch;
@@ -859,7 +875,7 @@
   border-radius: 999px;
   padding: 0.45rem 0.95rem;
   font-family: var(--cvt-mono);
-  font-size: 0.72rem;
+  font-size: var(--cvt-t-2);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--cvt-ink);
@@ -878,13 +894,13 @@
   border-collapse: collapse;
   width: 100%;
   min-width: 720px;
-  font-size: 0.8rem;
+  font-size: var(--cvt-t-2);
 }
 .cvt-tablewrap caption {
   caption-side: bottom;
   padding-top: 0.8rem;
   font-family: var(--cvt-mono);
-  font-size: 0.68rem;
+  font-size: var(--cvt-t-2);
   color: var(--cvt-ink-dim);
   text-align: left;
 }
@@ -897,7 +913,7 @@
 }
 .cvt-tablewrap thead th {
   font-family: var(--cvt-mono);
-  font-size: 0.64rem;
+  font-size: var(--cvt-t-1);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--cvt-ink-dim);
@@ -1029,7 +1045,7 @@
 }
 .cvt-step-body > h2 {
   font-family: var(--cvt-display);
-  font-size: clamp(1.4rem, 6vw, 1.9rem);
+  font-size: var(--cvt-t-5);
   line-height: 1.1;
   margin: 0.2rem 0 0.6rem;
 }
@@ -1082,7 +1098,7 @@
 }
 .cvt-stepper-btn {
   font-family: var(--cvt-mono);
-  font-size: 0.8rem;
+  font-size: var(--cvt-t-2);
   padding: 0.5rem 0.95rem;
   border: 1px solid var(--cvt-line);
   border-radius: 999px;
@@ -1128,7 +1144,7 @@
   gap: 0.5rem 1.2rem;
   border-top: 1px solid var(--cvt-line);
   font-family: var(--cvt-mono);
-  font-size: 0.7rem;
+  font-size: var(--cvt-t-2);
   letter-spacing: 0.04em;
   color: var(--cvt-ink-dim);
 }
@@ -1210,7 +1226,7 @@
 }
 .cvt-panel-scale {
   font-family: var(--cvt-mono);
-  font-size: 0.72rem;
+  font-size: var(--cvt-t-1);
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--cvt-ink-dim);
@@ -1221,7 +1237,7 @@
 }
 .cvt-panel h2 {
   font-family: var(--cvt-display);
-  font-size: 1.55rem;
+  font-size: var(--cvt-t-5);
   line-height: 1.12;
   letter-spacing: -0.01em;
   margin: 0;
@@ -1235,7 +1251,7 @@
   background: var(--cvt-card);
   color: var(--cvt-ink);
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: var(--cvt-t-3);
 }
 .cvt-panel-close:hover {
   background: var(--cvt-card-hi);
@@ -1252,10 +1268,10 @@
 .cvt-verdict strong {
   display: block;
   font-family: var(--cvt-display);
-  font-size: 1rem;
+  font-size: var(--cvt-t-4);
 }
 .cvt-verdict span {
-  font-size: 0.84rem;
+  font-size: var(--cvt-t-2);
   color: var(--cvt-ink-dim);
   line-height: 1.4;
 }
@@ -1287,7 +1303,7 @@
 }
 .cvt-subverdicts li {
   font-family: var(--cvt-mono);
-  font-size: 0.82rem;
+  font-size: var(--cvt-t-2);
   color: var(--cvt-ink-dim);
 }
 .cvt-subverdicts b {
@@ -1302,7 +1318,7 @@
 }
 .cvt-row dt {
   font-family: var(--cvt-mono);
-  font-size: 0.66rem;
+  font-size: var(--cvt-t-1);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--cvt-ink-dim);
@@ -1311,7 +1327,7 @@
 /* :where() so a class on the <dd> (.cvt-mono) can set its own font-size */
 :where(.cvt-row) dd {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: var(--cvt-t-3);
   line-height: 1.5;
 }
 .cvt-row-warn dd {
@@ -1319,12 +1335,12 @@
 }
 .cvt-mono {
   font-family: var(--cvt-mono);
-  font-size: 0.82rem;
+  font-size: var(--cvt-t-2);
 }
 /* the key that decodes the marks: subordinate to them, but still readable */
 .cvt-rubric-key {
   margin: 0.45rem 0 0;
-  font-size: 0.78rem;
+  font-size: var(--cvt-t-2);
   line-height: 1.5;
   color: var(--cvt-ink-dim);
   text-wrap: pretty;
@@ -1340,7 +1356,7 @@
 .cvt-panel-more > summary {
   cursor: pointer;
   font-family: var(--cvt-mono);
-  font-size: 0.72rem;
+  font-size: var(--cvt-t-2);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--cvt-ink-dim);
@@ -1360,7 +1376,7 @@
 }
 .cvt-status {
   font-family: var(--cvt-mono);
-  font-size: 0.68rem;
+  font-size: var(--cvt-t-1);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   padding: 0.2rem 0.55rem;
@@ -1400,7 +1416,7 @@
 }
 .cvt-cites .cvt-cite-chip {
   font-family: var(--cvt-sans);
-  font-size: 0.74rem;
+  font-size: var(--cvt-t-2);
   line-height: 1.3;
 }
 .cvt-cite-chip:hover {
@@ -1442,7 +1458,7 @@
 }
 .cvt-cite-apa {
   margin: 0;
-  font-size: 0.82rem;
+  font-size: var(--cvt-t-2);
   line-height: 1.5;
   /* hanging indent, as a printed reference list has */
   padding-left: 1.4rem;
@@ -1453,7 +1469,7 @@
   padding-top: 0.5rem;
   border-top: 1px solid var(--cvt-line);
   font-family: var(--cvt-mono);
-  font-size: 0.68rem;
+  font-size: var(--cvt-t-1);
 }
 .cvt-cite-meta a {
   color: var(--cvt-ink-dim);
@@ -1463,6 +1479,11 @@
 }
 
 /* ---- focus --------------------------------------------------------------------------------- */
+.cvt button,
+.cvt input,
+.cvt select {
+  font: inherit;
+}
 .cvt button:focus {
   outline: none;
 }
@@ -1524,7 +1545,6 @@
     justify-content: space-between;
   }
   .cvt-hud-tag {
-    font-size: 0.5rem;
     letter-spacing: 0.04em;
     padding: 0.2rem 0.35rem;
     min-width: 0;
@@ -1565,7 +1585,6 @@
     padding: 0.7rem 0.3rem;
   }
   .cvt-mx-h {
-    font-size: 0.56rem;
     letter-spacing: 0.04em;
   }
   .cvt-mx-row {
@@ -1604,7 +1623,7 @@
     /* fixed width so every task label starts on the same column with Overpass
        Mono's wider metrics — a tidy read-out grid, not a ragged left edge */
     width: 6.3em;
-    font-size: 0.68rem;
+    font-size: var(--cvt-t-2);
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--cvt-ink-dim);
@@ -1614,12 +1633,12 @@
     flex: 1;
     min-width: 0;
     overflow-wrap: break-word;
-    font-size: 0.82rem;
+    font-size: var(--cvt-t-2);
     line-height: 1.25;
   }
   .cvt-mcell b {
     font-family: var(--cvt-display);
-    font-size: 1rem;
+    font-size: var(--cvt-t-4);
   }
   .cvt-panel {
     top: auto;
@@ -1681,7 +1700,7 @@
   margin-left: auto;
   align-self: center;
   font-family: var(--cvt-mono);
-  font-size: 0.72rem;
+  font-size: var(--cvt-t-2);
   letter-spacing: 0.1em;
   padding: 0.35rem 0.7rem;
   border: 1px solid var(--cvt-line);

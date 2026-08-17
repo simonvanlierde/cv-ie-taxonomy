@@ -709,8 +709,8 @@ function RubricKey() {
       <b>E</b>, how far a benchmarked capability reaches: <b>B</b> benchmarked product-general,{" "}
       <b>N</b> narrow class only, <b>C</b> concept or adjacent domain only, <b>–</b> no method, or
       derived. Then two gates, each ✓ or ✗: does it survive end-of-life capture, and is it deployed
-      on the task. A ✗ on capture records why: ✗<sup>m</sup> measured drop, ✗<sup>a</sup> inferred
-      from an adjacent domain, ✗<sup>u</sup> untested.
+      on the task. A ✗ on capture records why: ✗ᵐ measured drop, ✗ᵃ inferred from an adjacent
+      domain, ✗ᵘ untested.
     </p>
   );
 }

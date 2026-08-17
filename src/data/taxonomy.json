@@ -197,9 +197,9 @@
       "rubricMarks": "C · ✗ᵘ · ✗",
       "hardware": "Server- and cell-bound for demonstrated capability",
       "failureMode": "No validated decentralized per-unit grading; embodied disassembly unreliable (0/20 unaided).",
-      "example": "Robotic disassembly cells (Liu et al. 2025, RAISE; Liu et al. 2025, VLA selective disassembly).",
+      "example": "Robotic disassembly cells (Liu et al. 2026, RAISE; Liu et al. 2025, VLA selective disassembly).",
       "citations": [
-        "liuRAISERobotAssistedSelective2025",
+        "liuRAISERobotAssistedSelective2026",
         "liuVisionLanguageActionModelsSelective2025"
       ],
       "sourceStatus": "Preprint"
