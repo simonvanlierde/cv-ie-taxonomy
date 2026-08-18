@@ -131,14 +131,17 @@ export function MobileStepper({
             <li key={label} data-active={i === step} />
           ))}
         </ol>
+        {/* named for where it goes; on the last step there is nowhere to go, so
+            it leaves the bar rather than sitting there disabled under the name
+            of the step the reader is already on */}
         <button
           type="button"
           className="cvt-stepper-btn cvt-stepper-next"
           onClick={() => setStep((s) => Math.min(4, s + 1))}
           disabled={step === 4}
+          data-end={step === 4}
         >
-          {step === 0 ? "Start" : labels[Math.min(step + 1, labels.length - 1)]}{" "}
-          <span aria-hidden>›</span>
+          {step === 0 ? "Start" : labels[step + 1]} <span aria-hidden>›</span>
         </button>
       </nav>
     </div>

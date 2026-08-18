@@ -488,7 +488,7 @@ const TitleBlock = memo(function TitleBlock() {
       </div>
       <div className="cvt-tb-row">
         <dt>source</dt>
-        <dd>Paper 2 · Table S2</dd>
+        <dd>Table S2 of the paper</dd>
       </div>
       <div className="cvt-tb-row">
         <dt>scan</dt>
@@ -681,17 +681,19 @@ export const Outro = memo(function Outro() {
       <Explorable />
       <TableView />
       <p className="cvt-foot">
-        Maturity of candidate CV tasks per physical scale × information type, shown by ink weight
-        and letter:{" "}
+        Maturity of candidate CV tasks per physical scale × information type. Each block stands as
+        high as its verdict, and its letter names it:{" "}
         {taxonomy.meta.maturityLevels.map((m, i) => (
           <span key={m.verdict}>
             {i > 0 ? " · " : ""}
             <b>{m.letter}</b> {m.verdict.toLowerCase()}
           </span>
         ))}
-        . Dashed cells are structurally empty: no task of their own, because structure is a
-        component-scale question. A cell split on the diagonal carries two verdicts, one per
-        sub-task. Verdicts from Paper 2, Table S2; literature as of {taxonomy.meta.scanDate}.
+        . The rule across the top of every cell is Strong, and nothing reaches it. Dashed cells are
+        structurally empty: no task of their own, because structure is a component-scale question. A
+        cell with two letters carries two verdicts, one per sub-task; its block stands at the
+        stronger and is ruled across at the weaker. Verdicts from the paper&rsquo;s Table&nbsp;S2;
+        literature as of {taxonomy.meta.scanDate}.
       </p>
     </section>
   );

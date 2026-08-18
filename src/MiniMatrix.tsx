@@ -20,8 +20,9 @@ export function MiniMatrix({
 }) {
   return (
     <div className="cvt-matrix">
+      {/* the same words the margin instrument uses for the empty top rung */}
       <span className="cvt-mx-shelf-label" aria-hidden>
-        strong &rarr;
+        strong &mdash; unclaimed &rarr;
       </span>
       {INFO_TYPES.map((i) => (
         <span key={i} className="cvt-mx-h">

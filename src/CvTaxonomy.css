@@ -1222,6 +1222,10 @@
   color: var(--cvt-bg);
   border-color: var(--cvt-ink);
 }
+/* holds its place so the dots do not jump; visibility also drops it from the tab ring */
+.cvt-stepper-next[data-end="true"] {
+  visibility: hidden;
+}
 .cvt-stepper-dots {
   display: flex;
   gap: 0.45rem;
