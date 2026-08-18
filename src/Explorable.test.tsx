@@ -6,14 +6,14 @@ import { Explorable } from "./Explorable";
 describe("Explorable", () => {
   it("shows a prompt until a cell is selected, then fills the detail inline (no dialog)", async () => {
     render(<Explorable />);
-    expect(screen.getByText(/select any cell/i)).toBeInTheDocument();
+    expect(screen.getByText(/select a cell/i)).toBeInTheDocument();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: /component · quantity/i }));
 
     // inline detail is present, still no modal dialog; the prompt has done its job
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    expect(screen.queryByText(/select any cell/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/select a cell/i)).not.toBeInTheDocument();
     expect(screen.getByText(/where it breaks/i)).toBeInTheDocument();
   });
 

@@ -106,10 +106,23 @@ export function useDialogRegion({
       region.focus();
     };
 
+    // A press on the sheet outside the region closes it, as a light dismiss does.
+    // A press on a control is that control's business — a sibling callout swaps
+    // the detail, the theme toggle toggles — so those are left alone; a popover
+    // inside the region (a citation) is in the top layer and takes its own press.
+    const onPointerDown = (e: PointerEvent) => {
+      const target = e.target as Element | null;
+      if (!target || region.contains(target) || hasOpenPopover(region)) return;
+      if (target.closest("button, a, input, select, textarea, summary, [tabindex]")) return;
+      onClose();
+    };
+
     document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("pointerdown", onPointerDown);
     if (modal) document.addEventListener("focusin", onFocusIn);
     return () => {
       document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("pointerdown", onPointerDown);
       document.removeEventListener("focusin", onFocusIn);
       const opener = returnTo.current ? document.getElementById(returnTo.current) : null;
       // a callout that has since left the stage is tabindex -1 and aria-hidden;

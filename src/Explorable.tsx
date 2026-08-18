@@ -1,4 +1,4 @@
-import { type RefObject, useCallback, useRef, useState } from "react";
+import { type ReactNode, type RefObject, useCallback, useRef, useState } from "react";
 import { DetailBody } from "./CvTaxonomy";
 import type { Cell } from "./data/types";
 import { MiniMatrix } from "./MiniMatrix";
@@ -6,11 +6,13 @@ import { SCALE_VAR } from "./theme";
 import { useDialogRegion } from "./useDialogRegion";
 
 /** Act two: the full matrix as a driveable instrument. Selecting a cell fills the
- *  detail beside it — the same enlargement act one draws, under the same contract:
+ *  column beside it — the same enlargement act one draws, under the same contract:
  *  Esc closes, focus moves in on open and back to the cell that opened it. Not
  *  modal, for the same reason act one's is not: the other eleven cells are right
- *  there, and scanning between them is the whole point of the instrument. */
-export function Explorable() {
+ *  there, and scanning between them is the whole point of the instrument.
+ *  `children` is what the column holds while nothing is selected (the caption
+ *  and the table twin); the detail takes its place, as act one's takes the prose's. */
+export function Explorable({ children }: { children?: ReactNode }) {
   const [selected, setSelected] = useState<Cell | null>(null);
   // Held in a ref, not derived from `selected`: closing clears the selection on
   // the render *before* the region's cleanup runs, so a derived value is already
@@ -28,18 +30,17 @@ export function Explorable() {
   });
 
   return (
-    <>
-      {/* the hint sits above the instrument, not in the detail column — the
-          column only earns its grid track once there is a detail to fill it */}
-      {!selected && (
-        <p className="cvt-inline-prompt">
-          Select any cell to see why it earned its verdict, and where it breaks.
-        </p>
-      )}
-      <div className="cvt-explorable" data-open={selected !== null}>
-        <div className="cvt-explorable-grid">
-          <MiniMatrix selectedId={selected?.id ?? null} onSelect={select} />
-        </div>
+    <div className="cvt-explorable" data-open={selected !== null}>
+      <div className="cvt-explorable-grid">
+        <MiniMatrix selectedId={selected?.id ?? null} onSelect={select} />
+      </div>
+      <div className="cvt-explorable-col">
+        {!selected && (
+          <div className="cvt-explorable-idle">
+            <p className="cvt-inline-prompt">Select a cell to see why, and where it breaks.</p>
+            {children}
+          </div>
+        )}
         {/* always mounted so the live region exists before content arrives */}
         <div className="cvt-inline-detail" aria-live="polite">
           {selected && (
@@ -73,7 +74,7 @@ export function Explorable() {
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 }
 

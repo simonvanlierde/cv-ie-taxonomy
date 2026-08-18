@@ -7,10 +7,14 @@ import { type RefObject, useEffect, useMemo, useState } from "react";
 const SPRING = { stiffness: 120, damping: 25, mass: 0.7 } as const;
 
 /**
- * Scroll progress (0..1) of a tall container, spring-smoothed for a scrubbed,
- * weighty feel. `smooth: false` (reduced motion) maps 1:1.
+ * Scroll progress (0..1) of a tall container: `p` spring-smoothed for a
+ * scrubbed, weighty feel, `raw` exactly where the page is. `smooth: false`
+ * (reduced motion) makes the two equal. The drawing scrubs off `p`; anything
+ * that must flip the instant the reader lands somewhere (the chapter, and with
+ * it the sheet furniture) reads `raw`, so an anchor jump does not leave the
+ * furniture on stage for the half second the spring takes to catch up.
  *
- * Returns a plain number, so the SVG coordinate math in Fan stays plain math.
+ * Returns plain numbers, so the SVG coordinate math in Fan stays plain math.
  * NOTE: that costs one React re-render per scroll frame. If a profiler shows
  * scrub jank, drive Fan's transforms off the MotionValue directly
  * (useTransform + motion.g) to skip the re-render — not before.
@@ -19,7 +23,7 @@ export function useScrollProgress(
   ref: RefObject<HTMLElement | null>,
   smooth: boolean,
   active = true,
-): number {
+): { p: number; raw: number } {
   // motion memoizes its scroll attachment on the target ref's *identity*. The
   // narrative container isn't rendered on mobile, so on a mobile-first mount the
   // ref is null and motion parks; crossing the breakpoint back to desktop mounts
@@ -47,14 +51,21 @@ export function useScrollProgress(
   const source = smooth ? smoothed : scrollYProgress;
 
   const [p, setP] = useState(0);
+  const [raw, setRaw] = useState(0);
   useEffect(() => {
     // When the scroll narrative isn't rendered (mobile stepper), don't subscribe:
     // the target ref is null so `source` would track the window and re-render on
     // every page scroll, driving a fan nobody sees.
     if (!active) return;
     setP(source.get());
-    return source.on("change", setP);
-  }, [source, active]);
+    setRaw(scrollYProgress.get());
+    const offP = source.on("change", setP);
+    const offRaw = scrollYProgress.on("change", setRaw);
+    return () => {
+      offP();
+      offRaw();
+    };
+  }, [source, scrollYProgress, active]);
 
-  return active ? p : 0;
+  return active ? { p, raw } : { p: 0, raw: 0 };
 }

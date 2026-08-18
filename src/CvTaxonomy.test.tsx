@@ -100,6 +100,22 @@ describe("detail on the sheet (desktop)", () => {
     expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
   });
 
+  it("closes on a press on the sheet outside it, but not on a press on a control", async () => {
+    const user = userEvent.setup();
+    const { container } = render(<CvTaxonomy debugProgress={onStage("Material")} />);
+
+    await user.click(trigger("material-identity"));
+    await screen.findByRole("complementary", { name: /material · identity/i });
+
+    // a control outside is that control's business: the theme toggle toggles
+    await user.click(screen.getByRole("button", { name: /switch to .* theme/i }));
+    expect(screen.getByRole("complementary")).toBeInTheDocument();
+
+    // open ground on the sheet dismisses
+    await user.click(container.querySelector(".cvt-outro h2") as HTMLElement);
+    expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
+  });
+
   it("deep-links straight into a cell's detail via initialCell", async () => {
     const cell = cellById("material-quantity");
     render(<CvTaxonomy initialCell={cell.id} />);
@@ -207,7 +223,7 @@ describe("the illustrative caveat", () => {
   // that owns the layers; this is the integration-level half of that guarantee
   it("is rendered alongside the mock overlays", () => {
     render(<CvTaxonomy />);
-    expect(screen.getByText(/illustrative read-outs: no model ran here/i)).toBeInTheDocument();
+    expect(screen.getByText(/mock read-outs · no model ran/i)).toBeInTheDocument();
   });
 });
 

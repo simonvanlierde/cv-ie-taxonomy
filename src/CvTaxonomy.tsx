@@ -64,6 +64,11 @@ function useMediaQuery(query: string): boolean {
   );
 }
 
+/** The caveat over the fan's read-outs. Every number they draw is a mock, and
+ *  this stamp is what says so; it must show at every viewport (see
+ *  overlayLabel.test.ts), so both the sheet's HUD and the stepper draw it. */
+export const CAVEAT = "mock read-outs · no model ran";
+
 /** I is skipped, as on a real drawing: it reads as a 1 against the row numbers. */
 // biome-ignore lint/security/noSecrets: the drawing sheet's column references
 const COLUMN_REFS = "ABCDEFGHJKLMNPQRSTUVWXYZ".split("");
@@ -201,9 +206,11 @@ export function CvTaxonomy({
     };
   }, [forcedTheme]);
 
-  const scrollP = useScrollProgress(scrollRef, !reduceMotion, !isMobile);
-  const p = debugProgress ?? scrollP;
-  const chapter = chapterAt(p);
+  const scroll = useScrollProgress(scrollRef, !reduceMotion, !isMobile);
+  const p = debugProgress ?? scroll.p;
+  // the chapter reads the raw scroll, not the spring: it gates the sheet
+  // furniture and the rail, which must answer an anchor jump at once
+  const chapter = chapterAt(debugProgress ?? scroll.raw);
 
   const [selected, setSelected] = useState<Cell | null>(
     () => cells.find((c) => c.id === initialCell) ?? null,
@@ -368,7 +375,7 @@ export function CvTaxonomy({
                       the narrow one the instrument strip holds the bottom, so
                       it takes the top-right and the chapter rail drops under it. */}
                   <div className="cvt-hud-actions">
-                    <span className="cvt-hud-tag">illustrative read-outs: no model ran here</span>
+                    <span className="cvt-hud-tag">{CAVEAT}</span>
                     <ThemeToggle
                       theme={effectiveTheme}
                       onToggle={() =>
@@ -488,15 +495,7 @@ function TitleRows() {
   return (
     <>
       <div className="cvt-tb-row">
-        <dt>drawn</dt>
-        <dd>S. van Lierde</dd>
-      </div>
-      <div className="cvt-tb-row">
-        <dt>source</dt>
-        <dd>Table S2 of the paper</dd>
-      </div>
-      <div className="cvt-tb-row">
-        <dt>scan</dt>
+        <dt>date</dt>
         <dd>{taxonomy.meta.scanDate}</dd>
       </div>
       <div className="cvt-tb-row">
@@ -518,9 +517,9 @@ const TitleBlock = memo(function TitleBlock() {
   );
 });
 
-/** The sheet's end: the title block again, in flow, with the page's own two
- *  fields added. The fixed block fades as the closing figure rises, and this is
- *  where its content lands. */
+/** The sheet's end: the title block again, laid along the bottom edge as one
+ *  strip, with the page's own two fields (©, code) added. The fixed block fades
+ *  as the closing figure rises, and this is where its content lands. */
 function SheetFooter() {
   return (
     <footer className="cvt-footer">
@@ -605,12 +604,12 @@ const Rail = memo(function Rail({ chapter }: { chapter: Chapter }) {
   return (
     <div className="cvt-rail">
       <section className="cvt-hero">
-        <Hero hint="Click any read-out on the fan to see the evidence." />
+        <Hero hint="Click a read-out on the fan to see the evidence." />
         <p className="cvt-scrollhint" aria-hidden>
           scroll to take it apart <span className="cvt-scrollhint-arrow">↓</span>
         </p>
         <a className="cvt-skip" href="#cvt-matrix">
-          or skip to the full matrix
+          or skip to the matrix
         </a>
       </section>
 
@@ -652,11 +651,11 @@ export function Hero({ hint }: { hint?: string }) {
       </h1>
       <p className="cvt-sub">
         Circular-economy research keeps asking cameras to judge discarded products: what is this,
-        what's inside it, what's it worth? Here is one worn-out desk fan, and the twelve ways
-        computer vision could answer. Each way is judged by how well it works today.
-        {hint ? ` ${hint} ` : " "}Every verdict comes straight from the paper's{" "}
+        what's inside, what's it worth? Here is one worn-out desk fan and the twelve ways computer
+        vision could answer, each judged by how well it works today.
+        {hint ? ` ${hint} ` : " "}Every verdict is the paper's, from{" "}
         <span className="cvt-cite">Table&nbsp;S2</span>:{" "}
-        <em>the heavier the square, the stronger the evidence</em>. Colour just tells the three
+        <em>the heavier the square, the stronger the evidence</em>. Colour only tells the three
         scales apart.
       </p>
     </>
@@ -729,26 +728,28 @@ export const Outro = memo(function Outro() {
   return (
     <section className="cvt-outro" id="cvt-matrix" aria-label="Full taxonomy matrix">
       <h2>
-        The honest map is mostly gaps: by the paper's own rubric, none of the twelve tasks earns a
-        Strong on worn, real-world products.
+        The honest map is mostly gaps: by the paper's own rubric, no task earns a Strong on worn,
+        real-world products.
       </h2>
-      <Explorable />
-      <TableView />
-      <p className="cvt-foot">
-        Maturity of candidate CV tasks per physical scale × information type. Each block stands as
-        high as its verdict, and its letter names it:{" "}
-        {taxonomy.meta.maturityLevels.map((m, i) => (
-          <span key={m.verdict}>
-            {i > 0 ? " · " : ""}
-            <b>{m.letter}</b> {m.verdict.toLowerCase()}
-          </span>
-        ))}
-        . The rule across the top of every cell is Strong, and nothing reaches it. Dashed cells are
-        structurally empty: no task of their own, because structure is a component-scale question. A
-        cell with two letters carries two verdicts, one per sub-task; its block stands at the
-        stronger and is ruled across at the weaker. Verdicts from the paper&rsquo;s Table&nbsp;S2;
-        literature as of {taxonomy.meta.scanDate}.
-      </p>
+      {/* the caption and the table twin ride the narrative column beside the
+          figure, and step aside for the detail the way act one's prose does */}
+      <Explorable>
+        <p className="cvt-foot">
+          Maturity of twelve vision tasks, by physical scale and information type. Each block stands
+          as high as its verdict:{" "}
+          {taxonomy.meta.maturityLevels.map((m, i) => (
+            <span key={m.verdict}>
+              {i > 0 ? " · " : ""}
+              <b>{m.letter}</b> {m.verdict.toLowerCase()}
+            </span>
+          ))}
+          . The dashed rule over every cell is Strong; nothing reaches it. Dashed cells have no task
+          of their own: structure is a component-scale question. Two letters are two sub-tasks; the
+          block stands at the stronger and is ruled across at the weaker. Verdicts from the
+          paper&rsquo;s Table&nbsp;S2, literature as of {taxonomy.meta.scanDate}.
+        </p>
+        <TableView />
+      </Explorable>
     </section>
   );
 });
@@ -771,7 +772,7 @@ function TableView() {
           setOpen(true);
         }}
       >
-        <TableIcon /> View as a plain table
+        <TableIcon /> Plain table
       </button>
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: native <dialog> already closes on Esc; onClick only adds backdrop-click for mouse users */}
       {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: a backdrop click lands on the <dialog> itself, so the handler has nowhere else to live */}
@@ -798,7 +799,7 @@ function TableView() {
         <div className="cvt-tablewrap">
           <table>
             <caption>
-              The paper&rsquo;s Table S2 as text. Cells with two sub-tasks get a row each.
+              Table S2 as text. A cell with two sub-tasks has a row each.
               <RubricKey />
             </caption>
             <thead>
@@ -874,7 +875,7 @@ function ShareLink({ cellId }: { cellId: string }) {
 const STATUS_LABEL: Record<string, string> = {
   Published: "peer-reviewed sources",
   Mixed: "peer-reviewed and preprint sources",
-  Preprint: "preprint sources, not yet peer reviewed",
+  Preprint: "preprint sources only",
 };
 
 // The paper records each cell as an evidence mark and two gates. The marks are
@@ -884,11 +885,10 @@ const RUBRIC_LABEL = "Rubric marks (E · capture · deployed)";
 function RubricKey() {
   return (
     <p className="cvt-rubric-key">
-      <b>E</b>, how far a benchmarked capability reaches: <b>B</b> benchmarked product-general,{" "}
-      <b>N</b> narrow class only, <b>C</b> concept or adjacent domain only, <b>–</b> no method, or
-      derived. Then two gates, each ✓ or ✗: does it survive end-of-life capture, and is it deployed
-      on the task. A ✗ on capture records why: ✗ᵐ measured drop, ✗ᵃ inferred from an adjacent
-      domain, ✗ᵘ untested.
+      <b>E</b> is the evidence mark: <b>B</b> benchmarked product-general, <b>N</b> narrow class
+      only, <b>C</b> concept or adjacent domain only, <b>–</b> no method, or derived. Then two
+      gates, ✓ or ✗: survives end-of-life capture; deployed on the task. A ✗ on capture says why: ✗ᵐ
+      measured drop, ✗ᵃ inferred from an adjacent domain, ✗ᵘ untested.
     </p>
   );
 }
@@ -1004,11 +1004,11 @@ export function DetailBody({ cell }: { cell: Cell }) {
         {/* The run belongs where the panel opens, not folded into "More detail":
             it is the derivation of the verdict stated three lines above it, and
             behind a closed <details> nobody meets the mechanism at all. */}
-        <Row label="How the verdict was derived" value={<RubricCircuit cell={cell} />} />
+        <Row label="How it was derived" value={<RubricCircuit cell={cell} />} />
       </dl>
 
       <details className="cvt-panel-more">
-        <summary>More detail</summary>
+        <summary>More</summary>
         <dl className="cvt-panel-grid">
           {cell.methodFamily && (
             <Row
@@ -1018,7 +1018,7 @@ export function DetailBody({ cell }: { cell: Cell }) {
           )}
           {cell.example && (
             <Row
-              label="Proven in a nearby field"
+              label="Proven nearby"
               value={<CitedProse text={cell.example} citeKeys={cell.citations} />}
             />
           )}
@@ -1026,7 +1026,7 @@ export function DetailBody({ cell }: { cell: Cell }) {
           {/* the paper's own notation, for a reader checking against Table S2; the
               run above already glosses each mark, so the key stays with the table */}
           <Row label={RUBRIC_LABEL} value={<span className="cvt-mono">{cell.rubricMarks}</span>} />
-          <Row label="How to handle the output" value={level.handling} />
+          <Row label="Handling the output" value={level.handling} />
         </dl>
       </details>
 

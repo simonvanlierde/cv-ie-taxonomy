@@ -791,28 +791,28 @@
    whole canvas rather than the narrow rail column. */
 .cvt-outro {
   grid-column: 1 / -1;
-  min-height: 70vh;
-  padding: 12vh 0 14vh;
+  /* the closing figure is one screen: thesis over it, figure and caption side
+     by side under, so the skip link lands on the whole argument at once */
+  padding: 6vh 0 10vh;
+  scroll-margin-top: 30px;
 }
 .cvt-outro h2 {
-  max-width: 34ch;
+  max-width: 56ch;
 }
 
 /* ---- explorable: act two — the full matrix as a driveable instrument ------------------- */
 .cvt-explorable {
   display: grid;
-  /* one column until a cell is selected: the hint lives above the matrix, so an
-     empty detail column would only reserve dead space */
-  grid-template-columns: minmax(0, max-content);
+  /* the sheet's own geometry again: the figure holds the drawing field, and a
+     narrative column beside it carries the caption until a detail takes its
+     place. The matrix track is max-content, so opening a detail shifts nothing. */
+  grid-template-columns: minmax(0, max-content) minmax(300px, 400px);
   gap: clamp(1.5rem, 4vw, 3.5rem);
   align-items: start;
-  margin: 2rem 0 0;
+  margin: 1rem 0 0;
 }
-/* matrix takes its natural width (its cells are wide), detail gets a fixed,
-   readable column beside it; the matrix never crushes the detail. The matrix
-   track is max-content either way, so opening the detail shifts nothing. */
-.cvt-explorable[data-open="true"] {
-  grid-template-columns: minmax(0, max-content) minmax(300px, 400px);
+.cvt-explorable-col {
+  min-width: 0;
 }
 /* the matrix's own min-width would otherwise force its track wider than the
    canvas, same reason .cvt-matrixwrap used to scroll the old figure */
@@ -858,21 +858,32 @@
   margin: 0 0 0.9rem;
 }
 .cvt-inline-prompt {
-  color: var(--cvt-ink-dim);
+  color: var(--cvt-ink);
   font-size: var(--cvt-t-3);
-  margin: 2rem 0 0;
+  margin: 1.2rem 0 1.4rem;
 }
-@container cvt (width < 881px) {
-  /* the matrix track is max-content on the desktop sheet, where the figure has
-     its own min-width; on the phone the figure is fluid, so the track must be */
-  .cvt-explorable,
-  .cvt-explorable[data-open="true"] {
+/* Below the wide sheet the figure and a column cannot share the canvas (the
+   matrix is 660px wide), so the column dissolves into the grid: the prompt sits
+   above the figure and the caption or the detail below it, as a printed figure
+   reads. The detail then flows at its own height; the outro is outside the
+   column the scroll timeline is measured over, so its height moves nothing. */
+@container cvt (width < 1180px) {
+  .cvt-explorable {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .cvt-explorable-col,
+  .cvt-explorable-idle {
+    display: contents;
+  }
+  .cvt-inline-prompt {
+    order: -1;
+    margin: 0;
   }
   .cvt-explorable[data-open="true"] .cvt-inline-detail {
     position: static;
-    /* no scroll timeline on mobile (the stepper pages), so let it flow */
     height: auto;
+    /* a reading measure, not the whole canvas */
+    max-width: 720px;
     overflow-y: visible;
     margin-top: 1.4rem;
     padding-top: 1.4rem;
@@ -886,9 +897,9 @@
   display: grid;
   grid-template-columns: auto repeat(4, minmax(0, 1fr));
   column-gap: 2px;
-  row-gap: 1.7rem;
+  row-gap: 1.3rem;
   align-items: stretch;
-  margin: 1.2rem 0 1.1rem;
+  margin: 0.4rem 0 0;
   min-width: 660px;
 }
 /* names the rung every bay's dashed top edge stands for */
@@ -936,7 +947,7 @@
 .cvt-mx-cell {
   position: relative;
   display: block;
-  height: 208px;
+  height: 176px;
   /* three lines of clearance under the floor: the split cell's label is the
      longest, and a label that climbs into its own block is unreadable */
   padding: 0 0 3.9rem;
@@ -1021,7 +1032,7 @@
 
 /* ---- table view: the figure's WCAG-clean twin ------------------------------------------- */
 .cvt-tableview {
-  margin: 1.2rem 0 1.6rem;
+  margin: 1.2rem 0 0;
 }
 .cvt-tableview-open {
   display: inline-flex;
@@ -1971,22 +1982,28 @@
   flex-wrap: wrap;
   margin: 0;
   border: 1.5px solid var(--cvt-line);
+  /* a wrapped line's cells rule their own top; the first line's rule hides
+     under the strip's border */
+  overflow: hidden;
 }
 .cvt-foot-tb .cvt-tb-row {
   display: flex;
-  align-items: baseline;
-  border-top: 0;
+  /* centre, not baseline: the code cell holds an icon, and baseline-aligning
+     an inline-flex link dropped its label under the other cells */
+  align-items: center;
+  border-top: 0.5px solid var(--cvt-grid);
+  margin-top: -0.5px;
   border-right: 0.5px solid var(--cvt-grid);
 }
-.cvt-foot-tb .cvt-tb-row:last-child {
-  border-right: 0;
+.cvt-foot-tb .cvt-tb-row dd {
+  white-space: nowrap;
 }
+/* the title takes the slack; the fields sit at their own width */
 .cvt-foot-tb .cvt-tb-row-title {
-  flex: 1 1 100%;
-  border-right: 0;
-  border-bottom: 0.5px solid var(--cvt-grid);
+  flex: 1 1 auto;
 }
 .cvt-foot-tb .cvt-tb-row-title dd {
+  white-space: normal;
   font-family: var(--cvt-display);
   font-size: var(--cvt-t-2);
   font-weight: 700;

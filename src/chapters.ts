@@ -12,14 +12,14 @@ import type { Scale } from "./data/types";
 export const CHAPTER_COPY: Record<Scale, { title: string; body: string }> = {
   Product: {
     title: "One product, seen whole",
-    body: "Whole products are where vision already earns its keep: read the rating label, look the product up. In a repair shop, 95.7% of labels read correctly; on a recycler's line that falls to 39.7%. Size from a single camera stays a rough estimate. The question that decides everything, is this worth repairing?, has only been answered for one product class at a time: laptop covers grade at 86.7% on a lit rig, and nothing has been tested on the photos a contributor would actually take.",
+    body: "Whole products are where vision already earns its keep: read the rating label, look the product up. In a repair shop 95.7% of labels read correctly; on a recycler's line, 39.7%. Size from one camera stays a rough estimate. The deciding question, is this worth repairing?, has been answered one product class at a time: laptop covers grade at 86.7% on a lit rig, and nothing has been tested on the photos a contributor would actually take.",
   },
   Component: {
     title: "Pulled apart",
-    body: "Opened up, the fan can be searched: vision can find and count parts like blades and motors, once tuned on similar products. What it can't yet do is say how parts connect. That map of what-attaches-to-what holds ~82% on familiar products and drops to ~39% on ones it hasn't seen before.",
+    body: "Opened up, the fan can be searched: vision finds and counts parts like blades and motors, once tuned on similar products. What it can't yet do is say how parts connect: that map holds ~82% on familiar products and drops to ~39% on unseen ones.",
   },
   Material: {
     title: "Down to matter",
-    body: "Can a camera tell steel from plastic? Often, in a lab; far less reliably under the mixed lighting of a real recycling plant. And no camera weighs anything: mass is always computed from estimated shape, guessed material, and a density looked up in a table, so every small error multiplies.",
+    body: "Can a camera tell steel from plastic? Often, in a lab; far less reliably under a recycling plant's mixed lighting. And no camera weighs anything: mass is computed from estimated shape, guessed material and a density from a table, so every small error multiplies.",
   },
 };
