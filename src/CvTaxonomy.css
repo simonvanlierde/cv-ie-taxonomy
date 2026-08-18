@@ -42,6 +42,28 @@
   font-weight: 100 900;
   font-display: swap;
 }
+/* Metric-compatible stand-ins for the swap window: the system face scaled and
+   re-lined to Overpass's advance width and vertical metrics, so the first paint
+   sets in the same measure and the swap does not reflow. Numbers computed with
+   fontkit over the real files (mean advance of a prose sample; hhea metrics):
+   Overpass vs Arial/Helvetica, Overpass Mono vs Menlo. Windows' Consolas has
+   no override and simply swaps, as before. */
+@font-face {
+  font-family: "Overpass Fallback";
+  src: local("Arial"), local("Helvetica");
+  size-adjust: 99.67%;
+  ascent-override: 88.59%;
+  descent-override: 38.43%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Overpass Mono Fallback";
+  src: local("Menlo");
+  size-adjust: 102.32%;
+  ascent-override: 86.3%;
+  descent-override: 37.43%;
+  line-gap-override: 0%;
+}
 /* Palette. Each token is declared once, as light-dark(light, dark); which arm
    wins is decided by the element's used color-scheme, so the OS preference, the
    host's `theme` prop and the in-page toggle all flow through a single switch
@@ -79,9 +101,9 @@
   --cvt-t-5: clamp(1.55rem, 2.7vw, 2.15rem);
   --cvt-t-6: clamp(2.35rem, 4vw, 3.4rem);
 
-  --cvt-mono: "Overpass Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  --cvt-display: "Overpass", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
-  --cvt-sans: "Overpass", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --cvt-mono: "Overpass Mono", "Overpass Mono Fallback", ui-monospace, Menlo, Consolas, monospace;
+  --cvt-display: "Overpass", "Overpass Fallback", ui-sans-serif, system-ui, sans-serif;
+  --cvt-sans: "Overpass", "Overpass Fallback", ui-sans-serif, system-ui, sans-serif;
 
   position: relative;
   -webkit-text-size-adjust: 100%;
@@ -1278,22 +1300,20 @@
 .cvt-footer {
   max-width: 1440px;
   margin: 0 auto;
-  padding: 1.3rem clamp(1rem, 2.5vw, 2.5rem) 2.4rem;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem 1.2rem;
-  border-top: 1px solid var(--cvt-line);
+  padding: 0 clamp(1rem, 2.5vw, 2.5rem) 2.4rem;
   font-family: var(--cvt-mono);
-  font-size: var(--cvt-t-2);
-  letter-spacing: 0.04em;
+  font-size: var(--cvt-t-1);
+  letter-spacing: 0.08em;
   color: var(--cvt-ink-dim);
 }
 .cvt-footer a {
   display: inline-flex;
   align-items: center;
-  color: var(--cvt-ink-dim);
+  gap: 0.35rem;
+  color: var(--cvt-ink);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
 }
 .cvt-footer a:hover {
   color: var(--cvt-ink);
@@ -1943,6 +1963,36 @@
   font-style: italic;
 }
 
+/* the title block, laid along the sheet's bottom edge: the same ruled cells the
+   margin block draws, run as one strip, so what faded out at the outro's top
+   arrives here in flow */
+.cvt-foot-tb {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0;
+  border: 1.5px solid var(--cvt-line);
+}
+.cvt-foot-tb .cvt-tb-row {
+  display: flex;
+  align-items: baseline;
+  border-top: 0;
+  border-right: 0.5px solid var(--cvt-grid);
+}
+.cvt-foot-tb .cvt-tb-row:last-child {
+  border-right: 0;
+}
+.cvt-foot-tb .cvt-tb-row-title {
+  flex: 1 1 100%;
+  border-right: 0;
+  border-bottom: 0.5px solid var(--cvt-grid);
+}
+.cvt-foot-tb .cvt-tb-row-title dd {
+  font-family: var(--cvt-display);
+  font-size: var(--cvt-t-2);
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
 /* Top-left margin, under the chapter rail: the one corner of the sheet no
    callout reaches and no prose runs into. Stacking it over the title block put
    it through the narrative column; the bottom-left corner is where the Product
@@ -2134,10 +2184,19 @@
 }
 
 /* The closing figure gets the whole sheet: the margin furniture belongs to the
-   drawing, and both boxes would otherwise sit over the matrix. */
-.cvt-scroll[data-chapter="outro"] .cvt-instrument,
-.cvt-scroll[data-chapter="outro"] .cvt-titleblock {
+   drawing, and both boxes would otherwise sit over the matrix. The title block
+   fades rather than cuts — its content is about to arrive in the footer, in flow. */
+.cvt-scroll[data-chapter="outro"] .cvt-instrument {
   display: none;
+}
+.cvt-titleblock {
+  transition:
+    opacity 0.4s ease,
+    visibility 0.4s;
+}
+.cvt-scroll[data-chapter="outro"] .cvt-titleblock {
+  opacity: 0;
+  visibility: hidden;
 }
 
 /* Below the wide sheet there is no room for a margin band, but the letters still
