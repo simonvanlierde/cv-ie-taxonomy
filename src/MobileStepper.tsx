@@ -105,13 +105,6 @@ export function MobileStepper({
             />
             {!sheetCollapsed && (
               <>
-                {/* The one kicker kept on purpose. Desktop names the current
-                    scale in the chapter rail; the stepper has no rail, and the
-                    chapter titles ("Pulled apart") never say which scale they
-                    are, so this is the only wayfinding a phone reader gets. */}
-                <p className="cvt-eyebrow">
-                  <span className="cvt-dot" aria-hidden /> {scale} scale
-                </p>
                 <h2>{CHAPTER_COPY[scale].title}</h2>
                 <p className="cvt-body">{CHAPTER_COPY[scale].body}</p>
                 {/* no InfoFilter here: a four-row list needs no filtering, and the
