@@ -85,7 +85,7 @@ export function MobileStepper({
         )}
 
         {step === 0 && (
-          <section className="cvt-step-body cvt-step-intro">
+          <section className="cvt-step-body cvt-step-intro" id="cvt-start" tabIndex={-1}>
             <Hero />
           </section>
         )}

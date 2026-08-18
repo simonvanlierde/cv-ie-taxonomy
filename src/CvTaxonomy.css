@@ -2190,8 +2190,8 @@
   position: absolute;
   top: 2.4rem;
   right: 100%;
-  width: clamp(0.5rem, 2.5vw, 2.5rem);
-  border-top: 1px solid var(--cvt-line);
+  width: clamp(1rem, 3.5vw, 3.5rem);
+  border-top: 2px solid var(--cvt-ink-dim);
 }
 .cvt-detail:focus-visible {
   outline: 2px solid var(--cvt-ink);
@@ -2218,6 +2218,22 @@
 }
 .cvt-detail-sheet::before {
   content: none;
+}
+.cvt-back-start {
+  display: block;
+  margin: 1.2rem 0 0;
+  padding: 0.35rem 0;
+  border: 0;
+  border-bottom: 1px solid var(--cvt-ink-dim);
+  background: none;
+  color: var(--cvt-ink-dim);
+  font: inherit;
+  cursor: pointer;
+}
+.cvt-back-start:hover,
+.cvt-back-start:focus-visible {
+  color: var(--cvt-ink);
+  border-color: var(--cvt-ink);
 }
 /* Arrival. The desktop detail is drawn onto the sheet — a short settle, no
    travel; the phone's sheet slides up from the edge it belongs to, as the

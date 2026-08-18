@@ -25,11 +25,11 @@ import {
 import type { Cell, Scale, Verdict } from "./data/types";
 import { Explorable } from "./Explorable";
 import { chipFrame, Fan } from "./Fan";
-import { clampFrame, FRAMES, type Frame, HOME_FRAME, unionFrame, VIEW } from "./frames";
+import { clampFrame, type Frame, FRAMES, HOME_FRAME, unionFrame, VIEW } from "./frames";
 import { MobileStepper } from "./MobileStepper";
 import { Cite, CitedProse } from "./References";
 import { RubricCircuit } from "./RubricCircuit";
-import { BREAKPOINT_PX, SCALE_VAR, SURFACE, THEME_VARS, type Theme, VERDICT_VAR } from "./theme";
+import { BREAKPOINT_PX, SCALE_VAR, SURFACE, type Theme, THEME_VARS, VERDICT_VAR } from "./theme";
 import { plateauCentre, TIMELINE } from "./timeline";
 import { useCamera } from "./useCamera";
 import { useDialogRegion } from "./useDialogRegion";
@@ -340,6 +340,17 @@ export function CvTaxonomy({
     withViewTransition(() => setSelected(null), !reduceMotion);
   }, [reduceMotion]);
 
+  const backToStart = useCallback(() => {
+    // A deep link has no opener to restore focus to. Return to the named hero
+    // instead, and focus that landmark after the detail unmounts.
+    lastFocused.current = null;
+    closeCell();
+    window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+    requestAnimationFrame(() =>
+      document.getElementById("cvt-start")?.focus({ preventScroll: true }),
+    );
+  }, [closeCell, reduceMotion]);
+
   // Only the covering sheet locks the page. A detail drawn on the sheet is not
   // modal, and a scroll lock would make it modal in behaviour while non-modal in
   // ARIA — the reader scrolls on and the detail rides its column.
@@ -360,6 +371,9 @@ export function CvTaxonomy({
           cell={selected}
           returnFocusTo={lastFocused.current}
           onClose={closeCell}
+          onBackToStart={
+            selected.id === initialCell && !lastFocused.current ? backToStart : undefined
+          }
           compact
           modal
         />
@@ -469,6 +483,9 @@ export function CvTaxonomy({
                     // nearest thing to one, and the link has scrolled it on stage
                     returnFocusTo={lastFocused.current ?? `cvt-co-${selected.id}`}
                     onClose={closeCell}
+                    onBackToStart={
+                      selected.id === initialCell && !lastFocused.current ? backToStart : undefined
+                    }
                   />
                 </div>
               )}
@@ -634,7 +651,7 @@ const CLAIMED_VERDICTS = new Set<Verdict>(
 const Rail = memo(function Rail({ chapter }: { chapter: Chapter }) {
   return (
     <div className="cvt-rail">
-      <section className="cvt-hero">
+      <section className="cvt-hero" id="cvt-start" tabIndex={-1}>
         <Hero hint="Click a read-out on the fan to see the evidence." />
         <p className="cvt-scrollhint" aria-hidden>
           scroll to take it apart <span className="cvt-scrollhint-arrow">↓</span>
@@ -941,12 +958,14 @@ function DetailRegion({
   cell,
   onClose,
   returnFocusTo,
+  onBackToStart,
   compact = false,
   modal = false,
 }: {
   cell: Cell;
   onClose: () => void;
   returnFocusTo: string | null;
+  onBackToStart?: () => void;
   compact?: boolean;
   /** only the mobile sheet, which covers the drawing it belongs to */
   modal?: boolean;
@@ -958,7 +977,7 @@ function DetailRegion({
     style: { "--hue": SCALE_VAR[cell.scale] } as CSSProperties,
     tabIndex: -1,
   };
-  const body = <DetailPanel cell={cell} onClose={onClose} />;
+  const body = <DetailPanel cell={cell} onClose={onClose} onBackToStart={onBackToStart} />;
 
   // Two elements rather than one with a computed role: aria-modal is only valid
   // alongside an explicit dialog role, and <aside> already means complementary.
@@ -973,7 +992,15 @@ function DetailRegion({
   );
 }
 
-function DetailPanel({ cell, onClose }: { cell: Cell; onClose: () => void }) {
+function DetailPanel({
+  cell,
+  onClose,
+  onBackToStart,
+}: {
+  cell: Cell;
+  onClose: () => void;
+  onBackToStart?: () => void;
+}) {
   return (
     <>
       <div className="cvt-panel-head">
@@ -995,6 +1022,11 @@ function DetailPanel({ cell, onClose }: { cell: Cell; onClose: () => void }) {
         </button>
       </div>
       <DetailBody cell={cell} />
+      {onBackToStart && (
+        <button type="button" className="cvt-back-start" onClick={onBackToStart}>
+          Back to start
+        </button>
+      )}
     </>
   );
 }
@@ -1060,7 +1092,7 @@ export function DetailBody({ cell }: { cell: Cell }) {
           {/* the paper's own notation, for a reader checking against Table S2; the
               run above already glosses each mark, so the key stays with the table */}
           <Row label={RUBRIC_LABEL} value={<span className="cvt-mono">{cell.rubricMarks}</span>} />
-          <Row label="Handling the output" value={level.handling} />s{" "}
+          <Row label="Handling the output" value={level.handling} />
         </dl>
       </details>
 

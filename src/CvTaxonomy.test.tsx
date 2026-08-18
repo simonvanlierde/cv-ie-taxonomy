@@ -139,6 +139,19 @@ describe("detail on the sheet (desktop)", () => {
     expect(within(region).getByRole("heading", { level: 2 })).toHaveTextContent(cell.task);
   });
 
+  it("offers a deep-link return to the start", async () => {
+    const user = userEvent.setup();
+    const scrollTo = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+    render(<CvTaxonomy initialCell="material-quantity" />);
+
+    const region = await screen.findByRole("complementary", { name: /material · quantity/i });
+    await user.click(within(region).getByRole("button", { name: "Back to start" }));
+
+    expect(scrollTo).toHaveBeenCalledWith({ top: 0, behavior: "smooth" });
+    expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
+    scrollTo.mockRestore();
+  });
+
   it("lands focus on the deep-linked cell's own callout when its detail closes", async () => {
     // a deep link has no opener to return to; the cell's chip stands in, and
     // the link has scrolled its chapter on stage so the chip is operable
