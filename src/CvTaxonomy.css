@@ -206,11 +206,9 @@
     padding-left: 296px;
   }
 }
-@container cvt (width < 1180px) {
-  .cvt-instrument {
-    display: none;
-  }
-}
+/* Below the wide sheet there is no room for a margin band, but the letters still
+   need their key — without it P/E/U/A mean nothing. The instrument becomes a
+   single ruled line along the bottom instead of standing down. */
 .cvt-sticky {
   position: sticky;
   top: 0;
@@ -427,7 +425,11 @@
 /* interactive callouts — compact read-outs, the controls themselves */
 .cvt-co {
   cursor: pointer;
-  transition: opacity 0.25s ease;
+  /* No opacity transition. The scrub already drives this value every frame, and
+     a 0.25s ease meant the *computed* opacity lagged the floored one the
+     component renders: a chip became tabbable while still transitioning up from
+     0.2, so "operable implies visible" held in React and not on screen. The only
+     step change left is the hover dim, which is better instant anyway. */
 }
 .cvt-co-bg {
   fill: var(--cvt-panel);
@@ -2074,12 +2076,14 @@
 }
 .cvt-detail {
   position: sticky;
-  top: 0;
+  /* inside the sheet's ruled border and clear of the coordinate ruler: the one
+     element rebuilt to live ON the sheet must not punch through its frame */
+  top: 48px;
   /* it is first in the column and zero-height in flow, so the rail below keeps
      the scroll length it always had */
   float: left;
   width: 100%;
-  max-height: 100vh;
+  max-height: calc(100vh - 96px);
   overflow-y: auto;
   padding: 1.4rem 1.2rem 3rem;
   border: 1.5px solid var(--cvt-line);
@@ -2089,7 +2093,7 @@
 }
 @supports (max-height: 100dvh) {
   .cvt-detail {
-    max-height: 100dvh;
+    max-height: calc(100dvh - 96px);
   }
 }
 /* the leader: a rule running out of the detail's left edge toward the part */
@@ -2129,6 +2133,37 @@
 .cvt-scroll[data-chapter="outro"] .cvt-instrument,
 .cvt-scroll[data-chapter="outro"] .cvt-titleblock {
   display: none;
+}
+
+/* Below the wide sheet there is no room for a margin band, but the letters still
+   need their key: without it P/E/U/A mean nothing. The instrument becomes a
+   single ruled strip along the bottom rather than standing down. Declared after
+   the base rule, which it has to override. */
+@container cvt (width < 1180px) {
+  .cvt-instrument {
+    top: auto;
+    bottom: 34px;
+    left: 34px;
+    /* stops short of the title block, which holds the other bottom corner */
+    right: 356px;
+    width: auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 0.9rem;
+    padding: 0.4rem 0.6rem;
+  }
+  .cvt-instrument .cvt-instrument-head {
+    margin: 0;
+  }
+  .cvt-instrument .cvt-rung {
+    padding: 0;
+  }
+  /* the filter row sits above the strip rather than under it; the strip wraps to
+     two lines at this width */
+  .cvt-hud-bottom {
+    padding-bottom: 4.6rem;
+  }
 }
 
 /* the sheet is a desktop conceit: the stepper is its own object */

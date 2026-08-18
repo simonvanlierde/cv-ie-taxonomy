@@ -55,6 +55,23 @@ describe("detail panel", () => {
     expect(dialog.contains(document.activeElement)).toBe(true);
   });
 
+  it("pulls focus back when something outside the detail takes it", async () => {
+    const user = userEvent.setup();
+    render(<CvTaxonomy />);
+
+    await user.click(trigger("component-identity"));
+    const dialog = await screen.findByRole("dialog");
+
+    // Tab-cycling alone only guards the region's own edges. Anything outside
+    // that is still focusable — a matrix cell, a footer link, a stray click —
+    // lands focus outside, and from there Tab walked the whole page with the
+    // region still claiming aria-modal.
+    const outside = document.querySelector<HTMLElement>(".cvt-footer a");
+    outside?.focus();
+
+    expect(dialog.contains(document.activeElement)).toBe(true);
+  });
+
   it("closes on Esc, landing focus back on the cell that opened it", async () => {
     const user = userEvent.setup();
     render(<CvTaxonomy />);

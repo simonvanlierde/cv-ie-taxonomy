@@ -27,7 +27,9 @@ export const clampFrame = (f: Frame, bounds: Frame): Frame => {
 // Product chapter: fan assembled around [300,400]. Component: exploded. Material:
 // drifted. One frame per cell id in taxonomy.json.
 export const FRAMES: Record<string, Frame> = {
-  "product-identity": { x: 150, y: 560, w: 320, h: 240 },
+  // wide enough for the OCR read-out, which hangs right of the rating label and
+  // was being cut mid-string by the detail's edge on the ?cell= entry
+  "product-identity": { x: 130, y: 540, w: 440, h: 300 },
   "product-quantity": { x: 120, y: 200, w: 380, h: 520 },
   "product-structure": { x: 120, y: 200, w: 380, h: 520 },
   "product-condition": { x: 150, y: 590, w: 320, h: 200 },

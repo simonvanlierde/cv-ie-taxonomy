@@ -336,7 +336,7 @@ export function CvTaxonomy({
           {/* The stage + chapters share one wrapper, placed directly by the grid. */}
           <div className="cvt-pinwrap">
             {/* ---- sticky stage: the fan IS the interface ---- */}
-            <div className="cvt-stagecol">
+            <div className="cvt-stagecol" inert={selected ? true : undefined}>
               <div className="cvt-sticky">
                 <Fan
                   p={p}
@@ -398,12 +398,14 @@ export function CvTaxonomy({
                   onClose={closeCell}
                 />
               )}
-              <Rail chapter={chapter} activeInfo={activeInfo} onOpen={openCell} />
+              <div inert={selected ? true : undefined}>
+                <Rail chapter={chapter} activeInfo={activeInfo} onOpen={openCell} />
+              </div>
             </div>
           </div>
           {/* full-width row: the stage's sticky column ends here, and the matrix
               gets the whole canvas as a captioned paper figure */}
-          <Outro />
+          <Outro inert={selected ? true : undefined} />
         </div>
       )}
 
@@ -697,9 +699,9 @@ function ThemeToggle({ theme, onToggle }: { theme: Theme; onToggle: () => void }
 // ---- outro: the matrix, live — select a cell to fill the detail inline
 // (memoized: nothing here depends on scroll progress, so the per-scroll-frame
 // render skips it entirely) -----
-export const Outro = memo(function Outro() {
+export const Outro = memo(function Outro({ inert }: { inert?: boolean }) {
   return (
-    <section className="cvt-outro" id="cvt-matrix" aria-label="Full taxonomy matrix">
+    <section className="cvt-outro" id="cvt-matrix" aria-label="Full taxonomy matrix" inert={inert}>
       <h2>
         The honest map is mostly gaps: by the paper's own rubric, none of the twelve tasks earns a
         Strong on worn, real-world products.

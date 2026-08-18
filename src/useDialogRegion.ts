@@ -78,9 +78,23 @@ export function useDialogRegion({
       }
     };
 
+    // The Tab handler only guards the region's own two boundaries, which is
+    // enough while focus starts inside. It is not enough on its own: anything
+    // outside that is still focusable — a matrix cell, a footer link, a click
+    // anywhere — puts focus outside, and from there Tab walks the page freely
+    // with the region still claiming aria-modal. `<dialog>` prevented that by
+    // construction; this is the replacement. focusin catches every route in,
+    // pointer and keyboard alike.
+    const onFocusIn = (e: FocusEvent) => {
+      if (region.contains(e.target as Node)) return;
+      region.focus();
+    };
+
     document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("focusin", onFocusIn);
     return () => {
       document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("focusin", onFocusIn);
       const opener = returnTo.current ? document.getElementById(returnTo.current) : null;
       // Restore when focus was ours to give back: either still inside the region,
       // or already dropped to <body> because the region has just been removed
