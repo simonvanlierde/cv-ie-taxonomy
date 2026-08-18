@@ -20,6 +20,6 @@ export const CHAPTER_COPY: Record<Scale, { title: string; body: string }> = {
   },
   Material: {
     title: "Down to matter",
-    body: "Can a camera tell steel from plastic? Often, in a lab; far less reliably under a recycling plant's mixed lighting. And no camera weighs anything: mass is computed from estimated shape, guessed material and a density from a table, so every small error multiplies.",
+    body: "Can a camera tell steel from plastic? Often, in a lab; far less reliably under a recycling plant's mixed lighting. And no camera weighs anything: mass is computed from estimated shape, guessed material and a density from a table, so every small error multiplies. The drawing has been fading on purpose: the picture blurs as the evidence thins.",
   },
 };

@@ -201,6 +201,13 @@
   max-width: 1440px;
   margin: 0 auto;
 }
+/* on the sheet, content starts clear of the row references in the left band */
+@container cvt (width >= 881px) {
+  .cvt-scroll {
+    padding-left: max(3rem, 2.5vw);
+    padding-right: max(3rem, 2.5vw);
+  }
+}
 /* transparent to the desktop grid, so the stage and rail place themselves as
    direct grid items; becomes a real block on mobile (see the media query) */
 .cvt-pinwrap {
@@ -797,6 +804,9 @@
   padding: max(8vh, 72px) 0 10vh;
   scroll-margin-top: 0;
 }
+.cvt-outro:focus {
+  outline: none;
+}
 .cvt-outro h2 {
   max-width: 56ch;
 }
@@ -1003,9 +1013,14 @@
 /* absence is drawn as open ground with a dashed floor, never as a faint card */
 /* Absent carries no ramp step, so its block arrives with no fill; all it needs
    is the dashed floor that says the bay is empty rather than short. */
-.cvt-mx-cell[data-ghost="true"] .cvt-mx-block,
 .cvt-mx-cell[data-verdict="A"] .cvt-mx-block {
   border-top: 1px dashed var(--cvt-line);
+}
+/* hatched, as a drawing hatches a void: the bay has no task, so it has no
+   floor to stand a block on — which is not what Absent's dashed floor says */
+.cvt-mx-cell[data-ghost="true"] .cvt-mx-block {
+  border-top: 0;
+  background: repeating-linear-gradient(-45deg, var(--cvt-grid) 0 1px, transparent 1px 10px);
 }
 /* The verdict spelled out: at full width the figure has room, so no value is
    reachable only by decoding a glyph. */
@@ -1066,8 +1081,9 @@
   font-size: var(--cvt-t-2);
 }
 .cvt-tablewrap caption {
-  caption-side: bottom;
-  padding-top: 0.8rem;
+  /* above the table: the rubric key is read before the marks column it decodes */
+  caption-side: top;
+  padding-bottom: 0.8rem;
   font-family: var(--cvt-mono);
   font-size: var(--cvt-t-2);
   color: var(--cvt-ink-dim);
@@ -1181,17 +1197,6 @@
   .cvt-step-body {
     max-height: 32dvh;
   }
-}
-/* grabber-style affordance: the sheet reads as a sheet, and its body scrolls.
-   Scale steps carry a real toggle button instead (the pseudo bows out). */
-.cvt-step-body:not(:has(.cvt-sheet-toggle))::before {
-  content: "";
-  display: block;
-  width: 38px;
-  height: 4px;
-  border-radius: 2px;
-  background: var(--cvt-line);
-  margin: 0.2rem auto 0.8rem;
 }
 /* the grabber as a control: full-width tap target, bar drawn by the pseudo */
 .cvt-sheet-toggle {
@@ -1317,6 +1322,12 @@
   font-size: var(--cvt-t-1);
   letter-spacing: 0.08em;
   color: var(--cvt-ink-dim);
+}
+@container cvt (width >= 881px) {
+  .cvt-footer {
+    padding-left: max(3rem, 2.5vw);
+    padding-right: max(3rem, 2.5vw);
+  }
 }
 .cvt-footer a {
   display: inline-flex;
@@ -1746,11 +1757,13 @@
     padding-left: 0;
   }
   /* the callouts live on the desktop svg; on mobile each chapter lists its cells */
+  /* ruled rows, as the sheet rules everything else: the phone's own idiom
+     stops at the sheet that slides up, it does not extend to the cell list */
   .cvt-mgroup {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    gap: 0.45rem;
     margin: 0.2rem 0 1.1rem;
+    border-top: 0.5px solid var(--cvt-line);
   }
   .cvt-mcell {
     display: flex;
@@ -1758,16 +1771,16 @@
     gap: 0.6rem;
     width: 100%;
     text-align: left;
-    background: var(--cvt-card);
-    border: 1px solid var(--cvt-line);
-    border-left: 3px solid var(--hue);
-    border-radius: 9px;
-    padding: 0.55rem 0.7rem;
+    background: none;
+    border: 0;
+    border-bottom: 0.5px solid var(--cvt-line);
+    border-radius: 0;
+    padding: 0.55rem 0.2rem;
     color: var(--cvt-ink);
     cursor: pointer;
   }
   .cvt-mcell[data-ghost="true"] {
-    border-style: dashed;
+    border-bottom-style: dashed;
     opacity: 0.65;
   }
   .cvt-mcell-info {
@@ -1883,6 +1896,16 @@
 .cvt-sheet {
   inset: 0;
   overflow: hidden;
+}
+/* the sheet's mat: an opaque margin the width of the ruler bands, so whatever
+   scrolls under the frame — the drawing on its way out, the closing thesis on
+   its way in — slides under the sheet's edge instead of through its refs */
+.cvt-sheet::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  border: 31px solid var(--cvt-bg);
 }
 .cvt-sheet-border {
   position: absolute;

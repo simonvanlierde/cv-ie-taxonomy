@@ -1,5 +1,6 @@
-import { type ReactNode, type RefObject, useCallback, useRef, useState } from "react";
+import { type ReactNode, type RefObject, useCallback, useEffect, useRef, useState } from "react";
 import { DetailBody } from "./CvTaxonomy";
+import { cells } from "./data/taxonomy";
 import type { Cell } from "./data/types";
 import { MiniMatrix } from "./MiniMatrix";
 import { SCALE_VAR } from "./theme";
@@ -23,6 +24,27 @@ export function Explorable({ children }: { children?: ReactNode }) {
     setSelected(cell);
   }, []);
   const close = useCallback(() => setSelected(null), []);
+  // Arrow keys step the selection along the matrix while a detail is open, so a
+  // reader scanning cells does not have to leave the detail and find the next
+  // bay by Tab. Focus stays where it is; `select` re-points the focus return at
+  // the new cell, so Esc afterwards lands on the bay the reader ended on.
+  useEffect(() => {
+    if (!selected) return;
+    const onKey = (e: KeyboardEvent) => {
+      const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+      if (!step || e.altKey || e.metaKey || e.ctrlKey) return;
+      // scoped to the instrument: focus in its bays or its detail
+      const t = e.target as HTMLElement | null;
+      if (!t?.closest(".cvt-explorable") || t.closest("input, textarea, select")) return;
+      const i = cells.findIndex((c) => c.id === selected.id);
+      const next = cells[(i + step + cells.length) % cells.length];
+      if (!next) return;
+      e.preventDefault();
+      select(next);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [selected, select]);
   const ref = useDialogRegion({
     open: selected !== null,
     onClose: close,
@@ -41,8 +63,10 @@ export function Explorable({ children }: { children?: ReactNode }) {
             {children}
           </div>
         )}
-        {/* always mounted so the live region exists before content arrives */}
-        <div className="cvt-inline-detail" aria-live="polite">
+        {/* not a live region: the detail takes focus when it opens, so a screen
+            reader hears its name and role once, rather than a whole detail read
+            out on every cell the reader steps to */}
+        <div className="cvt-inline-detail">
           {selected && (
             <aside
               ref={ref as RefObject<HTMLElement>}

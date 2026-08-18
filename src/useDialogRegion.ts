@@ -113,7 +113,12 @@ export function useDialogRegion({
     const onPointerDown = (e: PointerEvent) => {
       const target = e.target as Element | null;
       if (!target || region.contains(target) || hasOpenPopover(region)) return;
-      if (target.closest("button, a, input, select, textarea, summary, [tabindex]")) return;
+      if (
+        target.closest(
+          'button, a, input, select, textarea, summary, [tabindex]:not([tabindex="-1"])',
+        )
+      )
+        return;
       onClose();
     };
 

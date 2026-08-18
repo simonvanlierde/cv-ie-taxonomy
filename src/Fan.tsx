@@ -62,6 +62,51 @@ const CHIP_LEFT_EDGE = VIEW.x + 10;
 // operable and its OCR read-out starts typing. One threshold, used everywhere.
 const ON_STAGE = 0.5;
 
+/** The twelve chips, one per taxonomy cell: where each sits and what it says.
+ *  Left-gutter chips anchor to CHIP_LEFT_EDGE; right-gutter chips omit `x` and
+ *  anchor their right edge to CHIP_RIGHT_EDGE. Static on purpose: the camera
+ *  reads a chip's rect from here (`chipFrame`) so an enlargement can keep the
+ *  chip that opened it in frame. Leader targets live in the render, where the
+ *  part centres are. `id` is looked up through cellById at render, so a typo
+ *  throws rather than drawing a blank chip. */
+const CHIP_LAYOUT: {
+  id: string;
+  x?: number;
+  y: number;
+  text: string;
+  leadEdge?: "right" | "left";
+  strike?: boolean;
+}[] = [
+  // product (assembled fan)
+  { id: "product-identity", x: CHIP_LEFT_EDGE, y: 770, text: "OCR + db-match ok" },
+  { id: "product-quantity", y: 430, text: "H ~ 430 · Ø ~ 300", leadEdge: "left" },
+  { id: "product-condition", x: CHIP_LEFT_EDGE, y: 580, text: "wear? (unvalidated)" },
+  // clear of the HUD's scale indicator, which owns the bottom-left corner
+  { id: "product-structure", x: CHIP_LEFT_EDGE, y: 676, text: "structure -> component" },
+  // component (exploded fan)
+  { id: "component-identity", x: CHIP_LEFT_EDGE, y: 140, text: "detect > 6 parts" },
+  { id: "component-structure", y: 300, text: "segment · attached-to? E", leadEdge: "left" },
+  { id: "component-quantity", x: CHIP_LEFT_EDGE, y: 560, text: "dims > motor ~ 135 mm" },
+  { id: "component-condition", x: CHIP_LEFT_EDGE, y: 690, text: "brush wear? (unvalidated)" },
+  // material (drifted parts)
+  { id: "material-identity", y: 170, text: "steel · ABS · Cu · PCB", leadEdge: "left" },
+  { id: "material-quantity", x: CHIP_LEFT_EDGE, y: 140, text: "mass (derived only)", strike: true },
+  // the left gutter, under the mass chip: in the right gutter it sat on the
+  // drifted motor's corrosion tag
+  { id: "material-structure", x: CHIP_LEFT_EDGE, y: 250, text: "structure -> component" },
+  { id: "material-condition", y: 640, text: "corrosion? (unvalidated)", leadEdge: "left" },
+];
+
+/** A chip's plate as a frame in viewBox units, or null for an unknown id. The
+ *  camera unions this with the cell's part frame, so the enlargement never
+ *  crops the read-out the reader clicked. */
+export function chipFrame(id: string): Frame | null {
+  const c = CHIP_LAYOUT.find((k) => k.id === id);
+  if (!c) return null;
+  const w = chipWidth(c.text);
+  return { x: c.x ?? CHIP_RIGHT_EDGE - w, y: c.y - 23, w, h: CHIP_H };
+}
+
 const OCR_TEXT = 'OCR > "TYP 4212/A"';
 const OCR_W = monoWidth(OCR_TEXT, TAG_FONT) + 10;
 
@@ -459,97 +504,20 @@ export function Fan({
   const tapFor = (id: string): LayerTap | undefined =>
     compact ? { cell: cell(id), onSelect } : undefined;
 
-  // The twelve chips, one per taxonomy cell. `id` is looked up through cellById,
-  // so a typo throws at first render rather than rendering a blank chip. Declared
-  // in render because the leader targets read the live part centres.
-  const CALLOUTS: {
-    id: string;
-    x?: number;
-    y: number;
-    text: string;
-    lead?: readonly [number, number];
-    leadEdge?: "right" | "left";
-    strike?: boolean;
-  }[] = [
-    // product (assembled fan)
-    {
-      id: "product-identity",
-      x: CHIP_LEFT_EDGE,
-      y: 770,
-      text: "OCR + db-match ok",
-      lead: [sx(196), sy(737)],
-    },
-    {
-      id: "product-quantity",
-      y: 430,
-      text: "H ~ 430 · Ø ~ 300",
-      leadEdge: "left",
-      lead: [sx(500) + 14, sy(400)],
-    },
-    {
-      id: "product-condition",
-      x: CHIP_LEFT_EDGE,
-      y: 580,
-      text: "wear? (unvalidated)",
-      lead: [baC[0] - 92 * s, baC[1] + 12 * s],
-    },
-    // clear of the HUD's scale indicator, which owns the bottom-left corner
-    { id: "product-structure", x: CHIP_LEFT_EDGE, y: 676, text: "structure -> component" },
-
-    // component (exploded fan)
-    {
-      id: "component-identity",
-      x: CHIP_LEFT_EDGE,
-      y: 140,
-      text: "detect > 6 parts",
-      lead: [blC[0] - 106, blC[1] - 112],
-    },
-    {
-      id: "component-structure",
-      y: 300,
-      text: "segment · attached-to? E",
-      leadEdge: "left",
-      lead: [rgC[0] + 100, rgC[1] - 52],
-    },
-    {
-      id: "component-quantity",
-      x: CHIP_LEFT_EDGE,
-      y: 560,
-      text: "dims > motor ~ 135 mm",
-      lead: [moC[0] - 64, moC[1] + 62],
-    },
-    {
-      id: "component-condition",
-      x: CHIP_LEFT_EDGE,
-      y: 690,
-      text: "brush wear? (unvalidated)",
-      lead: [moC[0] - 76, moC[1] + 44],
-    },
-
-    // material (drifted parts)
-    {
-      id: "material-identity",
-      y: 170,
-      text: "steel · ABS · Cu · PCB",
-      leadEdge: "left",
-      lead: [fgC[0] + 30, fgC[1] - 52],
-    },
-    {
-      id: "material-quantity",
-      x: CHIP_LEFT_EDGE,
-      y: 140,
-      text: "mass (derived only)",
-      strike: true,
-    },
-    { id: "material-structure", y: 470, text: "structure -> component" },
-    {
-      id: "material-condition",
-      y: 640,
-      text: "corrosion? (unvalidated)",
-      leadEdge: "left",
-      lead: [moC[0] + 130, moC[1] - 36],
-    },
-  ];
+  // Leader targets per chip, read off the live part centres; the chips' own
+  // positions and labels are static (CHIP_LAYOUT), so the camera can know a
+  // chip's rect without rendering the fan.
+  const LEADS: Record<string, readonly [number, number]> = {
+    "product-identity": [sx(196), sy(737)],
+    "product-quantity": [sx(500) + 14, sy(400)],
+    "product-condition": [baC[0] - 92 * s, baC[1] + 12 * s],
+    "component-identity": [blC[0] - 106, blC[1] - 112],
+    "component-structure": [rgC[0] + 100, rgC[1] - 52],
+    "component-quantity": [moC[0] - 64, moC[1] + 62],
+    "component-condition": [moC[0] - 76, moC[1] + 44],
+    "material-identity": [fgC[0] + 30, fgC[1] - 52],
+    "material-condition": [moC[0] + 130, moC[1] - 36],
+  };
 
   // each part's primary silhouette, defined once and reused by the part, its
   // segmentation mask and its material tint (they must stay pixel-aligned)
@@ -803,8 +771,8 @@ export function Fan({
                  omit `x` and anchor to CHIP_RIGHT_EDGE, so both columns track
                  the viewBox instead of being re-tuned by hand. Leader targets
                  are read off the live part centres. ---- */}
-          {CALLOUTS.map(({ id, ...chip }) => (
-            <Callout key={id} {...co(id)} {...chip} />
+          {CHIP_LAYOUT.map(({ id, ...chip }) => (
+            <Callout key={id} {...co(id)} {...chip} lead={LEADS[id]} />
           ))}
         </>
       )}

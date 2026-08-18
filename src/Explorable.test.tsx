@@ -42,6 +42,22 @@ describe("Explorable", () => {
     expect(stillOne).toHaveLength(1);
   });
 
+  it("steps along the matrix on ArrowRight while the instrument has focus", async () => {
+    const user = userEvent.setup();
+    render(<Explorable />);
+    await user.click(screen.getByRole("button", { name: /component · quantity/i }));
+    expect(screen.getByRole("complementary", { name: /component · quantity/i })).toHaveFocus();
+
+    await user.keyboard("{ArrowRight}");
+
+    expect(
+      screen.getByRole("complementary", { name: /component · structure/i }),
+    ).toBeInTheDocument();
+    // Esc afterwards returns focus to the bay the reader ended on
+    await user.keyboard("{Escape}");
+    expect(screen.getByRole("button", { name: /component · structure/i })).toHaveFocus();
+  });
+
   it("closes on Esc and lands focus back on the cell that opened it", async () => {
     const user = userEvent.setup();
     render(<Explorable />);

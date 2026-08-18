@@ -24,8 +24,8 @@ import {
 } from "./data/taxonomy";
 import type { Cell, Scale, Verdict } from "./data/types";
 import { Explorable } from "./Explorable";
-import { Fan } from "./Fan";
-import { FRAMES, HOME_FRAME } from "./frames";
+import { chipFrame, Fan } from "./Fan";
+import { clampFrame, FRAMES, type Frame, HOME_FRAME, unionFrame, VIEW } from "./frames";
 import { MobileStepper } from "./MobileStepper";
 import { Cite, CitedProse } from "./References";
 import { RubricCircuit } from "./RubricCircuit";
@@ -44,6 +44,14 @@ function chapterAt(p: number): Chapter {
   if (p < TIMELINE.componentEnd) return "Component";
   if (p < TIMELINE.materialEnd) return "Material";
   return "outro";
+}
+
+/** The camera frame for a cell's detail: its part frame, grown to hold its own
+ *  chip, kept inside the drawing. */
+export function frameFor(cellId: string): Frame {
+  const part = FRAMES[cellId] ?? HOME_FRAME;
+  const chip = chipFrame(cellId);
+  return chip ? clampFrame(unionFrame(part, chip, 16), VIEW) : part;
 }
 
 /** Reactive `matchMedia`: re-renders when the query flips (OS reduced-motion toggle,
@@ -222,10 +230,11 @@ export function CvTaxonomy({
   // sheet is not locked while a detail is open, and a frame tuned for one
   // chapter's explode state frames the wrong geometry once the parts move on, so
   // scrolling on pulls the camera home while the detail stays docked.
+  // The frame is the part's frame grown to hold the chip that opened it: an
+  // enlargement that cropped the read-out the reader clicked, and magnified the
+  // mock numbers around it, spent the zoom on the wrong thing.
   const zoomFrame =
-    selected && (isMobile || chapter === selected.scale)
-      ? (FRAMES[selected.id] ?? HOME_FRAME)
-      : null;
+    selected && (isMobile || chapter === selected.scale) ? frameFor(selected.id) : null;
   // On mobile the compact fan ignores this viewBox, so cut instantly rather than
   // burn a per-frame spring re-rendering the whole tree for output nobody sees.
   // Always mounted at home: a ?cell= deep link then dives from the whole
@@ -304,6 +313,28 @@ export function CvTaxonomy({
     },
     [reduceMotion],
   );
+
+  // Arrow keys step the docked detail through its chapter's siblings — the
+  // chips are the controls, and while a detail is open most of them are out of
+  // frame, so the keyboard needs a way along the ring that is not Tab.
+  useEffect(() => {
+    if (!selected || isMobile) return;
+    const onKey = (e: KeyboardEvent) => {
+      const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+      if (!step || e.altKey || e.metaKey || e.ctrlKey) return;
+      // scoped to the drawing and its docked detail; act two has its own
+      const t = e.target as HTMLElement | null;
+      if (!t?.closest(".cvt-detail, .cvt-fan") || t.closest("input, textarea, select")) return;
+      const ring = cells.filter((c) => c.scale === selected.scale);
+      const i = ring.findIndex((c) => c.id === selected.id);
+      const next = ring[(i + step + ring.length) % ring.length];
+      if (!next) return;
+      e.preventDefault();
+      openCell(next, `cvt-co-${next.id}`);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [selected, isMobile, openCell]);
 
   const closeCell = useCallback(() => {
     withViewTransition(() => setSelected(null), !reduceMotion);
@@ -690,14 +721,14 @@ export function CellList({
             <VerdictSwatch verdict={cell.maturity} split={split} size={20} />
             <span className="cvt-mcell-info">{info}</span>
             <span className="cvt-mcell-task">
-              {cell.structurallyEmpty
-                ? "answered at the component scale"
-                : cell.task.split(/[,;]/)[0]}
+              {cell.structurallyEmpty ? "answered at the component scale" : cell.task}
             </span>
             <b>
-              {split
-                ? split.map((v) => VERDICT_LETTER[v]).join(" / ")
-                : VERDICT_LETTER[cell.maturity]}
+              {cell.structurallyEmpty
+                ? ""
+                : split
+                  ? split.map((v) => VERDICT_LETTER[v]).join(" / ")
+                  : VERDICT_LETTER[cell.maturity]}
             </b>
           </button>
         );
@@ -726,7 +757,10 @@ function ThemeToggle({ theme, onToggle }: { theme: Theme; onToggle: () => void }
 // render skips it entirely) -----
 export const Outro = memo(function Outro() {
   return (
-    <section className="cvt-outro" id="cvt-matrix" aria-label="Full taxonomy matrix">
+    // tabIndex -1: the skip link and the rail's "the map" target this id, and a
+    // focusable target is where the browser puts focus after the jump — without
+    // it a keyboard reader's next Tab started from wherever it was before
+    <section className="cvt-outro" id="cvt-matrix" aria-label="Full taxonomy matrix" tabIndex={-1}>
       <h2>
         The honest map is mostly gaps: by the paper's own rubric, no task earns a Strong on worn,
         real-world products.
@@ -743,9 +777,9 @@ export const Outro = memo(function Outro() {
               <b>{m.letter}</b> {m.verdict.toLowerCase()}
             </span>
           ))}
-          . The dashed rule over every cell is Strong; nothing reaches it. Dashed cells have no task
-          of their own: structure is a component-scale question. Two letters are two sub-tasks; the
-          block stands at the stronger and is ruled across at the weaker. Verdicts from the
+          . The dashed rule over every cell is Strong; nothing reaches it. Hatched cells have no
+          task of their own: structure is a component-scale question. Two letters are two sub-tasks;
+          the block stands at the stronger and is ruled across at the weaker. Verdicts from the
           paper&rsquo;s Table&nbsp;S2, literature as of {taxonomy.meta.scanDate}.
         </p>
         <TableView />
@@ -1026,7 +1060,7 @@ export function DetailBody({ cell }: { cell: Cell }) {
           {/* the paper's own notation, for a reader checking against Table S2; the
               run above already glosses each mark, so the key stays with the table */}
           <Row label={RUBRIC_LABEL} value={<span className="cvt-mono">{cell.rubricMarks}</span>} />
-          <Row label="Handling the output" value={level.handling} />
+          <Row label="Handling the output" value={level.handling} />s{" "}
         </dl>
       </details>
 

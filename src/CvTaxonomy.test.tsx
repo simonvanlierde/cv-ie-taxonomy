@@ -1,10 +1,10 @@
 import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { CvTaxonomy, withViewTransition } from "./CvTaxonomy";
+import { CvTaxonomy, frameFor, withViewTransition } from "./CvTaxonomy";
 import { cellById } from "./data/taxonomy";
 import { frameToViewBox, VIEW } from "./frames";
-import { frameOf, matchMediaStub } from "./test-helpers";
+import { matchMediaStub } from "./test-helpers";
 import { plateauCentre } from "./timeline";
 
 /**
@@ -98,6 +98,21 @@ describe("detail on the sheet (desktop)", () => {
     await user.click(within(region).getByRole("button", { name: /close details/i }));
 
     expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
+  });
+
+  it("steps to a sibling cell of the same chapter on ArrowRight while the detail has focus", async () => {
+    const user = userEvent.setup();
+    render(<CvTaxonomy debugProgress={onStage("Material")} />);
+
+    await user.click(trigger("material-identity"));
+    const region = await screen.findByRole("complementary", { name: /material · identity/i });
+    expect(region).toHaveFocus();
+
+    await user.keyboard("{ArrowRight}");
+    expect(
+      await screen.findByRole("complementary", { name: /material · quantity/i }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("complementary", { name: /material · identity/i })).toBeNull();
   });
 
   it("closes on a press on the sheet outside it, but not on a press on a control", async () => {
@@ -250,7 +265,7 @@ describe("camera framing (desktop)", () => {
 
     await user.click(trigger("component-quantity"));
     await screen.findByRole("complementary");
-    expect(fan()).toHaveAttribute("viewBox", frameToViewBox(frameOf("component-quantity")));
+    expect(fan()).toHaveAttribute("viewBox", frameToViewBox(frameFor("component-quantity")));
 
     await user.keyboard("{Escape}");
     expect(fan()).toHaveAttribute("viewBox", frameToViewBox(VIEW));
@@ -265,7 +280,7 @@ describe("camera framing (desktop)", () => {
     const fan = () => container.querySelector(".cvt-fan:not(.cvt-fan-compact)") as SVGSVGElement;
     await user.click(trigger("component-quantity"));
     await screen.findByRole("complementary");
-    expect(fan()).toHaveAttribute("viewBox", frameToViewBox(frameOf("component-quantity")));
+    expect(fan()).toHaveAttribute("viewBox", frameToViewBox(frameFor("component-quantity")));
 
     // the sheet is not locked: the next chapter arrives under the docked detail,
     // and its frame would point at parts that have since drifted
@@ -289,7 +304,7 @@ describe("camera framing (desktop)", () => {
       <CvTaxonomy initialCell="material-condition" debugProgress={plateauCentre("Material")} />,
     );
     const fan = container.querySelector(".cvt-fan:not(.cvt-fan-compact)") as SVGSVGElement;
-    expect(fan).toHaveAttribute("viewBox", frameToViewBox(frameOf("material-condition")));
+    expect(fan).toHaveAttribute("viewBox", frameToViewBox(frameFor("material-condition")));
   });
 });
 

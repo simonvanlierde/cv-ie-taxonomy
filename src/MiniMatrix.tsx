@@ -74,27 +74,38 @@ function MiniMatrixRow({
             data-verdict={VERDICT_LETTER[cell.maturity]}
             aria-pressed={cell.id === selectedId}
             aria-label={
-              split
-                ? `${scale} · ${info}: ${cell.subVerdicts?.map((s) => `${s.label} ${s.maturity}`).join("; ")}`
-                : `${scale} · ${info}: ${cell.maturity}`
+              cell.structurallyEmpty
+                ? `${scale} · ${info}: structurally empty, answered at the component scale`
+                : split
+                  ? `${scale} · ${info}: ${cell.subVerdicts?.map((s) => `${s.label} ${s.maturity}`).join("; ")}`
+                  : `${scale} · ${info}: ${cell.maturity}`
             }
             onClick={() => onSelect(cell)}
           >
+            {/* a structurally empty bay is hatched, as a drawing hatches a void:
+                no block, no letter — it is not a short bar and not an Absent,
+                it is a cell with no task of its own */}
             <span
               className="cvt-mx-block"
-              style={{
-                height: `${VERDICT_HEIGHT[standsAt] * 100}%`,
-                background: VERDICT_VAR[standsAt] ?? "none",
-              }}
+              style={
+                cell.structurallyEmpty
+                  ? { height: "100%" }
+                  : {
+                      height: `${VERDICT_HEIGHT[standsAt] * 100}%`,
+                      background: VERDICT_VAR[standsAt] ?? "none",
+                    }
+              }
               aria-hidden
             >
               {subRule(split)}
             </span>
-            <b className="cvt-mx-letter">
-              {split
-                ? split.map((v) => VERDICT_LETTER[v]).join(" / ")
-                : VERDICT_LETTER[cell.maturity]}
-            </b>
+            {!cell.structurallyEmpty && (
+              <b className="cvt-mx-letter">
+                {split
+                  ? split.map((v) => VERDICT_LETTER[v]).join(" / ")
+                  : VERDICT_LETTER[cell.maturity]}
+              </b>
+            )}
             <span className="cvt-mx-name">
               {cell.structurallyEmpty
                 ? "structurally empty"

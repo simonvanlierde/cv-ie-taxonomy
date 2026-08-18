@@ -62,7 +62,8 @@ export function MobileStepper({
   return (
     <div className="cvt-stepper">
       <div className="cvt-stepper-top">
-        <span className="cvt-hud-tag">{CAVEAT}</span>
+        {/* the matrix step draws no read-outs, so it carries no caveat */}
+        {!isMatrix && <span className="cvt-hud-tag">{CAVEAT}</span>}
         {themeToggle}
       </div>
       <div className="cvt-step" data-step={labels[step]} data-collapsed={sheetCollapsed}>

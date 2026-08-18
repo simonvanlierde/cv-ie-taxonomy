@@ -10,10 +10,24 @@ export type Frame = { x: number; y: number; w: number; h: number };
 // around it so the fan commands the sheet: a wider frame spends the viewport on
 // empty gutters and renders the product small, which is the opposite of what a
 // teardown sheet is for.
-export const VIEW: Frame = { x: -120, y: 40, w: 800, h: 830 };
+// y starts at 20, not 40: the exploded front grille rises to y ≈ 26, and a
+// home frame that began below it cropped the top of the drawing at every zoom.
+export const VIEW: Frame = { x: -120, y: 20, w: 800, h: 850 };
 export const HOME_FRAME: Frame = VIEW;
 
 export const frameToViewBox = (f: Frame) => `${f.x} ${f.y} ${f.w} ${f.h}`;
+
+/** The smallest frame holding both, grown by `pad` on every side. */
+export const unionFrame = (a: Frame, b: Frame, pad = 0): Frame => {
+  const x = Math.min(a.x, b.x) - pad;
+  const y = Math.min(a.y, b.y) - pad;
+  return {
+    x,
+    y,
+    w: Math.max(a.x + a.w, b.x + b.w) + pad - x,
+    h: Math.max(a.y + a.h, b.y + b.h) + pad - y,
+  };
+};
 
 /** Keep a frame within `bounds`: shrink to fit, then slide inside. */
 export const clampFrame = (f: Frame, bounds: Frame): Frame => {
