@@ -6,3 +6,5 @@ package-lock.json
 # `tsc -b` used to leave this behind; the scripts now run `tsc --noEmit`, but a
 # stray incremental build must never be committable again.
 *.tsbuildinfo
+# Vitest browser mode's failure screenshots.
+src/__screenshots__
