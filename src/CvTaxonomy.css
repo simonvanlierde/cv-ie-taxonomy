@@ -130,17 +130,6 @@
   font-weight: 400;
   margin: 0;
 }
-.cvt-eyebrow {
-  font-family: var(--cvt-mono);
-  font-size: var(--cvt-t-1);
-  letter-spacing: 0.26em;
-  text-transform: uppercase;
-  color: var(--cvt-ink-dim);
-  margin: 0 0 0.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
 .cvt-dot {
   width: 10px;
   height: 10px;
@@ -1714,9 +1703,6 @@
     color: var(--cvt-ink-dim);
     font-weight: 400;
     margin: 0;
-  }
-  .cvt-eyebrow {
-    display: none;
   }
   .cvt-hud-top {
     gap: 0.5rem;
