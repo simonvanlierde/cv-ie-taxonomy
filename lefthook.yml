@@ -6,8 +6,11 @@ pre-commit:
       stage_fixed: true
     typecheck:
       run: pnpm exec tsc --noEmit
+    theme:
+      glob: "*.{ts,css}"
+      run: pnpm check:theme
 
 pre-push:
   commands:
     test:
-      run: pnpm test
+      run: pnpm test:all

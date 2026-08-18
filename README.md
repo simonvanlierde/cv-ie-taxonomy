@@ -75,9 +75,15 @@ follows the colour scheme, or the host can force a theme.
 ```sh
 pnpm install
 pnpm dev         # http://localhost:5173
-pnpm test        # data + interaction tests (vitest)
+pnpm test        # data + interaction tests, jsdom (vitest)
 pnpm build       # typecheck + production build
 ```
+
+Tests split into two Vitest projects. `pnpm test` runs `unit` in jsdom, fast
+enough for the inner loop. `pnpm test:browser` runs `browser` in real
+Chromium, for the handful of contracts jsdom can't honour — a dialog's focus
+restore, `inert`, the top layer, real `ResizeObserver` layout. `pnpm
+test:all` runs both; CI does.
 
 Demo deep links: `?cell=component-structure` opens a detail, `?theme=dark|light`
 forces a theme, and `?p=0.56` pins scroll progress for screenshots.
