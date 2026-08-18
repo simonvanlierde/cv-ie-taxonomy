@@ -818,6 +818,9 @@
   margin: 2rem 0 0;
 }
 @container cvt (width < 881px) {
+  /* the matrix track is max-content on the desktop sheet, where the figure has
+     its own min-width; on the phone the figure is fluid, so the track must be */
+  .cvt-explorable,
   .cvt-explorable[data-open="true"] {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -1646,28 +1649,52 @@
      out-cascades the base .cvt-matrix rules at equal specificity.) */
   .cvt-matrix {
     min-width: 0;
-    gap: 0.3rem;
+    grid-template-columns: max-content repeat(4, minmax(0, 1fr));
+    column-gap: 2px;
+    row-gap: 1rem;
   }
   .cvt-mx-name {
     display: none;
   }
+  /* the name is gone, so the bay needs only a line of clearance under its floor */
   .cvt-mx-cell {
-    justify-content: center;
-    gap: 0.4rem;
-    padding: 0.7rem 0.3rem;
+    height: 150px;
+    padding-bottom: 0.4rem;
   }
-  .cvt-mx-h {
-    letter-spacing: 0.04em;
+  .cvt-mx-block {
+    bottom: 0.4rem;
+    left: 4px;
+    right: 4px;
+  }
+  .cvt-mx-letter {
+    left: 4px;
+    white-space: nowrap;
+  }
+  /* four headers over four ~60px bays: set on end like a drawing's dimension
+     text rather than crushed into one another */
+  .cvt-mx-h:not(.cvt-mx-row) {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    justify-self: center;
+    letter-spacing: 0.1em;
+    padding: 0 0 0.3rem;
+  }
+  .cvt-mx-shelf-label {
+    letter-spacing: 0.08em;
+    max-width: 8em;
+    text-align: right;
+    padding-right: 0.4rem;
   }
   .cvt-mx-row {
     padding-right: 0.3rem;
+    padding-left: 0;
   }
   /* the callouts live on the desktop svg; on mobile each chapter lists its cells */
   .cvt-mgroup {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 0.45rem;
-    margin-top: 1.2rem;
+    margin: 0.2rem 0 1.1rem;
   }
   .cvt-mcell {
     display: flex;
@@ -2008,8 +2035,12 @@
   inset: auto 0 0;
   max-height: 84vh;
   border-left: 0;
+  border-right: 0;
   border-bottom: 0;
   border-top: 3px solid var(--hue);
+  /* the phone's own idiom for a surface sliding up over a page — the same
+     radius the peek sheet under it carries; the exception stops at the breakpoint */
+  border-radius: 16px 16px 0 0;
 }
 @supports (max-height: 84dvh) {
   .cvt-detail-sheet {
@@ -2050,6 +2081,20 @@
   }
   .cvt-instrument .cvt-rung {
     padding: 0;
+  }
+  /* with a detail docked, the strip stops short of the detail's column instead
+     of the title block's corner (which has stood down), and the detail stops
+     short of the strip: they shared the bottom-left of the sheet otherwise */
+  .cvt-scroll[data-panel="open"] .cvt-instrument {
+    right: 410px;
+  }
+  .cvt-scroll[data-panel="open"] .cvt-detail {
+    max-height: calc(100vh - 150px);
+  }
+  @supports (max-height: 100dvh) {
+    .cvt-scroll[data-panel="open"] .cvt-detail {
+      max-height: calc(100dvh - 150px);
+    }
   }
 }
 

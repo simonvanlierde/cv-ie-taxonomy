@@ -101,8 +101,12 @@ export function MobileStepper({
             {!sheetCollapsed && (
               <>
                 <h2>{CHAPTER_COPY[scale].title}</h2>
-                <p className="cvt-body">{CHAPTER_COPY[scale].body}</p>
+                {/* the cells before the prose: on a phone the sheet peeks a
+                    third of the screen, and the four rows are the controls —
+                    under the paragraph they sat below its fold with nothing
+                    to say they were there */}
                 <CellList scale={scale} onOpen={onOpen} />
+                <p className="cvt-body">{CHAPTER_COPY[scale].body}</p>
               </>
             )}
           </section>
