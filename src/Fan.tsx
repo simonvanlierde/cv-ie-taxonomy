@@ -358,9 +358,19 @@ export function Fan({
 }) {
   // scoped, so a second Fan on the page cannot steal this one's clip path
   const ocrClip = useId();
+  const captureId = useId();
 
   const e = seg(p, TIMELINE.explode[0], TIMELINE.explode[1]);
   const m = seg(p, TIMELINE.drift[0], TIMELINE.drift[1]);
+
+  // The capture degrades as the scales get smaller, because that is what the
+  // paper found: the evidence thins from product to material, and the reason is
+  // that nothing has been validated on the images a contributor would actually
+  // take. So the DRAWING loses definition while the read-outs stay crisp — the
+  // machine goes on reporting confident boxes over a picture it can see less and
+  // less of. Quantized, so a continuous scrub does not rebuild an SVG filter
+  // every frame; 0 through Product, and never blurred past legibility.
+  const blur = compact ? 0 : Math.round((e + m) * 0.6 * 20) / 20;
   const k = e + 0.1 * m;
   // assembled fan fills the canvas headroom; eases to 1 as the stack needs it
   const s = compact ? 1 : 1.3 - 0.3 * e;
@@ -540,10 +550,20 @@ export function Fan({
         compact ? undefined : { transform: `perspective(1200px) rotateX(1.2deg) rotateY(${ry}deg)` }
       }
     >
+      {blur > 0 && (
+        <defs>
+          <filter id={captureId} x="-8%" y="-8%" width="116%" height="116%">
+            <feGaussianBlur stdDeviation={blur} />
+          </filter>
+        </defs>
+      )}
       {/* ---- parts (painter's order: back to front), scaled about the centre.
              Each part carries its own segmentation mask + material tint so the
              annotations ride the explode. ---- */}
-      <g transform={`translate(${O[0] * (1 - s)} ${O[1] * (1 - s)}) scale(${s})`}>
+      <g
+        transform={`translate(${O[0] * (1 - s)} ${O[1] * (1 - s)}) scale(${s})`}
+        filter={blur > 0 ? `url(#${captureId})` : undefined}
+      >
         <g className="fan-part" transform={at(V.nk, Z.nk)}>
           <rect {...nkR} />
           <rect className="ov-segfill" {...nkR} style={{ opacity: segO, "--c": SEG.nk }} />
