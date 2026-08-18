@@ -797,13 +797,27 @@
   }
 }
 
+/* The matrix is ink on the sheet: ruled bays, one block each, height carrying the
+   verdict. No cards, no radius, no fill behind them — the ground is the sheet. */
 .cvt-matrix {
   display: grid;
   grid-template-columns: auto repeat(4, minmax(0, 1fr));
-  gap: 0.5rem;
+  column-gap: 2px;
+  row-gap: 1.7rem;
   align-items: stretch;
   margin: 1.2rem 0 1.1rem;
   min-width: 660px;
+}
+/* names the rung every bay's dashed top edge stands for */
+.cvt-mx-shelf-label {
+  font-family: var(--cvt-mono);
+  font-size: var(--cvt-t-1);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--cvt-ink-dim);
+  align-self: end;
+  justify-self: end;
+  padding: 0 0.5rem 0.3rem 0;
 }
 .cvt-mx-h {
   font-family: var(--cvt-mono);
@@ -824,6 +838,7 @@
   gap: 0.4rem;
   padding-right: 0.5rem;
   color: var(--cvt-ink-dim);
+  align-self: center;
 }
 /* the small scale swatch, shared by the matrix row heads and the panel eyebrow */
 .cvt-mx-row::before,
@@ -836,37 +851,74 @@
   flex-shrink: 0;
 }
 .cvt-mx-cell {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 0.55rem;
-  background: var(--cvt-card);
-  border: 1px solid var(--cvt-line);
-  border-radius: 8px;
-  padding: 0.85rem 0.9rem;
+  position: relative;
+  display: block;
+  height: 208px;
+  /* three lines of clearance under the floor: the split cell's label is the
+     longest, and a label that climbs into its own block is unreadable */
+  padding: 0 0 3.2rem;
+  background: none;
+  border: 0;
+  border-left: 0.5px solid var(--cvt-grid);
+  /* the dashed top edge IS the Strong shelf: every bay shows the rung it would
+     have to reach, and none of them does */
+  border-top: 1.5px dashed var(--cvt-line);
+  border-bottom: 1px solid var(--cvt-line);
+  border-radius: 0;
   color: var(--cvt-ink);
   cursor: pointer;
-  font-family: var(--cvt-display);
-  font-size: var(--cvt-t-3);
   text-align: left;
-  transition: background 0.15s;
 }
-.cvt-mx-cell:hover {
-  background: var(--cvt-card-hi);
+.cvt-mx-cell:last-child {
+  border-right: 0.5px solid var(--cvt-grid);
 }
-/* the instrument shows its state: the selected cell reads as pressed-in ink */
+/* the block stands on the bay floor; its height is the verdict */
+.cvt-mx-block {
+  position: absolute;
+  left: 7px;
+  right: 7px;
+  bottom: 3.2rem;
+  display: block;
+}
+/* a split cell stands at its stronger sub-verdict and rules the weaker one across */
+.cvt-mx-subrule {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px dashed var(--cvt-bg);
+}
+.cvt-mx-letter {
+  position: absolute;
+  left: 7px;
+  top: 0.25rem;
+  font-family: var(--cvt-mono);
+  font-size: var(--cvt-t-2);
+  color: var(--cvt-ink);
+}
+.cvt-mx-cell:hover .cvt-mx-block,
+.cvt-mx-cell:focus-visible .cvt-mx-block {
+  outline: 1.5px solid var(--cvt-ink);
+  outline-offset: 2px;
+}
+/* the instrument shows its state: the selected bay is ruled on all four sides */
 .cvt-mx-cell[aria-pressed="true"] {
-  background: var(--cvt-card-hi);
+  background: var(--cvt-card);
   border-color: var(--cvt-ink);
-  box-shadow: inset 0 0 0 1px var(--cvt-ink);
 }
-.cvt-mx-cell[data-ghost="true"] {
-  border-style: dashed;
-  opacity: 0.6;
+/* absence is drawn as open ground with a dashed floor, never as a faint card */
+.cvt-mx-cell[data-ghost="true"] .cvt-mx-block,
+.cvt-mx-cell[data-verdict="A"] .cvt-mx-block {
+  background: none !important;
+  border-top: 1px dashed var(--cvt-line);
 }
 /* The verdict spelled out: at full width the figure has room, so no value is
    reachable only by decoding a glyph. */
+/* the verdict word runs under the bay floor, as a drawing's dimension text does */
 .cvt-mx-name {
+  position: absolute;
+  left: 7px;
+  right: 2px;
+  bottom: 0;
   font-family: var(--cvt-mono);
   font-size: var(--cvt-t-1);
   line-height: 1.35;
@@ -1878,6 +1930,13 @@
 }
 .cvt-rung[data-verdict="A"] i {
   border-style: dashed;
+}
+
+/* The closing figure gets the whole sheet: the margin furniture belongs to the
+   drawing, and both boxes would otherwise sit over the matrix. */
+.cvt-scroll[data-chapter="outro"] .cvt-instrument,
+.cvt-scroll[data-chapter="outro"] .cvt-titleblock {
+  display: none;
 }
 
 /* the sheet is a desktop conceit: the stepper is its own object */

@@ -100,6 +100,23 @@ const VERDICT_TOKEN: Record<Verdict, string | null> = {
   Absent: null,
 };
 
+/**
+ * The ramp again, as area. Ink coverage alone left `Partial` and
+ * `Plausible-but-unvalidated` two mid-tones roughly 20% apart on a 24px swatch,
+ * so a grid of twelve cells read as uniform — the exact opposite of the paper's
+ * finding. Height is the second, stronger channel: a bay's block rises to its
+ * verdict, so a row's silhouette carries the claim before any label is read.
+ * `Absent` keeps a hairline rather than nothing, so an empty cell still reads as
+ * a cell. Fractions of the bay, ordered; verdictRamp.test.ts holds the order.
+ */
+export const VERDICT_HEIGHT: Record<Verdict, number> = {
+  Strong: 1,
+  Partial: 0.66,
+  "Emerging-but-narrow": 0.46,
+  "Plausible-but-unvalidated": 0.28,
+  Absent: 0.02,
+};
+
 /** the `var(--cvt-v-…)` consumer map for anything painting a ramp step */
 export const VERDICT_VAR = Object.fromEntries(
   Object.entries(VERDICT_TOKEN).map(([verdict, token]) => [verdict, token && `var(${token})`]),

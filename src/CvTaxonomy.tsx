@@ -278,7 +278,7 @@ export function CvTaxonomy({
           }
         />
       ) : (
-        <div className="cvt-scroll" ref={scrollRef}>
+        <div className="cvt-scroll" ref={scrollRef} data-chapter={chapter}>
           <SheetFrame />
           <TitleBlock />
           <MaturityInstrument live={CLAIMED_VERDICTS} />
