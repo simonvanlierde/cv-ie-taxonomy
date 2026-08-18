@@ -793,8 +793,9 @@
   grid-column: 1 / -1;
   /* the closing figure is one screen: thesis over it, figure and caption side
      by side under, so the skip link lands on the whole argument at once */
-  padding: 6vh 0 10vh;
-  scroll-margin-top: 30px;
+  /* clear of the fixed coordinate ruler when the page is at its end */
+  padding: max(8vh, 72px) 0 10vh;
+  scroll-margin-top: 0;
 }
 .cvt-outro h2 {
   max-width: 56ch;
