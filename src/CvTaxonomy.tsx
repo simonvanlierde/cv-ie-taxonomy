@@ -31,6 +31,7 @@ import { RubricCircuit } from "./RubricCircuit";
 import { BREAKPOINT_PX, SCALE_VAR, SURFACE, THEME_VARS, type Theme, VERDICT_VAR } from "./theme";
 import { plateauCentre, TIMELINE } from "./timeline";
 import { useCamera } from "./useCamera";
+import { useDialogRegion } from "./useDialogRegion";
 import { useScrollProgress } from "./useScrollProgress";
 import { VerdictSwatch } from "./VerdictSwatch";
 
@@ -131,7 +132,6 @@ export function CvTaxonomy({
 } = {}) {
   const rootRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const lastFocused = useRef<string | null>(null);
   /** cancels a chapter stop's pending focus landing (timer + scrollend listener) */
   const cancelLanding = useRef<(() => void) | null>(null);
@@ -203,12 +203,6 @@ export function CvTaxonomy({
   // On mobile the compact fan ignores this viewBox, so cut instantly rather than
   // burn a per-frame spring re-rendering the whole tree for output nobody sees.
   const viewBox = useCamera(zoomFrame ?? HOME_FRAME, reduceMotion || isMobile);
-
-  // the drawer's 0.28s exit keeps rendering after `selected` clears; hold the
-  // last cell so it slides out with its content, not as an empty card
-  const lastSelected = useRef<Cell | null>(null);
-  if (selected) lastSelected.current = selected;
-  const panelCell = selected ?? lastSelected.current;
 
   const focus = hovered ?? selected;
   const isDim = (c: Cell) => isDimmed(activeInfo, c);
@@ -285,18 +279,9 @@ export function CvTaxonomy({
     [reduceMotion],
   );
 
-  // native <dialog> owns focus-trap, Esc and focus-return; we only drive open/close
-  useEffect(() => {
-    const dlg = dialogRef.current;
-    if (!dlg) return;
-    if (selected) {
-      // focus the trigger first so the dialog restores to it (not <body>) on close
-      if (lastFocused.current) document.getElementById(lastFocused.current)?.focus();
-      if (!dlg.open) dlg.showModal();
-    } else if (dlg.open) {
-      dlg.close();
-    }
-  }, [selected]);
+  const closeCell = useCallback(() => {
+    withViewTransition(() => setSelected(null), !reduceMotion);
+  }, [reduceMotion]);
 
   useBodyScrollLock(selected !== null);
 
@@ -307,6 +292,17 @@ export function CvTaxonomy({
       data-theme={effectiveTheme}
       style={THEME_VARS[effectiveTheme]}
     >
+      {/* On mobile the sheet has no narrative column to give up, so the detail
+          arrives as a bottom sheet over the stepper — same region, same focus
+          contract, different place on the page. */}
+      {isMobile && selected && (
+        <DetailRegion
+          cell={selected}
+          returnFocusTo={lastFocused.current}
+          onClose={closeCell}
+          compact
+        />
+      )}
       {isMobile ? (
         <MobileStepper
           onOpen={openCell}
@@ -386,7 +382,24 @@ export function CvTaxonomy({
               </div>
             </div>
 
-            <Rail chapter={chapter} activeInfo={activeInfo} onOpen={openCell} />
+            {/* Both live in the narrative column. The rail stays mounted even
+                while the detail is open, because its chapters ARE the scroll
+                length the whole narrative is measured over — swapping it out
+                collapsed the page and dropped the reader at the outro. */}
+            <div className="cvt-railcol" data-detail={selected ? "open" : undefined}>
+              {/* before the rail, not after it: the detail is sticky, and sticky
+                  cannot pin above its own static position — placed last it sat
+                  at the far end of the rail's five thousand pixels and never
+                  appeared on screen at all */}
+              {selected && (
+                <DetailRegion
+                  cell={selected}
+                  returnFocusTo={lastFocused.current}
+                  onClose={closeCell}
+                />
+              )}
+              <Rail chapter={chapter} activeInfo={activeInfo} onOpen={openCell} />
+            </div>
           </div>
           {/* full-width row: the stage's sticky column ends here, and the matrix
               gets the whole canvas as a captioned paper figure */}
@@ -407,22 +420,6 @@ export function CvTaxonomy({
           <GitHubIcon />
         </a>
       </footer>
-
-      {/* biome-ignore lint/a11y/useKeyWithClickEvents: native <dialog> already closes on Esc; onClick only adds backdrop-click for mouse users */}
-      {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: a backdrop click lands on the <dialog> itself, so the handler has nowhere else to live */}
-      <dialog
-        ref={dialogRef}
-        className="cvt-panel"
-        aria-label={panelCell ? `${panelCell.scale} · ${panelCell.informationType}` : undefined}
-        style={panelCell ? { "--hue": SCALE_VAR[panelCell.scale] } : undefined}
-        onClose={() => setSelected(null)}
-        onClick={(e) => {
-          // click on the backdrop (the dialog itself, outside its content) closes it
-          if (e.target === dialogRef.current) dialogRef.current?.close();
-        }}
-      >
-        {panelCell && <DetailPanel cell={panelCell} onClose={() => dialogRef.current?.close()} />}
-      </dialog>
     </div>
   );
 }
@@ -866,7 +863,43 @@ function RubricKey() {
   );
 }
 
-// ---- detail panel ------------------------------------------------------------
+// ---- detail: an enlargement drawn on the sheet ---------------------------------
+/**
+ * Act one's detail takes the narrative column's place rather than covering the
+ * drawing: click a callout and the sheet reconfigures around it, with a leader
+ * ruled back toward the part. That is why it is not a `<dialog>` — the element is
+ * always in the top layer, so it can only ever float over the sheet.
+ *
+ * The three behaviours `<dialog>` gave us for free live in `useDialogRegion`, and
+ * are now ours to test rather than take on trust.
+ */
+function DetailRegion({
+  cell,
+  onClose,
+  returnFocusTo,
+  compact = false,
+}: {
+  cell: Cell;
+  onClose: () => void;
+  returnFocusTo: string | null;
+  compact?: boolean;
+}) {
+  const ref = useDialogRegion({ open: true, onClose, returnFocusTo });
+  return (
+    <aside
+      ref={ref as RefObject<HTMLElement>}
+      className={compact ? "cvt-detail cvt-detail-sheet" : "cvt-detail"}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${cell.scale} · ${cell.informationType}`}
+      style={{ "--hue": SCALE_VAR[cell.scale] }}
+      tabIndex={-1}
+    >
+      <DetailPanel cell={cell} onClose={onClose} />
+    </aside>
+  );
+}
+
 function DetailPanel({ cell, onClose }: { cell: Cell; onClose: () => void }) {
   return (
     <>

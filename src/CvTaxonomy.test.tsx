@@ -7,10 +7,11 @@ import { frameToViewBox, VIEW } from "./frames";
 import { frameOf, matchMediaStub } from "./test-helpers";
 
 /**
- * The detail panel is a native <dialog>: it owns the focus trap, Esc and focus
- * return, and the component only drives open/close. That contract is the thing
- * worth testing — it is what a keyboard or screen-reader user actually meets.
- * (matchMedia and <dialog> shims live in test-setup.ts.)
+ * The detail is an enlargement drawn on the sheet, not a <dialog>: on desktop it
+ * takes the narrative column's place rather than floating over the drawing. That
+ * means the focus trap, Esc and focus return are the component's own (see
+ * useDialogRegion), so unlike the native versions they can actually be asserted
+ * here rather than taken on trust.
  */
 
 /** the mobile list renders a button per cell, id `cvt-m-<cellId>`; use it as the trigger */
@@ -27,22 +28,31 @@ describe("detail panel", () => {
 
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByRole("heading", { level: 2 })).toBeInTheDocument();
-    expect(dialog).toHaveAttribute("open");
+    expect(dialog).toHaveAttribute("aria-modal", "true");
   });
 
-  it("focuses the opening cell before showing the modal, so focus can return to it", async () => {
+  it("moves focus into the detail when it opens", async () => {
     const user = userEvent.setup();
     render(<CvTaxonomy />);
 
-    const opener = trigger("component-identity");
-    await user.click(opener);
-    await screen.findByRole("dialog");
+    await user.click(trigger("component-identity"));
+    const dialog = await screen.findByRole("dialog");
 
-    // This is the component's half of the focus-return contract: the browser
-    // restores focus to whatever was focused when showModal ran, so that element
-    // must be the trigger and not <body>. (The restore itself is the engine's
-    // job; under jsdom it is emulated — see test-setup.ts.)
-    expect(opener).toHaveFocus();
+    // the region itself, so a screen reader announces the detail's name and role
+    // before any control inside it
+    expect(dialog).toHaveFocus();
+  });
+
+  it("keeps Tab inside the detail while it is open", async () => {
+    const user = userEvent.setup();
+    render(<CvTaxonomy />);
+
+    await user.click(trigger("component-identity"));
+    const dialog = await screen.findByRole("dialog");
+
+    // walk further than the region has controls; focus must never leave it
+    for (let i = 0; i < 12; i++) await user.tab();
+    expect(dialog.contains(document.activeElement)).toBe(true);
   });
 
   it("closes on Esc, landing focus back on the cell that opened it", async () => {
@@ -56,7 +66,9 @@ describe("detail panel", () => {
     await user.keyboard("{Escape}");
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    expect(opener).toHaveFocus();
+    // by id, not by node: on desktop the detail replaces the column the opener
+    // lives in, so the element that comes back is a different node
+    expect(trigger("component-identity")).toHaveFocus();
     expect(document.activeElement).not.toBe(document.body);
   });
 
