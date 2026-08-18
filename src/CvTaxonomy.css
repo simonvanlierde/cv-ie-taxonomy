@@ -1232,7 +1232,7 @@
 /* ---- detail panel ------------------------------------------------------------------------ */
 .cvt-panel::backdrop {
   /* near-transparent: the zoomed fan stays visible beside the panel, not dimmed out */
-  background: rgba(0, 0, 0, 0.06);
+  background: rgba(0, 0, 0, 0.12);
   animation: cvt-fade 0.2s ease;
 }
 .cvt-panel {
@@ -1252,10 +1252,12 @@
   max-height: 100vh;
   overflow-y: auto;
   background: var(--cvt-panel);
+  /* A detail view drawn on the sheet, not a panel floating over an app: ruled
+     on the sheet side, no shadow, no radius. The scale hue stays as a hairline
+     rule rather than the 3px side-tab it was. */
   border: none;
-  border-left: 3px solid var(--hue);
+  border-left: 1px solid var(--hue);
   padding: 1.6rem 1.6rem 3rem;
-  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.35);
   outline: none;
   color: var(--cvt-ink);
   font-family: var(--cvt-sans);
@@ -1318,9 +1320,9 @@
   flex-shrink: 0;
   width: 34px;
   height: 34px;
-  border-radius: 8px;
+  border-radius: 0;
   border: 1px solid var(--cvt-line);
-  background: var(--cvt-card);
+  background: none;
   color: var(--cvt-ink);
   cursor: pointer;
   font-size: var(--cvt-t-3);
@@ -1328,14 +1330,15 @@
 .cvt-panel-close:hover {
   background: var(--cvt-card-hi);
 }
+/* the verdict reads as a ruled band across the detail, not a card inside it */
 .cvt-verdict {
   display: flex;
   align-items: center;
   gap: 0.8rem;
-  padding: 0.8rem;
-  border: 1px solid var(--cvt-line);
-  border-radius: 10px;
-  margin-bottom: 1rem;
+  padding: 0.7rem 0 0.9rem;
+  border-top: 1.5px solid var(--cvt-line);
+  border-bottom: 1.5px solid var(--cvt-line);
+  margin-bottom: 1.1rem;
 }
 .cvt-verdict strong {
   display: block;
@@ -1946,4 +1949,90 @@
   .cvt-instrument {
     display: none;
   }
+}
+
+/* ---- the rubric as a run that breaks -----------------------------------------
+   Three marks, drawn as a chain: evidence, capture, deployment. A segment that
+   carries is solid ink; the one that fails is broken; everything downstream is
+   dead, because the ladder's binding limit is wherever the chain first stops. */
+.cvt-circuits {
+  display: grid;
+  gap: 0.9rem;
+  margin: 0.7rem 0 0.2rem;
+}
+.cvt-circuit-sub {
+  margin: 0 0 0.3rem;
+  font-family: var(--cvt-mono);
+  font-size: var(--cvt-t-1);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cvt-ink-dim);
+}
+.cvt-circuit-run {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+}
+/* the electrodes: the far one only fills on a run that completes, and none does */
+.cvt-circuit-node {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  margin-top: 3px;
+  border: 1px solid var(--cvt-ink-dim);
+  border-radius: 50%;
+}
+.cvt-circuit-node[data-live="true"] {
+  background: var(--cvt-ink);
+  border-color: var(--cvt-ink);
+}
+.cvt-circuit-seg {
+  flex: 1 1 0;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0 0.3rem;
+}
+.cvt-circuit-line {
+  grid-column: 1 / -1;
+  height: 0;
+  margin: 6px 0 0.3rem;
+  border-top: 1.5px solid var(--cvt-ink);
+}
+.cvt-circuit-seg b {
+  font-family: var(--cvt-mono);
+  font-size: var(--cvt-t-2);
+  color: var(--cvt-ink);
+  line-height: 1.1;
+}
+.cvt-circuit-seg em {
+  font-style: normal;
+  font-size: var(--cvt-t-1);
+  line-height: 1.35;
+  color: var(--cvt-ink-dim);
+  text-wrap: pretty;
+}
+/* the break: the line stops short and the gap is marked where it stops */
+.cvt-circuit-seg[data-state="breaks"] .cvt-circuit-line {
+  border-top-style: solid;
+  position: relative;
+  margin-right: 12px;
+}
+.cvt-circuit-seg[data-state="breaks"] .cvt-circuit-line::after {
+  content: "";
+  position: absolute;
+  right: -12px;
+  top: -5px;
+  width: 9px;
+  height: 9px;
+  border-left: 1.5px solid var(--cvt-ink);
+  transform: skewX(-20deg);
+}
+/* past the break nothing carries, so the line goes to a dashed hairline */
+.cvt-circuit-seg[data-state="dead"] .cvt-circuit-line {
+  border-top: 1px dashed var(--cvt-line);
+}
+.cvt-circuit-seg[data-state="dead"] b,
+.cvt-circuit-seg[data-state="dead"] em {
+  opacity: 0.55;
 }

@@ -27,6 +27,7 @@ import { Fan } from "./Fan";
 import { FRAMES, HOME_FRAME } from "./frames";
 import { MobileStepper } from "./MobileStepper";
 import { Cite, CitedProse } from "./References";
+import { RubricCircuit } from "./RubricCircuit";
 import { BREAKPOINT_PX, SCALE_VAR, SURFACE, THEME_VARS, type Theme, VERDICT_VAR } from "./theme";
 import { plateauCentre, TIMELINE } from "./timeline";
 import { useCamera } from "./useCamera";
@@ -805,8 +806,10 @@ function DetailPanel({ cell, onClose }: { cell: Cell; onClose: () => void }) {
     <>
       <div className="cvt-panel-head">
         <div>
+          {/* names the drawing convention: this is a detail view of one cell of
+              the sheet, not a panel that arrived over it */}
           <p className="cvt-panel-scale">
-            {cell.scale} · {cell.informationType}
+            detail · {cell.scale} · {cell.informationType}
           </p>
           <h2>{cell.task}</h2>
         </div>
@@ -883,6 +886,7 @@ export function DetailBody({ cell }: { cell: Cell }) {
             value={
               <>
                 <span className="cvt-mono">{cell.rubricMarks}</span>
+                <RubricCircuit cell={cell} />
                 <RubricKey />
               </>
             }
