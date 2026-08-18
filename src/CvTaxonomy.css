@@ -452,14 +452,18 @@
 }
 /* Hover already swaps the plate stroke, so a focused chip needs an indicator
    hover does not use: the same ring the layer taps carry. A stroke-width change
-   alone was indistinguishable from hover and near-invisible in a screenshot. */
+   alone was indistinguishable from hover and near-invisible in a screenshot.
+   The ring goes on the plate, not the group: the group's box takes in the
+   leader line, so an outline there drew a 250px empty rectangle across the
+   drawing. Engines that do not outline SVG shapes still get the heavier plate. */
 .cvt-co:focus-visible {
-  outline: 2px solid var(--cvt-ink);
-  outline-offset: 3px;
+  outline: none;
 }
 .cvt-co:focus-visible .cvt-co-bg {
   stroke: var(--cvt-ink);
   stroke-width: 2.4;
+  outline: 2px solid var(--cvt-ink);
+  outline-offset: 3px;
 }
 
 /* ---- HUD --------------------------------------------------------------------------- */
@@ -1957,14 +1961,20 @@
 .cvt-railcol[data-detail="open"] .cvt-rail {
   visibility: hidden;
 }
-.cvt-detail {
+/* The slot is the sticky, zero-height thing; the detail overflows it. A float
+   here was meant to be zero-height too, but the hero's flex box could not
+   overlap it and dropped below it, lengthening the column — and the column IS
+   the scroll timeline, so every chapter jumped the moment a detail opened. */
+.cvt-detail-slot {
   position: sticky;
   /* inside the sheet's ruled border and clear of the coordinate ruler: the one
      element rebuilt to live ON the sheet must not punch through its frame */
   top: 48px;
-  /* it is first in the column and zero-height in flow, so the rail below keeps
-     the scroll length it always had */
-  float: left;
+  height: 0;
+  z-index: 2;
+}
+.cvt-detail {
+  position: relative;
   width: 100%;
   max-height: calc(100vh - 96px);
   overflow-y: auto;

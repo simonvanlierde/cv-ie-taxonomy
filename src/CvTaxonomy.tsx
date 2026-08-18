@@ -413,11 +413,19 @@ export function CvTaxonomy({
                   at the far end of the rail's five thousand pixels and never
                   appeared on screen at all */}
               {selected && (
-                <DetailRegion
-                  cell={selected}
-                  returnFocusTo={lastFocused.current}
-                  onClose={closeCell}
-                />
+                // a zero-height sticky slot: the detail rides it down the column
+                // without adding to the column's height, which is the scroll
+                // timeline — a detail that lengthened it remapped every chapter
+                // under the reader the moment it opened
+                <div className="cvt-detail-slot">
+                  <DetailRegion
+                    cell={selected}
+                    // a deep link has no opener; its cell's own callout is the
+                    // nearest thing to one, and the link has scrolled it on stage
+                    returnFocusTo={lastFocused.current ?? `cvt-co-${selected.id}`}
+                    onClose={closeCell}
+                  />
+                </div>
               )}
               <Rail chapter={chapter} />
             </div>

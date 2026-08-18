@@ -108,6 +108,17 @@ describe("detail on the sheet (desktop)", () => {
     expect(within(region).getByRole("heading", { level: 2 })).toHaveTextContent(cell.task);
   });
 
+  it("lands focus on the deep-linked cell's own callout when its detail closes", async () => {
+    // a deep link has no opener to return to; the cell's chip stands in, and
+    // the link has scrolled its chapter on stage so the chip is operable
+    const user = userEvent.setup();
+    render(<CvTaxonomy initialCell="material-quantity" debugProgress={onStage("Material")} />);
+    const region = await screen.findByRole("complementary", { name: /material · quantity/i });
+    region.focus();
+    await user.keyboard("{Escape}");
+    expect(trigger("material-quantity")).toHaveFocus();
+  });
+
   it("ignores an initialCell that names no cell, rather than throwing", () => {
     render(<CvTaxonomy initialCell="not-a-cell" />);
     expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
