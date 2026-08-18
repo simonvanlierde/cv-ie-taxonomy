@@ -1,7 +1,7 @@
 import { type ReactNode, useId } from "react";
 import { cellById as cell, VERDICT_LETTER } from "./data/taxonomy";
 import type { Cell } from "./data/types";
-import { frameToViewBox, VIEW } from "./frames";
+import { type Frame, frameToViewBox, VIEW } from "./frames";
 import { SCALE_VAR, SEG_VAR as SEG } from "./theme";
 import { presence as presenceAt, seg, TIMELINE } from "./timeline";
 import { VerdictSwatch } from "./VerdictSwatch";
@@ -260,6 +260,7 @@ function Callout({
   opacity,
   active,
   selected,
+  frame,
   onSelect,
   onHover,
 }: {
@@ -277,12 +278,24 @@ function Callout({
    *  sibling has focus is still visible, so it must stay focusable and announced. */
   active: boolean;
   selected: boolean;
+  /** the camera's target while a detail is open; null when the camera is home */
+  frame: Frame | null;
   onSelect: (cell: Cell, focusId: string) => void;
   onHover: (cell: Cell | null) => void;
 }) {
   const letter = VERDICT_LETTER[cell.maturity];
   const w = chipWidth(text);
   const X = x ?? CHIP_RIGHT_EDGE - w;
+  // The zoom frames are tighter than the chip ring by construction, so while a
+  // detail is open most sibling chips sit outside the drawing's frame. A chip the
+  // reader cannot see is not a tab stop: operable implies visible. Its visible
+  // fragment stays clickable, and the selected chip stays focusable so focus has
+  // its opener to return to on close. Centre test, not bbox: a chip half in
+  // frame is still a control.
+  const cx = X + w / 2;
+  const inFrame =
+    !frame || (cx >= frame.x && cx <= frame.x + frame.w && y >= frame.y && y <= frame.y + frame.h);
+  const focusable = active && (selected || inFrame);
   const hid = `cvt-co-${cell.id}`;
   const start: readonly [number, number] = leadEdge === "right" ? [w, -6] : [0, -6];
   return (
@@ -293,9 +306,9 @@ function Callout({
       data-ghost={!!cell.structurallyEmpty}
       data-selected={selected}
       role="button"
-      tabIndex={active ? 0 : -1}
+      tabIndex={focusable ? 0 : -1}
       aria-label={`${cell.scale} · ${cell.informationType}: ${cell.task}. Maturity: ${cell.maturity}. Open details.`}
-      aria-hidden={!active}
+      aria-hidden={!focusable}
       transform={`translate(${X} ${y})`}
       style={{
         opacity,
@@ -340,6 +353,7 @@ export function Fan({
   reduceMotion,
   compact = false,
   viewBox,
+  frame = null,
 }: {
   /** global scroll progress 0..1 */
   p: number;
@@ -355,6 +369,10 @@ export function Fan({
   /** camera viewBox (from useCamera). Desktop zooms to the selected cell;
    *  the stepper drives per-step frames. Omitted: the static full box. */
   viewBox?: string;
+  /** the camera's target frame while a detail is open — the spring's
+   *  destination, not its current value, so the tab ring does not flicker
+   *  during the move. Chips outside it are not tab stops. */
+  frame?: Frame | null;
 }) {
   // scoped, so a second Fan on the page cannot steal this one's clip path
   const ocrClip = useId();
@@ -426,6 +444,7 @@ export function Fan({
       opacity: chip(c),
       active: interactive(c),
       selected: focus?.id === c.id,
+      frame,
       onSelect,
       onHover,
     };

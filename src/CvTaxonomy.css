@@ -534,6 +534,9 @@
   border: 1px dashed var(--cvt-line);
   border-radius: 5px;
   padding: 0.25rem 0.5rem;
+  /* the sheet's ground: chapter prose scrolls under this fixed stamp, and text
+     over text is unreadable both ways */
+  background: var(--cvt-bg);
 }
 .cvt-ind {
   list-style: none;

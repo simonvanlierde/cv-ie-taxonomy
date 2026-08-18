@@ -2,6 +2,7 @@ import { render, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { cellById } from "./data/taxonomy";
 import { Fan } from "./Fan";
+import { FRAMES } from "./frames";
 import { TIMELINE } from "./timeline";
 
 /**
@@ -44,6 +45,37 @@ const COMPONENT_CHIPS = [
 ];
 
 describe("chip operability", () => {
+  it("drops chips outside the camera frame from the tab ring, but never the selected one", () => {
+    // component-quantity's frame is tight around the motor: the identity chip in
+    // the left gutter is not on the sheet while that detail is open, and a chip
+    // the reader cannot see is not a tab stop. The opener stays focusable so
+    // focus has somewhere to return to.
+    const selected = cellById("component-quantity");
+    const { container, rerender } = renderFan({
+      focus: selected,
+      frame: FRAMES["component-quantity"],
+    });
+    expect(chip(container, "component-identity")).toHaveAttribute("tabindex", "-1");
+    expect(chip(container, "component-identity")).toHaveAttribute("aria-hidden", "true");
+    expect(chip(container, "component-quantity")).toHaveAttribute("tabindex", "0");
+    // camera home: the whole chapter is back in the ring
+    rerender(
+      <svg aria-label="test host">
+        <title>test host</title>
+        <Fan
+          p={COMPONENT_PLATEAU}
+          focus={selected}
+          isDim={() => false}
+          onSelect={noop}
+          onHover={noop}
+          reduceMotion={true}
+          frame={null}
+        />
+      </svg>,
+    );
+    expect(chip(container, "component-identity")).toHaveAttribute("tabindex", "0");
+  });
+
   it("makes every chip of the on-stage chapter focusable", () => {
     const { container } = renderFan();
     for (const id of COMPONENT_CHIPS) {

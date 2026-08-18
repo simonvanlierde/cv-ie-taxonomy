@@ -68,23 +68,36 @@ function useMediaQuery(query: string): boolean {
   );
 }
 
-/** Whether the component root is narrower than the layout breakpoint, measured via
- *  ResizeObserver. Stores the boolean, not the raw width, so a resize drag only
- *  re-renders on the frame the threshold is crossed. null until the first
- *  measurement, so callers fall back to a viewport guess for the first paint. */
-function useContainerNarrow(ref: RefObject<HTMLElement | null>): boolean | null {
+/** I is skipped, as on a real drawing: it reads as a 1 against the row numbers. */
+// biome-ignore lint/security/noSecrets: the drawing sheet's column references
+const COLUMN_REFS = "ABCDEFGHJKLMNPQRSTUVWXYZ".split("");
+/** one ruler column, matching `.cvt-ruler-x span` in the stylesheet */
+const RULER_STEP_PX = 96;
+
+/** The component root's width, measured via ResizeObserver and stored quantised:
+ *  whether it is narrower than the layout breakpoint, and how many 96px ruler
+ *  columns it holds. Not the raw width, so a resize drag only re-renders on the
+ *  frames a threshold is crossed. `narrow` is null until the first measurement,
+ *  so callers fall back to a viewport guess for the first paint. */
+function useContainerSize(ref: RefObject<HTMLElement | null>): {
+  narrow: boolean | null;
+  columns: number;
+} {
   const [narrow, setNarrow] = useState<boolean | null>(null);
+  const [columns, setColumns] = useState(COLUMN_REFS.length);
   useEffect(() => {
     const el = ref.current;
     if (!el || typeof ResizeObserver === "undefined") return;
     const ro = new ResizeObserver((entries) => {
       const w = entries[0]?.contentRect.width;
-      if (typeof w === "number") setNarrow(w < BREAKPOINT_PX);
+      if (typeof w !== "number") return;
+      setNarrow(w < BREAKPOINT_PX);
+      setColumns(Math.min(COLUMN_REFS.length, Math.ceil(w / RULER_STEP_PX)));
     });
     ro.observe(el);
     return () => ro.disconnect();
   }, [ref]);
-  return narrow;
+  return { narrow, columns };
 }
 
 /** Lock page scroll while a modal is open, so the scrub and camera stay put
@@ -145,7 +158,7 @@ export function CvTaxonomy({
   // width drives this (so an embed adapts to its slot, not the viewport); the
   // viewport query only stands in for the first paint, before anything is measured.
   const viewportIsMobile = useMediaQuery(`(max-width: ${BREAKPOINT_PX - 1}px)`);
-  const containerNarrow = useContainerNarrow(rootRef);
+  const { narrow: containerNarrow, columns } = useContainerSize(rootRef);
   const isMobile = containerNarrow ?? viewportIsMobile;
 
   // Theme has one owner, resolved here: the user's toggle beats the host's prop,
@@ -334,7 +347,7 @@ export function CvTaxonomy({
           data-chapter={chapter}
           data-panel={selected ? "open" : undefined}
         >
-          <SheetFrame />
+          <SheetFrame columns={columns} />
           {/* sheet-level chrome, so it sits in the sheet's margin rather than
               inside the drawing's own column, where it crowded the chapter rail */}
           <div className="cvt-sheet-actions">
@@ -360,6 +373,7 @@ export function CvTaxonomy({
                   reduceMotion={reduceMotion}
                   compact={isMobile}
                   viewBox={viewBox}
+                  frame={zoomFrame}
                 />
                 <div className="cvt-hud">
                   <div className="cvt-hud-top">
@@ -450,17 +464,16 @@ export function CvTaxonomy({
 // document proper (the title block repeats the figure caption's provenance, the
 // instrument repeats the legend).
 
-/** I is skipped, as on a real drawing: it reads as a 1 against the row numbers. */
-// biome-ignore lint/security/noSecrets: the drawing sheet's column references
-const COLUMN_REFS = "ABCDEFGHJKLMNPQRSTUVWXYZ".split("");
 const ROW_REFS = Array.from({ length: 20 }, (_, i) => i + 1);
 
-const SheetFrame = memo(function SheetFrame() {
+/** `columns`: how many column references the sheet is wide enough to show,
+ *  from the container measurement — the rest were DOM under overflow: hidden. */
+const SheetFrame = memo(function SheetFrame({ columns }: { columns: number }) {
   return (
     <div className="cvt-sheet" aria-hidden>
       <div className="cvt-sheet-border" />
       <div className="cvt-ruler cvt-ruler-x">
-        {COLUMN_REFS.map((c) => (
+        {COLUMN_REFS.slice(0, columns).map((c) => (
           <span key={c}>{c}</span>
         ))}
       </div>
