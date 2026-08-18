@@ -124,7 +124,7 @@
 .cvt-tableview-title {
   font-family: var(--cvt-mono);
   font-size: var(--cvt-t-1);
-  letter-spacing: 0.26em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--cvt-ink-dim);
   font-weight: 400;
@@ -703,7 +703,7 @@
   margin-top: 0.9rem;
   font-family: var(--cvt-mono);
   font-size: var(--cvt-t-2);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.02em;
   color: var(--cvt-ink-dim);
   text-decoration: underline;
   text-decoration-style: dotted;
@@ -1911,7 +1911,7 @@
   font-size: var(--cvt-t-2);
   font-weight: 700;
   letter-spacing: 0;
-  line-height: 1.25;
+  line-height: 1.3;
   color: var(--cvt-ink);
   padding: 0.5rem 0.55rem;
   border-bottom: 1.5px solid var(--cvt-line);
@@ -2178,10 +2178,15 @@
 }
 .cvt-circuit-seg em {
   font-style: normal;
-  font-size: var(--cvt-t-1);
+  /* sentence-case, so it starts at t-2 like everything else the reader weighs;
+     11px is reserved for uppercase tracked mono */
+  font-size: var(--cvt-t-2);
   line-height: 1.35;
   color: var(--cvt-ink-dim);
   text-wrap: pretty;
+  /* a gutter before the next segment's mark: the labels ran into each other
+     and into the break glyph at the detail's width */
+  padding-right: 0.55rem;
 }
 /* the break: the line stops short and the gap is marked where it stops */
 /* the break: the run stops short, and the gap is struck through so it reads as a
