@@ -25,14 +25,15 @@ export function Explorable() {
         <div className="cvt-inline-detail" aria-live="polite">
           {selected && (
             <>
-              <p className="cvt-panel-scale" style={{ "--hue": SCALE_VAR[selected.scale] }}>
-                {selected.scale} · {selected.informationType}
-              </p>
               <h3 className="cvt-inline-title">
                 {selected.structurallyEmpty
                   ? "Structurally empty: answered at the component scale"
                   : selected.task}
               </h3>
+              {/* under the title, not over it — see DetailPanel */}
+              <p className="cvt-panel-scale" style={{ "--hue": SCALE_VAR[selected.scale] }}>
+                {selected.scale} · {selected.informationType}
+              </p>
               <DetailBody key={selected.id} cell={selected} />
             </>
           )}

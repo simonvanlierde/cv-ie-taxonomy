@@ -401,18 +401,23 @@ export function Fan({
   const moC = cc(C.mo, V.mo, Z.mo);
   const baC = cc(C.ba, V.ba, Z.ba);
 
-  // chip opacity: chapter presence × filter/focus factors
-  const chip = (c: Cell) =>
-    presence[c.scale] * (isDim(c) ? 0.15 : focus && focus.id !== c.id ? 0.45 : 1);
+  // Operability tracks the chapter and the filter, never the focus dimming: a chip
+  // faded because a sibling is hovered is still on screen, so it stays tabbable.
+  // Deriving this from opacity made Tab skip every chip but the focused one — the
+  // chips are the controls, so that stranded keyboard users.
+  const interactive = (c: Cell) => presence[c.scale] > ON_STAGE && !isDim(c);
+
+  // chip opacity: chapter presence × filter/focus factors. Floored while the chip
+  // is operable, so "tabbable" and "visible" cannot come apart: mid-transition a
+  // chip could be focusable at 0.12–0.45, which put a keyboard user's focus ring
+  // on something they could barely see.
+  const chip = (c: Cell) => {
+    const o = presence[c.scale] * (isDim(c) ? 0.15 : focus && focus.id !== c.id ? 0.45 : 1);
+    return interactive(c) ? Math.max(o, 0.55) : o;
+  };
   // annotation opacity: strong when its chapter is active, isolated on hover/focus
   const deco = (c: Cell, base = 0.85) =>
     presence[c.scale] * (isDim(c) ? 0 : focus ? (focus.id === c.id ? 1 : 0.05) : base);
-
-  // Operability tracks the chapter and the filter, never the focus dimming: a chip
-  // faded to 0.45 because a sibling is hovered is still on screen, so it stays
-  // tabbable. Deriving this from opacity made Tab skip every chip but the focused
-  // one — the chips are the controls, so that stranded keyboard users.
-  const interactive = (c: Cell) => presence[c.scale] > ON_STAGE && !isDim(c);
 
   const co = (id: string) => {
     const c = cell(id);

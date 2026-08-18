@@ -83,6 +83,6 @@ describe("verdict height", () => {
     const claimed = cells
       .map((c) => VERDICT_HEIGHT[splitOf(c)?.[0] ?? c.maturity])
       .reduce((a, b) => a + b, 0);
-    expect(claimed / cells.length).toBeLessThan(0.5);
+    expect(claimed / cells.length).toBeLessThan(0.35);
   });
 });

@@ -196,9 +196,20 @@
 .cvt-stagecol {
   position: relative;
   min-width: 0;
-  /* the maturity instrument is fixed in the sheet's left margin, so the drawing
-     column starts clear of it rather than letting callouts run under it */
-  padding-left: 296px;
+}
+/* The instrument is fixed in the sheet's left margin, so the drawing column
+   starts clear of it — but only where there is room for both. Below this the
+   margin band costs more than the overlap it prevents, so the instrument goes
+   and the drawing takes the whole sheet. */
+@container cvt (width >= 1180px) {
+  .cvt-stagecol {
+    padding-left: 296px;
+  }
+}
+@container cvt (width < 1180px) {
+  .cvt-instrument {
+    display: none;
+  }
 }
 .cvt-sticky {
   position: sticky;
@@ -536,9 +547,13 @@
 .cvt-ind {
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 0 0.5rem;
   display: flex;
   gap: 1rem;
+  /* the zoomed fan can run right under this band, and white linework on white
+     linework is unreadable; the rail keeps its own ground */
+  background: var(--cvt-bg);
+  border: 1px solid var(--cvt-line);
 }
 .cvt-ind li {
   display: flex;
@@ -550,6 +565,9 @@
   font-family: var(--cvt-mono);
   font-size: var(--cvt-t-1);
   letter-spacing: 0.2em;
+  /* a stop that wraps stops being a stop: "THE MAP" broke over two lines and
+     pushed the rail under the caveat banner */
+  white-space: nowrap;
   text-transform: uppercase;
   color: var(--cvt-ink-dim);
   display: flex;
@@ -590,6 +608,24 @@
 .cvt-ind-end {
   --hue: var(--cvt-ink);
 }
+/* Below the wide sheet the rail and the caveat banner cannot share a line, so
+   the rail tightens and drops beneath it. Declared here rather than beside the
+   other narrow-sheet rules because it has to come after .cvt-ind's own margin. */
+@container cvt (width < 1180px) {
+  .cvt-ind {
+    gap: 0.6rem;
+    margin-top: 34px;
+  }
+  .cvt-ind button,
+  .cvt-ind a {
+    letter-spacing: 0.1em;
+  }
+  .cvt-ind button::before,
+  .cvt-ind a::before {
+    width: 10px;
+  }
+}
+
 /* a <fieldset>, so the chips are a named group without an ARIA role */
 .cvt-filtergroup {
   border: 0;
@@ -900,7 +936,7 @@
   height: 208px;
   /* three lines of clearance under the floor: the split cell's label is the
      longest, and a label that climbs into its own block is unreadable */
-  padding: 0 0 3.2rem;
+  padding: 0 0 3.9rem;
   background: none;
   border: 0;
   border-left: 0.5px solid var(--cvt-grid);
@@ -921,7 +957,7 @@
   position: absolute;
   left: 7px;
   right: 7px;
-  bottom: 3.2rem;
+  bottom: 3.9rem;
   display: block;
 }
 /* a split cell stands at its stronger sub-verdict and rules the weaker one across */
@@ -1349,7 +1385,8 @@
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--cvt-ink-dim);
-  margin: 0 0 0.3rem;
+  /* it sits under the title now, so the space it needs is above it */
+  margin: 0.4rem 0 0.3rem;
   display: flex;
   align-items: center;
   gap: 0.45rem;
@@ -2006,6 +2043,22 @@
 }
 .cvt-rung[data-verdict="A"] i {
   border-style: dashed;
+}
+
+/* The detail is an enlargement of part of the sheet, so the sheet gives it room
+   rather than being covered by it: while it is open the drawing's own controls
+   and the title block clear the panel's width instead of hiding behind it. */
+/* The panel is min(520px, 94vw), but 94vw only wins below ~553px, and none of
+   this chrome renders there — so the flat value is the accurate one. It is also
+   the only one that works: min() in this padding hangs jsdom's style
+   computation, and every panel test times out. */
+.cvt-scroll[data-panel="open"] .cvt-hud-bottom,
+.cvt-scroll[data-panel="open"] .cvt-hud-top {
+  padding-right: 520px;
+}
+.cvt-scroll[data-panel="open"] .cvt-titleblock,
+.cvt-scroll[data-panel="open"] .cvt-sheet-actions {
+  display: none;
 }
 
 /* The closing figure gets the whole sheet: the margin furniture belongs to the

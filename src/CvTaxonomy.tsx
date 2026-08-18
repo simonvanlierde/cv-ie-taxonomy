@@ -133,6 +133,8 @@ export function CvTaxonomy({
   const scrollRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const lastFocused = useRef<string | null>(null);
+  /** cancels a chapter stop's pending focus landing (timer + scrollend listener) */
+  const cancelLanding = useRef<(() => void) | null>(null);
 
   const reduceMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
   // render exactly one fan: full on desktop, compact on mobile. The container's own
@@ -243,10 +245,19 @@ export function CvTaxonomy({
       if (chip?.getAttribute("tabindex") === "0") chip.focus();
     };
     // scrollend fires when the smooth scroll settles; the timeout covers engines
-    // without it, and firing land() twice is harmless
+    // without it, and firing land() twice is harmless. Both are cancellable: a
+    // pending landing that outlives the component would move focus into a tree
+    // that is no longer on the page.
+    cancelLanding.current?.();
+    const timer = setTimeout(land, 700);
     window.addEventListener("scrollend", land, { once: true });
-    setTimeout(land, 700);
+    cancelLanding.current = () => {
+      clearTimeout(timer);
+      window.removeEventListener("scrollend", land);
+    };
   }, []);
+
+  useEffect(() => () => cancelLanding.current?.(), []);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: mount-only by design — a later mobile↔desktop resize must not yank the reader's scroll position
   useEffect(() => {
@@ -308,7 +319,12 @@ export function CvTaxonomy({
           }
         />
       ) : (
-        <div className="cvt-scroll" ref={scrollRef} data-chapter={chapter}>
+        <div
+          className="cvt-scroll"
+          ref={scrollRef}
+          data-chapter={chapter}
+          data-panel={selected ? "open" : undefined}
+        >
           <SheetFrame />
           {/* sheet-level chrome, so it sits in the sheet's margin rather than
               inside the drawing's own column, where it crowded the chapter rail */}
@@ -856,12 +872,12 @@ function DetailPanel({ cell, onClose }: { cell: Cell; onClose: () => void }) {
     <>
       <div className="cvt-panel-head">
         <div>
-          {/* names the drawing convention: this is a detail view of one cell of
-              the sheet, not a panel that arrived over it */}
+          <h2>{cell.task}</h2>
+          {/* under the title, not over it: the same words above a heading are a
+              kicker, and this names which cell of the sheet the detail enlarges */}
           <p className="cvt-panel-scale">
             detail · {cell.scale} · {cell.informationType}
           </p>
-          <h2>{cell.task}</h2>
         </div>
         <button
           type="button"

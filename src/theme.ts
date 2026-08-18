@@ -114,9 +114,9 @@ const VERDICT_TOKEN: Record<Verdict, string | null> = {
  */
 export const VERDICT_HEIGHT: Record<Verdict, number> = {
   Strong: 1,
-  Partial: 0.5,
-  "Emerging-but-narrow": 0.33,
-  "Plausible-but-unvalidated": 0.19,
+  Partial: 0.42,
+  "Emerging-but-narrow": 0.26,
+  "Plausible-but-unvalidated": 0.14,
   Absent: 0.02,
 };
 
