@@ -10,11 +10,17 @@ const SPRING = { type: "spring", stiffness: 140, damping: 26, mass: 0.9 } as con
  * Owns the Fan viewBox as animated state. Springs from the current frame to
  * `target` (clamped into VIEW); `reduceMotion` cuts instantly. Returns a plain
  * viewBox string so the SVG stays a controlled attribute.
+ *
+ * `initial` is where the camera stands on mount (default: on the target). A
+ * deep link mounts with a cell already selected; starting the camera at home and
+ * letting it dive to the part shows the reader what the drawing is before the
+ * enlargement of one corner of it. Reduced motion still cuts to the target.
  */
-export function useCamera(target: Frame, reduceMotion: boolean): string {
+export function useCamera(target: Frame, reduceMotion: boolean, initial: Frame = target): string {
   const { x, y, w, h } = clampFrame(target, VIEW);
-  const current = useRef<Frame>({ x, y, w, h });
-  const [frame, setFrame] = useState<Frame>({ x, y, w, h });
+  const start = reduceMotion ? { x, y, w, h } : clampFrame(initial, VIEW);
+  const current = useRef<Frame>(start);
+  const [frame, setFrame] = useState<Frame>(start);
 
   useEffect(() => {
     const to = { x, y, w, h };

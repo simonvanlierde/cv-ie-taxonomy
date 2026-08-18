@@ -221,7 +221,9 @@ export function CvTaxonomy({
       : null;
   // On mobile the compact fan ignores this viewBox, so cut instantly rather than
   // burn a per-frame spring re-rendering the whole tree for output nobody sees.
-  const viewBox = useCamera(zoomFrame ?? HOME_FRAME, reduceMotion || isMobile);
+  // Always mounted at home: a ?cell= deep link then dives from the whole
+  // drawing to the part, instead of opening on a close-up of one corner.
+  const viewBox = useCamera(zoomFrame ?? HOME_FRAME, reduceMotion || isMobile, HOME_FRAME);
 
   const focus = hovered ?? selected;
 

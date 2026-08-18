@@ -258,6 +258,15 @@ describe("camera framing (desktop)", () => {
     expect(screen.getByRole("complementary")).toBeInTheDocument();
   });
 
+  it("mounts a deep link with the camera at home, so the whole drawing is seen first", () => {
+    // not reduced motion: the camera then dives to the part from here
+    const { container } = render(
+      <CvTaxonomy initialCell="material-condition" debugProgress={plateauCentre("Material")} />,
+    );
+    const fan = container.querySelector(".cvt-fan:not(.cvt-fan-compact)") as SVGSVGElement;
+    expect(fan).toHaveAttribute("viewBox", frameToViewBox(VIEW));
+  });
+
   it("frames the fan on a cell opened via the initialCell deep link", () => {
     forceReducedMotion();
     const { container } = render(
