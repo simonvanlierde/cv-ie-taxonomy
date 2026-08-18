@@ -345,7 +345,7 @@ export function CvTaxonomy({
         >
           <SheetFrame columns={columns} />
           <TitleBlock />
-          <MaturityInstrument live={CLAIMED_VERDICTS} />
+          <MaturityInstrument live={CLAIMED_VERDICTS} reading={focus?.maturity ?? null} />
           {/* The stage + chapters share one wrapper, placed directly by the grid. */}
           <div className="cvt-pinwrap">
             {/* ---- sticky stage: the fan IS the interface ---- */}
@@ -525,7 +525,15 @@ const TitleBlock = memo(function TitleBlock() {
  *  the hero and scrolled away, leaving every letter after it to be recalled; the
  *  unclaimed Strong rung is drawn, because the empty top of the ramp is the
  *  paper's finding and belongs on screen the whole way down. */
-const MaturityInstrument = memo(function MaturityInstrument({ live }: { live: Set<Verdict> }) {
+const MaturityInstrument = memo(function MaturityInstrument({
+  live,
+  reading,
+}: {
+  live: Set<Verdict>;
+  /** the verdict of the cell under the pointer or focus: an instrument reads
+   *  the thing being pointed at, so its rung lights while the chip is hot */
+  reading: Verdict | null;
+}) {
   return (
     <div className="cvt-instrument" aria-hidden>
       <p className="cvt-instrument-head">maturity</p>
@@ -535,6 +543,7 @@ const MaturityInstrument = memo(function MaturityInstrument({ live }: { live: Se
           key={level.verdict}
           data-claimed={live.has(level.verdict)}
           data-verdict={level.letter}
+          data-reading={reading === level.verdict}
         >
           {/* an unclaimed rung is hollow, so it takes no fill at all rather than
               a fill the stylesheet has to override */}

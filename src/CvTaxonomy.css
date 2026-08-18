@@ -1986,6 +1986,19 @@
 .cvt-rung[data-verdict="A"] i {
   border-style: dashed;
 }
+/* the instrument takes a reading: the rung of the cell under the pointer or
+   focus is drawn in full ink and its swatch ruled hard, so the reader's eye can
+   check a chip's letter against the ramp without leaving the drawing */
+.cvt-rung {
+  transition: color 0.15s;
+}
+.cvt-rung[data-reading="true"] {
+  color: var(--cvt-ink);
+}
+.cvt-rung[data-reading="true"] i {
+  outline: 1.5px solid var(--cvt-ink);
+  outline-offset: 1px;
+}
 
 /* The detail takes the narrative column's place, so nothing has to clear it —
    the sheet reconfigures instead of being covered; the furniture in the left
