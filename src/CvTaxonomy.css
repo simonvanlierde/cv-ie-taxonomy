@@ -2069,6 +2069,26 @@
 .cvt-detail-sheet::before {
   content: none;
 }
+/* Arrival. The desktop detail is drawn onto the sheet — a short settle, no
+   travel; the phone's sheet slides up from the edge it belongs to, as the
+   platform's own sheets do. @starting-style runs on first paint, so a freshly
+   mounted region gets its entrance; the exit is the unmount, which is right for
+   a close (exit faster than entrance). Reduced motion zeroes both. */
+.cvt-detail {
+  transition:
+    translate 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.24s ease-out;
+}
+@starting-style {
+  .cvt-detail {
+    opacity: 0;
+    translate: 0 8px;
+  }
+  .cvt-detail-sheet {
+    opacity: 1;
+    translate: 0 40px;
+  }
+}
 
 /* The closing figure gets the whole sheet: the margin furniture belongs to the
    drawing, and both boxes would otherwise sit over the matrix. */
