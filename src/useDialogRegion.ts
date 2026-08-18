@@ -27,6 +27,15 @@ const FOCUSABLE = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(", ");
 
+function hasOpenPopover(region: HTMLElement): boolean {
+  try {
+    return region.querySelector(":popover-open") !== null;
+  } catch {
+    // an engine without the pseudo-class has no popovers to protect
+    return false;
+  }
+}
+
 export function useDialogRegion({
   open,
   onClose,
@@ -56,6 +65,11 @@ export function useDialogRegion({
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        // Esc is scoped to the region, not the document: two details can be
+        // open at once on the sheet, and one keypress must not close both. An
+        // open popover inside the region (a citation) is nearer than the region
+        // and takes the keypress itself; the detail underneath stays.
+        if (!region.contains(document.activeElement) || hasOpenPopover(region)) return;
         e.preventDefault();
         onClose();
         return;
@@ -98,6 +112,9 @@ export function useDialogRegion({
       document.removeEventListener("keydown", onKeyDown);
       document.removeEventListener("focusin", onFocusIn);
       const opener = returnTo.current ? document.getElementById(returnTo.current) : null;
+      // a callout that has since left the stage is tabindex -1 and aria-hidden;
+      // focusing it would put a screen reader on nothing
+      const operable = opener && opener.getAttribute("tabindex") !== "-1";
       // Restore when focus was ours to give back: either still inside the region,
       // or already dropped to <body> because the region has just been removed
       // from the DOM. If the reader has moved focus somewhere else entirely,
@@ -107,7 +124,7 @@ export function useDialogRegion({
       // comes back.
       const wasOurs =
         region.contains(document.activeElement) || document.activeElement === document.body;
-      if (wasOurs) (opener ?? document.body).focus?.();
+      if (wasOurs) ((operable && opener) || document.body).focus?.();
     };
   }, [open, onClose, modal]);
 

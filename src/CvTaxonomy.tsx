@@ -132,6 +132,9 @@ export function CvTaxonomy({
   debugProgress?: number;
 } = {}) {
   const rootRef = useRef<HTMLDivElement>(null);
+  /** the narrative column: the scroll timeline is measured over it, not over the
+   *  whole scroll section, so the closing figure's height cannot drag the
+   *  chapters off the sticky stage */
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastFocused = useRef<string | null>(null);
   /** cancels a chapter stop's pending focus landing (timer + scrollend listener) */
@@ -200,7 +203,14 @@ export function CvTaxonomy({
   const [activeInfo, setActiveInfo] = useState<Set<InfoType>>(new Set());
   // the camera target derives from the selection (frames.test.ts holds FRAMES
   // to a frame per cell), so open/close paths cannot desync the two
-  const zoomFrame = selected ? (FRAMES[selected.id] ?? HOME_FRAME) : null;
+  // The zoom holds only while the reader is in the selected cell's chapter: the
+  // sheet is not locked while a detail is open, and a frame tuned for one
+  // chapter's explode state frames the wrong geometry once the parts move on, so
+  // scrolling on pulls the camera home while the detail stays docked.
+  const zoomFrame =
+    selected && (isMobile || chapter === selected.scale)
+      ? (FRAMES[selected.id] ?? HOME_FRAME)
+      : null;
   // On mobile the compact fan ignores this viewBox, so cut instantly rather than
   // burn a per-frame spring re-rendering the whole tree for output nobody sees.
   const viewBox = useCamera(zoomFrame ?? HOME_FRAME, reduceMotion || isMobile);
@@ -211,8 +221,6 @@ export function CvTaxonomy({
   // A ?cell= deep link lands the desktop page on that cell's chapter plateau, so
   // the zoom frame (tuned for the chapter's explode state) frames real geometry
   // instead of a giant assembled close-up, and the chip is operable on close.
-  // Declared BEFORE useBodyScrollLock below: effects run in order, and the lock
-  // pins the page at whatever scroll position it finds — this must set it first.
   /** Scroll to where a scale's chapter is at full strength. The deep link and the
    *  chapter rail share it: both want a fan state whose chips are operable and
    *  whose camera frames point at real geometry. */
@@ -221,8 +229,9 @@ export function CvTaxonomy({
     if (!scrollEl) return;
     const span = scrollEl.offsetHeight - window.innerHeight;
     if (span <= 0) return;
+    const top = scrollEl.getBoundingClientRect().top + window.scrollY;
     window.scrollTo({
-      top: scrollEl.offsetTop + plateauCentre(scale) * span,
+      top: top + plateauCentre(scale) * span,
       behavior: smooth ? "smooth" : "auto",
     });
     if (!smooth) return;
@@ -284,7 +293,10 @@ export function CvTaxonomy({
     withViewTransition(() => setSelected(null), !reduceMotion);
   }, [reduceMotion]);
 
-  useBodyScrollLock(selected !== null);
+  // Only the covering sheet locks the page. A detail drawn on the sheet is not
+  // modal, and a scroll lock would make it modal in behaviour while non-modal in
+  // ARIA — the reader scrolls on and the detail rides its column.
+  useBodyScrollLock(isMobile && selected !== null);
 
   return (
     <div
@@ -319,7 +331,6 @@ export function CvTaxonomy({
       ) : (
         <div
           className="cvt-scroll"
-          ref={scrollRef}
           data-chapter={chapter}
           data-panel={selected ? "open" : undefined}
         >
@@ -388,7 +399,11 @@ export function CvTaxonomy({
                 while the detail is open, because its chapters ARE the scroll
                 length the whole narrative is measured over — swapping it out
                 collapsed the page and dropped the reader at the outro. */}
-            <div className="cvt-railcol" data-detail={selected ? "open" : undefined}>
+            <div
+              className="cvt-railcol"
+              ref={scrollRef}
+              data-detail={selected ? "open" : undefined}
+            >
               {/* before the rail, not after it: the detail is sticky, and sticky
                   cannot pin above its own static position — placed last it sat
                   at the far end of the rail's five thousand pixels and never

@@ -670,6 +670,13 @@
 /* ---- rail ---------------------------------------------------------------------------- */
 .cvt-rail {
   min-width: 0;
+  /* The tail: the timeline is measured over this column, so the sticky stage
+     holds exactly as long as the column runs. Without a run-out after the last
+     chapter, its prose is centred at p ≈ 0.97 and the drawing has left the
+     sheet before the reader gets to it. 100vh puts the three chapter centres at
+     p ≈ 0.23 / 0.49 / 0.76 — inside the plateaus in timeline.ts, which is
+     what those windows were measured for. Retune the two together. */
+  padding-bottom: 100vh;
 }
 .cvt-hero {
   min-height: 92vh;
@@ -844,6 +851,9 @@
 }
 .cvt-inline-region {
   outline: none;
+  /* focus-in scrolls the region into view; keep it below the fixed ruler and
+     the caveat tag rather than flush under them */
+  scroll-margin-top: 5rem;
 }
 .cvt-inline-region:focus-visible {
   outline: 2px solid var(--cvt-ink);
@@ -2068,8 +2078,8 @@
   min-width: 0;
 }
 /* The prose steps aside rather than unmounting. visibility:hidden takes it out
-   of the tab order and the accessibility tree, so the detail's focus trap has
-   nothing to leak into, while the box keeps the height the scroll needs. */
+   of the tab order and the accessibility tree — the detail stands in its place
+   for the reader too — while the box keeps the height the scroll needs. */
 .cvt-railcol[data-detail="open"] .cvt-rail {
   visibility: hidden;
 }
@@ -2086,7 +2096,6 @@
   overflow-y: auto;
   padding: 1.4rem 1.2rem 3rem;
   border: 1.5px solid var(--cvt-line);
-  border-left: 3px solid var(--hue);
   background: var(--cvt-panel);
   outline: none;
 }

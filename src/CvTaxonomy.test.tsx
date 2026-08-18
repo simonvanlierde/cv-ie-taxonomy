@@ -5,6 +5,7 @@ import { CvTaxonomy, withViewTransition } from "./CvTaxonomy";
 import { cellById } from "./data/taxonomy";
 import { frameToViewBox, VIEW } from "./frames";
 import { frameOf, matchMediaStub } from "./test-helpers";
+import { plateauCentre } from "./timeline";
 
 /**
  * The detail is an enlargement drawn on the sheet, not a <dialog>: on desktop it
@@ -55,6 +56,17 @@ describe("detail on the sheet (desktop)", () => {
     outside?.focus();
     expect(region.contains(document.activeElement)).toBe(false);
     expect(outside).toHaveFocus();
+  });
+
+  it("ignores Esc while focus is elsewhere on the sheet: two details can be open at once, and one keypress must not close both", async () => {
+    const user = userEvent.setup();
+    render(<CvTaxonomy />);
+
+    await user.click(trigger("component-identity"));
+    await detail();
+    document.querySelector<HTMLElement>(".cvt-footer a")?.focus();
+    await user.keyboard("{Escape}");
+    expect(screen.getByRole("complementary")).toBeInTheDocument();
   });
 
   it("closes on Esc, landing focus back on the cell that opened it", async () => {
@@ -202,7 +214,8 @@ describe("camera framing (desktop)", () => {
   it("zooms to a cell's frame when its panel opens, and back home on close", async () => {
     forceReducedMotion();
     const user = userEvent.setup();
-    const { container } = render(<CvTaxonomy />);
+    // the zoom holds while the reader is in the cell's own chapter
+    const { container } = render(<CvTaxonomy debugProgress={plateauCentre("Component")} />);
     const fan = () => container.querySelector(".cvt-fan:not(.cvt-fan-compact)") as SVGSVGElement;
 
     await user.click(trigger("component-quantity"));
@@ -213,22 +226,48 @@ describe("camera framing (desktop)", () => {
     expect(fan()).toHaveAttribute("viewBox", frameToViewBox(VIEW));
   });
 
+  it("pulls the camera home once the reader scrolls on to another chapter", async () => {
+    forceReducedMotion();
+    const user = userEvent.setup();
+    const { container, rerender } = render(
+      <CvTaxonomy debugProgress={plateauCentre("Component")} />,
+    );
+    const fan = () => container.querySelector(".cvt-fan:not(.cvt-fan-compact)") as SVGSVGElement;
+    await user.click(trigger("component-quantity"));
+    await screen.findByRole("complementary");
+    expect(fan()).toHaveAttribute("viewBox", frameToViewBox(frameOf("component-quantity")));
+
+    // the sheet is not locked: the next chapter arrives under the docked detail,
+    // and its frame would point at parts that have since drifted
+    rerender(<CvTaxonomy debugProgress={plateauCentre("Material")} />);
+    expect(fan()).toHaveAttribute("viewBox", frameToViewBox(VIEW));
+    expect(screen.getByRole("complementary")).toBeInTheDocument();
+  });
+
   it("frames the fan on a cell opened via the initialCell deep link", () => {
     forceReducedMotion();
-    const { container } = render(<CvTaxonomy initialCell="material-condition" />);
+    const { container } = render(
+      <CvTaxonomy initialCell="material-condition" debugProgress={plateauCentre("Material")} />,
+    );
     const fan = container.querySelector(".cvt-fan:not(.cvt-fan-compact)") as SVGSVGElement;
     expect(fan).toHaveAttribute("viewBox", frameToViewBox(frameOf("material-condition")));
   });
 });
 
 describe("body scroll lock", () => {
-  it("locks body scroll while the panel is open and restores it on close", async () => {
+  it("leaves the sheet scrollable under a desktop detail: non-modal in ARIA, non-modal in behaviour", async () => {
     const user = userEvent.setup();
     render(<CvTaxonomy />);
-    expect(document.body.style.overflow).toBe("");
-
     await user.click(trigger("component-identity"));
     await screen.findByRole("complementary");
+    expect(document.body.style.overflow).toBe("");
+  });
+
+  it("locks the page under the mobile sheet, which covers it, and restores it on close", async () => {
+    window.matchMedia = matchMediaStub((q) => q.includes("max-width"));
+    const user = userEvent.setup();
+    render(<CvTaxonomy initialCell="component-identity" />);
+    await screen.findByRole("dialog");
     expect(document.body.style.overflow).toBe("hidden");
 
     await user.keyboard("{Escape}");
