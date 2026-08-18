@@ -1,5 +1,7 @@
 /** Demo-shell URL params. Kept out of main.tsx so they can be tested. */
 
+import { clamp01 } from "./timeline";
+
 /**
  * `?p=0.5` pins scroll progress for screenshots.
  *
@@ -12,5 +14,5 @@ export function parseProgress(raw: string | null): number | undefined {
   // the hero rather than scrolling. An empty param means "not set".
   if (raw === null || raw.trim() === "") return undefined;
   const p = Number(raw);
-  return Number.isFinite(p) ? Math.min(1, Math.max(0, p)) : undefined;
+  return Number.isFinite(p) ? clamp01(p) : undefined;
 }

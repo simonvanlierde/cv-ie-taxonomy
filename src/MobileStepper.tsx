@@ -1,4 +1,5 @@
-import { type ReactNode, useState } from "react";
+import type { Dispatch, ReactNode, SetStateAction } from "react";
+import { useState } from "react";
 import { CellList, Hero, IllustrativeDisclosure, MaturityKey, Outro } from "./CvTaxonomy";
 import { CHAPTER_COPY } from "./chapters";
 import { SCALES } from "./data/taxonomy";
@@ -42,17 +43,30 @@ export function MobileStepper({
   onOpen,
   reduceMotion,
   themeToggle,
+  step,
+  setStep,
+  collapsed,
+  setCollapsed,
+  inert = false,
 }: {
   onOpen: (cell: Cell, focusId?: string) => void;
   reduceMotion: boolean;
   themeToggle: ReactNode;
+  /** Where the reader is, owned by the parent: the layout seam unmounts this
+   *  whole component on a resize, and a reader mid-read must not restart. */
+  step: number;
+  setStep: Dispatch<SetStateAction<number>>;
+  /** The sheet folds down to its handle on the scale steps, leaving the fan
+   *  alone on stage. Sticky across steps by choice: a reader who chose the
+   *  fan-only view keeps it while paging. Intro and matrix always show theirs.
+   *  Parent-owned for the same reason as `step`. */
+  collapsed: boolean;
+  setCollapsed: Dispatch<SetStateAction<boolean>>;
+  /** true while the modal detail sheet covers this, which must take it out of
+   *  the accessibility tree — a browse cursor ignores a focus trap */
+  inert?: boolean;
 }) {
-  const [step, setStep] = useState(0);
   const [introExpanded, setIntroExpanded] = useState(false);
-  // The sheet folds down to its handle on the scale steps, leaving the fan
-  // alone on stage. Sticky across steps by choice: a reader who chose the
-  // fan-only view keeps it while paging. Intro and matrix always show theirs.
-  const [collapsed, setCollapsed] = useState(false);
   const scale: Scale | null = step >= 1 && step <= 3 ? (SCALES[step - 1] ?? null) : null;
   const isMatrix = step === 4;
   const sheetCollapsed = collapsed && scale !== null;
@@ -61,7 +75,7 @@ export function MobileStepper({
   const viewBox = useCamera(STEP_FRAMES[Math.min(step, 3)] ?? INTRO_FRAME, reduceMotion);
 
   return (
-    <div className="cvt-stepper">
+    <div className="cvt-stepper" inert={inert}>
       <div className="cvt-stepper-top">
         <IllustrativeDisclosure />
         {themeToggle}

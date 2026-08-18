@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { runsOf } from "../rubricMarks";
 import { cellAt, cells, INFO_TYPES, SCALES, taxonomy, VERDICT_LETTER } from "./taxonomy";
 import type { SourceStatus, Verdict } from "./types";
 
@@ -68,6 +69,13 @@ describe("taxonomy data layer (mirrors Paper 2 Table S2)", () => {
         expect(c.citations.length, c.id).toBeGreaterThan(0);
       }
       for (const key of c.citations) expect(key, `${c.id}: "${key}"`).toMatch(CITE_KEY);
+    }
+  });
+
+  it("every non-empty cell's rubricMarks parse into at least one run (a malformed ladder string parses to none)", () => {
+    for (const c of cells) {
+      if (c.structurallyEmpty) continue;
+      expect(runsOf(c).length, `${c.id}: "${c.rubricMarks}"`).toBeGreaterThan(0);
     }
   });
 

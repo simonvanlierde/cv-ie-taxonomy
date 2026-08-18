@@ -1,7 +1,7 @@
 import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { CvTaxonomy, frameFor, withViewTransition } from "./CvTaxonomy";
+import { CvTaxonomy, frameFor, Outro, withViewTransition } from "./CvTaxonomy";
 import { cellById } from "./data/taxonomy";
 import { frameToViewBox, VIEW } from "./frames";
 import { matchMediaStub } from "./test-helpers";
@@ -121,15 +121,35 @@ describe("detail on the sheet (desktop)", () => {
     const { container } = render(<CvTaxonomy debugProgress={onStage("Material")} />);
 
     await user.click(trigger("material-identity"));
-    await screen.findByRole("complementary", { name: /material · identity/i });
+    const region = await screen.findByRole("complementary", { name: /material · identity/i });
 
     // a control outside is that control's business: the theme toggle toggles
     await user.click(screen.getByRole("button", { name: /switch to .* theme/i }));
     expect(screen.getByRole("complementary")).toBeInTheDocument();
 
-    // open ground on the sheet dismisses
+    // open ground on the sheet dismisses the detail the reader is in — the press
+    // is scoped to whichever region holds focus, so put focus back first (the
+    // toggle above took it), as clicking into the detail would
+    region.focus();
     await user.click(container.querySelector(".cvt-outro h2") as HTMLElement);
     expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
+  });
+
+  it("dismisses only the detail that owns focus when two are open", async () => {
+    // Act one's docked detail and act two's inline one can be open together, so
+    // a background press must be scoped the way Esc is: one press, one close.
+    const user = userEvent.setup();
+    const { container } = render(<CvTaxonomy debugProgress={onStage("Material")} />);
+
+    await user.click(trigger("material-identity"));
+    await screen.findByRole("complementary", { name: /material · identity/i });
+    await user.click(document.getElementById("cvt-mx-component-quantity") as HTMLElement);
+    await screen.findByRole("complementary", { name: /component · quantity/i });
+
+    await user.click(container.querySelector(".cvt-outro h2") as HTMLElement);
+
+    expect(screen.queryByRole("complementary", { name: /component · quantity/i })).toBeNull();
+    expect(screen.getByRole("complementary", { name: /material · identity/i })).toBeInTheDocument();
   });
 
   it("deep-links straight into a cell's detail via initialCell", async () => {
@@ -197,6 +217,41 @@ describe("detail as a sheet (mobile)", () => {
 
     for (let i = 0; i < 12; i++) await user.tab();
     expect(dialog.contains(document.activeElement)).toBe(true);
+  });
+
+  it("keeps the reader's step across the layout seam", async () => {
+    // The seam unmounts the stepper on an ordinary resize — a desktop window
+    // dragged narrow and back, a tablet turned mid-read. The position is the
+    // parent's, so re-crossing restores it instead of restarting at step 0.
+    mobile();
+    const user = userEvent.setup();
+    const { container, rerender } = render(<CvTaxonomy />);
+
+    await user.click(container.querySelector(".cvt-stepper-next") as HTMLButtonElement);
+    expect(screen.getByRole("status")).toHaveTextContent("Product · 2/5");
+
+    window.matchMedia = matchMediaStub(() => false); // widened past the seam
+    rerender(<CvTaxonomy />);
+    expect(container.querySelector(".cvt-stepper")).toBeNull();
+
+    mobile(); // and back
+    rerender(<CvTaxonomy />);
+    expect(screen.getByRole("status")).toHaveTextContent("Product · 2/5");
+  });
+
+  it("takes the stepper behind it out of the accessibility tree while it is open", async () => {
+    // The trap only catches Tab and focus; a browse cursor walks the DOM. `inert`
+    // is what actually removes the stepper's controls from behind the sheet.
+    mobile();
+    const user = userEvent.setup();
+    const { container } = render(<CvTaxonomy initialCell="component-identity" />);
+    const stepper = container.querySelector(".cvt-stepper") as HTMLElement;
+
+    const dialog = await screen.findByRole("dialog");
+    expect(stepper).toHaveAttribute("inert");
+
+    await user.click(within(dialog).getByRole("button", { name: /close details/i }));
+    expect(stepper).not.toHaveAttribute("inert");
   });
 
   it("pulls focus back when something outside it takes focus", async () => {
@@ -472,5 +527,37 @@ describe("the chapter rail is navigation, not decoration", () => {
     expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ behavior: "smooth" }));
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
+  });
+});
+
+describe("the plain-table twin", () => {
+  // The only native <dialog> left on the sheet, and the sole consumer of the
+  // showModal/close emulation in test-setup — so its contract is asserted here
+  // rather than assumed.
+  it("opens on its own control, closes, and hands focus back to it", async () => {
+    const user = userEvent.setup();
+    const { container } = render(<Outro />);
+    const dialog = container.querySelector("dialog") as HTMLDialogElement;
+    expect(dialog.hasAttribute("open")).toBe(false);
+
+    const opener = screen.getByRole("button", { name: /plain table/i });
+    await user.click(opener);
+    expect(dialog.hasAttribute("open")).toBe(true);
+    expect(within(dialog).getByRole("table")).toBeInTheDocument();
+
+    await user.click(within(dialog).getByRole("button", { name: /close table view/i }));
+    expect(dialog.hasAttribute("open")).toBe(false);
+    expect(opener).toHaveFocus();
+  });
+
+  it("closes on Esc", async () => {
+    const user = userEvent.setup();
+    const { container } = render(<Outro />);
+    const dialog = container.querySelector("dialog") as HTMLDialogElement;
+
+    await user.click(screen.getByRole("button", { name: /plain table/i }));
+    await user.keyboard("{Escape}");
+
+    expect(dialog.hasAttribute("open")).toBe(false);
   });
 });

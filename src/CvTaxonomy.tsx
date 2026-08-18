@@ -219,6 +219,11 @@ export function CvTaxonomy({
     () => cells.find((c) => c.id === initialCell) ?? null,
   );
   const [hovered, setHovered] = useState<Cell | null>(null);
+  // The mobile stepper's reading position lives up here because the layout seam
+  // unmounts the stepper: an ordinary window resize, or a tablet turned
+  // portrait→landscape mid-read, would otherwise drop the reader back on step 0.
+  const [step, setStep] = useState(0);
+  const [sheetCollapsed, setSheetCollapsed] = useState(false);
   // the camera target derives from the selection (frames.test.ts holds FRAMES
   // to a frame per cell), so open/close paths cannot desync the two
   // The zoom holds only while the reader is in the selected cell's chapter: the
@@ -377,6 +382,13 @@ export function CvTaxonomy({
         <MobileStepper
           onOpen={openCell}
           reduceMotion={reduceMotion}
+          step={step}
+          setStep={setStep}
+          collapsed={sheetCollapsed}
+          setCollapsed={setSheetCollapsed}
+          // the sheet covers the stepper, so the stepper's controls must leave
+          // the accessibility tree with it: a browse cursor walks past a trap
+          inert={selected !== null}
           themeToggle={
             <ThemeToggle
               theme={effectiveTheme}

@@ -1,6 +1,6 @@
 import { render, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { cellById } from "./data/taxonomy";
+import { cellById, cells, taxonomy } from "./data/taxonomy";
 import { Fan } from "./Fan";
 import { FRAMES } from "./frames";
 import { TIMELINE } from "./timeline";
@@ -101,6 +101,37 @@ describe("chip operability", () => {
     const { container } = renderFan();
     for (const id of ["material-identity", "product-identity"]) {
       expect(chip(container, id), id).toHaveAttribute("tabindex", "-1");
+    }
+  });
+});
+
+describe("chip copy vs. verdict", () => {
+  // Verdict vocabulary, derived from the source-of-truth legend (never hand-copied):
+  // each verdict's own words, so a chip mentioning another verdict's word is caught.
+  const VERDICT_WORDS = taxonomy.meta.maturityLevels.map((m) => ({
+    verdict: m.verdict,
+    words: m.verdict
+      .toLowerCase()
+      .split("-")
+      .filter((w) => w !== "but"),
+  }));
+
+  it("never lets a chip's read-out contradict its own cell's maturity", () => {
+    const { container } = renderFan();
+    for (const cell of cells) {
+      const text = container
+        .querySelector(`#cvt-co-${cell.id} .cvt-co-text`)
+        ?.textContent?.toLowerCase();
+      if (!text) continue;
+      for (const { verdict, words } of VERDICT_WORDS) {
+        if (verdict === cell.maturity) continue;
+        for (const word of words) {
+          expect(
+            text,
+            `${cell.id}: "${text}" reads like ${verdict}, but is ${cell.maturity}`,
+          ).not.toContain(word);
+        }
+      }
     }
   });
 });

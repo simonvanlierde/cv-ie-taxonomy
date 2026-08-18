@@ -154,13 +154,6 @@
   font-weight: 400;
   margin: 0;
 }
-.cvt-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 3px;
-  background: var(--hue);
-  display: inline-block;
-}
 .cvt-cite {
   font-family: var(--cvt-mono);
   font-size: 0.85em;
@@ -193,10 +186,16 @@
 }
 
 /* ---- scroll layout: dominant stage, slim rail ----------------------------------- */
+/* the narrative rail's own reserved width, named once so the narrow-sheet
+   instrument (below) can stop short of it without a second, driftable
+   number of its own */
 .cvt-scroll {
+  --cvt-rail-max: 360px;
+  --cvt-rail-gap: clamp(1rem, 2.5vw, 2.5rem);
+
   display: grid;
-  grid-template-columns: 1fr minmax(280px, 360px);
-  column-gap: clamp(1rem, 2.5vw, 2.5rem);
+  grid-template-columns: 1fr minmax(280px, var(--cvt-rail-max));
+  column-gap: var(--cvt-rail-gap);
   padding: 0 clamp(1rem, 2.5vw, 2.5rem);
   max-width: 1440px;
   margin: 0 auto;
@@ -232,20 +231,13 @@
 .cvt-sticky {
   position: sticky;
   top: 0;
-  height: 100vh;
+  height: 100dvh;
   /* clear of the coordinate ruler, which was cropping the top of the drawing on
      tall viewports */
   padding-top: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-/* an @supports override, not a same-rule fallback pair: the minifier dedupes
-   the latter away, silently stranding engines without dvh at no height */
-@supports (height: 100dvh) {
-  .cvt-sticky {
-    height: 100dvh;
-  }
 }
 .cvt-fan {
   width: 100%;
@@ -734,26 +726,6 @@
   color: var(--cvt-ink);
   font-family: var(--cvt-display);
 }
-.cvt-legendline {
-  list-style: none;
-  margin: 0 0 2rem;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 1.1rem;
-}
-.cvt-legendline li {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-family: var(--cvt-mono);
-  font-size: var(--cvt-t-2);
-  color: var(--cvt-ink-dim);
-}
-.cvt-legendline b {
-  color: var(--cvt-ink);
-  font-family: var(--cvt-display);
-}
 .cvt-scrollhint {
   font-family: var(--cvt-mono);
   font-size: var(--cvt-t-1);
@@ -1062,6 +1034,14 @@
   letter-spacing: 0.02em;
   color: var(--cvt-ink-dim);
   min-width: 0;
+  /* the cell only budgets three lines under the floor (see .cvt-mx-cell); a
+     name long enough to outrun that clips clean here rather than bleeding
+     into the row below */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .cvt-foot {
   font-family: var(--cvt-mono);
@@ -1155,14 +1135,8 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
-}
-/* an @supports override, not a same-rule fallback pair — see .cvt-sticky */
-@supports (height: 100dvh) {
-  .cvt-stepper {
-    height: 100dvh;
-  }
 }
 /* The backdrop. Its containing block is .cvt-step (positioned), so it spans
    the space between the bars; the bottom inset stops just shy of the sheet's
@@ -1193,7 +1167,7 @@
   padding: 0.6rem clamp(1rem, 4vw, 1.5rem) 0.2rem;
 }
 .cvt-step {
-  --cvt-sheet-max: 40vh;
+  --cvt-sheet-max: 40dvh;
 
   position: relative;
   z-index: 1;
@@ -1205,11 +1179,6 @@
   padding: 0 0.6rem;
   /* the step area is a passthrough over the fan; only the sheet is interactive */
   pointer-events: none;
-}
-@supports (height: 40dvh) {
-  .cvt-step {
-    --cvt-sheet-max: 40dvh;
-  }
 }
 /* The peek sheet. position + z-index lift it over the stage: an absolutely
    positioned sibling paints above static content whatever the DOM order. */
@@ -1229,43 +1198,20 @@
   box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.18);
 }
 .cvt-step[data-step="Intro"] {
-  --cvt-sheet-max: 44vh;
-}
-@supports (height: 44dvh) {
-  .cvt-step[data-step="Intro"] {
-    --cvt-sheet-max: 44dvh;
-  }
+  --cvt-sheet-max: 44dvh;
 }
 .cvt-step[data-intro-expanded="true"] {
-  --cvt-sheet-max: min(68vh, 34rem);
-}
-@supports (height: 68dvh) {
-  .cvt-step[data-intro-expanded="true"] {
-    --cvt-sheet-max: min(68dvh, 34rem);
-  }
+  --cvt-sheet-max: min(68dvh, 34rem);
 }
 @media (max-height: 640px) and (orientation: portrait) {
   .cvt-step {
-    --cvt-sheet-max: 54vh;
+    --cvt-sheet-max: 54dvh;
   }
   .cvt-step[data-step="Intro"] {
-    --cvt-sheet-max: 60vh;
+    --cvt-sheet-max: 60dvh;
   }
   .cvt-step[data-intro-expanded="true"] {
-    --cvt-sheet-max: 76vh;
-  }
-}
-@supports (height: 54dvh) {
-  @media (max-height: 640px) and (orientation: portrait) {
-    .cvt-step {
-      --cvt-sheet-max: 54dvh;
-    }
-    .cvt-step[data-step="Intro"] {
-      --cvt-sheet-max: 60dvh;
-    }
-    .cvt-step[data-intro-expanded="true"] {
-      --cvt-sheet-max: 76dvh;
-    }
+    --cvt-sheet-max: 76dvh;
   }
 }
 /* the grabber as a control: full-width tap target, bar drawn by the pseudo */
@@ -2229,17 +2175,12 @@
 .cvt-detail {
   position: relative;
   width: 100%;
-  max-height: calc(100vh - 96px);
+  max-height: calc(100dvh - 96px);
   overflow-y: auto;
   padding: 1.4rem 1.2rem 3rem;
   border: 1.5px solid var(--cvt-line);
   background: var(--cvt-panel);
   outline: none;
-}
-@supports (max-height: 100dvh) {
-  .cvt-detail {
-    max-height: calc(100dvh - 96px);
-  }
 }
 /* More below. The detail scrolls inside itself, and at a laptop height its foot
    (sources, copy link) sits under the fold with nothing to say so. Its own
@@ -2287,7 +2228,7 @@
   position: fixed;
   z-index: 60;
   inset: auto 0 0;
-  max-height: 84vh;
+  max-height: 84dvh;
   border-left: 0;
   border-right: 0;
   border-bottom: 0;
@@ -2295,11 +2236,6 @@
   /* the phone's own idiom for a surface sliding up over a page — the same
      radius the peek sheet under it carries; the exception stops at the breakpoint */
   border-radius: 16px 16px 0 0;
-}
-@supports (max-height: 84dvh) {
-  .cvt-detail-sheet {
-    max-height: 84dvh;
-  }
 }
 .cvt-detail-sheet::before {
   content: none;
@@ -2381,8 +2317,10 @@
     bottom: 34px;
     left: 34px;
     /* stops short of the narrative column: prose arrives through that corner,
-       and a detail docks there */
-    right: 410px;
+       and a detail docks there. Derived from .cvt-scroll's own rail width and
+       gap (inherited custom properties), so widening the rail can't silently
+       reopen the overlap this rule exists to prevent. */
+    right: calc(var(--cvt-rail-max) + var(--cvt-rail-gap));
     width: auto;
     display: flex;
     flex-wrap: wrap;
@@ -2405,12 +2343,7 @@
   }
   /* the detail stops short of the strip: they shared the sheet's bottom otherwise */
   .cvt-scroll[data-panel="open"] .cvt-detail {
-    max-height: calc(100vh - 150px);
-  }
-  @supports (max-height: 100dvh) {
-    .cvt-scroll[data-panel="open"] .cvt-detail {
-      max-height: calc(100dvh - 150px);
-    }
+    max-height: calc(100dvh - 150px);
   }
 }
 
