@@ -216,7 +216,6 @@ export function CvTaxonomy({
   // instead of a giant assembled close-up, and the chip is operable on close.
   // Declared BEFORE useBodyScrollLock below: effects run in order, and the lock
   // pins the page at whatever scroll position it finds — this must set it first.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: mount-only by design — a later mobile↔desktop resize must not yank the reader's scroll position
   /** Scroll to where a scale's chapter is at full strength. The deep link and the
    *  chapter rail share it: both want a fan state whose chips are operable and
    *  whose camera frames point at real geometry. */
@@ -231,6 +230,7 @@ export function CvTaxonomy({
     });
   }, []);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: mount-only by design — a later mobile↔desktop resize must not yank the reader's scroll position
   useEffect(() => {
     if (!initialCell || isMobile) return;
     const cell = cells.find((c) => c.id === initialCell);
@@ -403,6 +403,7 @@ export function CvTaxonomy({
 // instrument repeats the legend).
 
 /** I is skipped, as on a real drawing: it reads as a 1 against the row numbers. */
+// biome-ignore lint/security/noSecrets: the drawing sheet's column references
 const COLUMN_REFS = "ABCDEFGHJKLMNPQRSTUVWXYZ".split("");
 const ROW_REFS = Array.from({ length: 20 }, (_, i) => i + 1);
 
@@ -469,7 +470,15 @@ const MaturityInstrument = memo(function MaturityInstrument({ live }: { live: Se
           data-claimed={live.has(level.verdict)}
           data-verdict={level.letter}
         >
-          <i style={{ background: VERDICT_VAR[level.verdict] ?? "none" }} />
+          {/* an unclaimed rung is hollow, so it takes no fill at all rather than
+              a fill the stylesheet has to override */}
+          <i
+            style={
+              live.has(level.verdict)
+                ? { background: VERDICT_VAR[level.verdict] ?? "none" }
+                : undefined
+            }
+          />
           <b>{level.letter}</b>
           {level.verdict}
           {live.has(level.verdict) ? "" : " — unclaimed"}

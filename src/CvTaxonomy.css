@@ -928,9 +928,10 @@
   border-color: var(--cvt-ink);
 }
 /* absence is drawn as open ground with a dashed floor, never as a faint card */
+/* Absent carries no ramp step, so its block arrives with no fill; all it needs
+   is the dashed floor that says the bay is empty rather than short. */
 .cvt-mx-cell[data-ghost="true"] .cvt-mx-block,
 .cvt-mx-cell[data-verdict="A"] .cvt-mx-block {
-  background: none !important;
   border-top: 1px dashed var(--cvt-line);
 }
 /* The verdict spelled out: at full width the figure has room, so no value is
@@ -1959,7 +1960,6 @@
 }
 /* the empty top of the ramp is the paper's finding, so it is drawn, not omitted */
 .cvt-rung[data-claimed="false"] i {
-  background: none !important;
   border-style: dashed;
 }
 .cvt-rung[data-verdict="A"] i {

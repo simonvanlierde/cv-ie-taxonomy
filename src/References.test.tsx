@@ -50,13 +50,7 @@ describe("references", () => {
   });
 
   it("never surfaces a citation key to the reader", () => {
-    render(
-      <>
-        {REFERENCES.map((r) => (
-          <Cite key={r.key} citeKey={r.key} />
-        ))}
-      </>,
-    );
+    render(REFERENCES.map((r) => <Cite key={r.key} citeKey={r.key} />));
     expect(screen.queryByText(/@\w/)).toBeNull();
   });
 });
