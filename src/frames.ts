@@ -6,7 +6,11 @@
 
 export type Frame = { x: number; y: number; w: number; h: number };
 
-export const VIEW: Frame = { x: -250, y: -25, w: 1070, h: 950 };
+// The drawing occupies roughly x 120..520, y 100..800. The frame is kept close
+// around it so the fan commands the sheet: a wider frame spends the viewport on
+// empty gutters and renders the product small, which is the opposite of what a
+// teardown sheet is for.
+export const VIEW: Frame = { x: -120, y: 40, w: 800, h: 830 };
 export const HOME_FRAME: Frame = VIEW;
 
 export const frameToViewBox = (f: Frame) => `${f.x} ${f.y} ${f.w} ${f.h}`;

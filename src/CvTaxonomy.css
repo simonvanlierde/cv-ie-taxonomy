@@ -464,12 +464,10 @@
 /* The instrument owns the sheet's bottom-left corner and the title block its
    bottom-right, so the filter runs in the channel between them and the chapter
    rail moves to the top margin, where it reads as the sheet's own position mark. */
+/* both legend boxes sit right of the stage column, so the drawing's own controls
+   need no allowance for them */
 .cvt-hud-bottom {
   justify-content: flex-end;
-  /* The HUD is bound to the stage column, while the instrument is fixed to the
-     viewport; this clears the instrument's footprint *inside* that column. The
-     title block sits right of the column entirely, so it needs no allowance. */
-  padding-left: 250px;
 }
 .cvt-hud-actions {
   display: flex;
@@ -1835,10 +1833,14 @@
   font-style: italic;
 }
 
+/* Top-left margin, under the chapter rail: the one corner of the sheet no
+   callout reaches and no prose runs into. Stacking it over the title block put
+   it through the narrative column; the bottom-left corner is where the Product
+   and Material callouts land. */
 .cvt-instrument {
   left: 40px;
-  bottom: 40px;
-  width: 236px;
+  top: 80px;
+  width: 268px;
   padding: 0.55rem 0.6rem;
   border: 1.5px solid var(--cvt-line);
   background: var(--cvt-panel);

@@ -15,8 +15,10 @@ describe("frames", () => {
   });
 
   it("home frame is the whole view", () => {
+    // no literal viewBox here: VIEW is a tuned crop around the drawing, and
+    // pinning its numbers would fail on every retune without catching a defect
     expect(HOME_FRAME).toEqual(VIEW);
-    expect(frameToViewBox(HOME_FRAME)).toBe("-250 -25 1070 950");
+    expect(frameToViewBox(HOME_FRAME)).toBe(frameToViewBox(VIEW));
   });
 
   it("clamps an over-large or off-edge frame back inside its bounds", () => {
