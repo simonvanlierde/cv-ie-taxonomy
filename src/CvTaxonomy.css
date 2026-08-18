@@ -121,6 +121,15 @@
 }
 
 /* ---- shared bits ------------------------------------------------------------- */
+.cvt-tableview-title {
+  font-family: var(--cvt-mono);
+  font-size: var(--cvt-t-1);
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--cvt-ink-dim);
+  font-weight: 400;
+  margin: 0;
+}
 .cvt-eyebrow {
   font-family: var(--cvt-mono);
   font-size: var(--cvt-t-1);
@@ -187,11 +196,17 @@
 .cvt-stagecol {
   position: relative;
   min-width: 0;
+  /* the maturity instrument is fixed in the sheet's left margin, so the drawing
+     column starts clear of it rather than letting callouts run under it */
+  padding-left: 296px;
 }
 .cvt-sticky {
   position: sticky;
   top: 0;
   height: 100vh;
+  /* clear of the coordinate ruler and the caveat banner, which were cropping the
+     top of the drawing on tall viewports */
+  padding-top: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -432,6 +447,13 @@
 }
 .cvt-co:focus {
   outline: none;
+}
+/* Hover already swaps the plate stroke, so a focused chip needs an indicator
+   hover does not use: the same ring the layer taps carry. A stroke-width change
+   alone was indistinguishable from hover and near-invisible in a screenshot. */
+.cvt-co:focus-visible {
+  outline: 2px solid var(--cvt-ink);
+  outline-offset: 3px;
 }
 .cvt-co:focus-visible .cvt-co-bg {
   stroke: var(--cvt-ink);
@@ -1582,10 +1604,16 @@
 .cvt select {
   font: inherit;
 }
-.cvt button:focus {
+.cvt button:focus,
+.cvt a:focus,
+.cvt summary:focus {
   outline: none;
 }
-.cvt button:focus-visible {
+/* links too: Chrome's default ring is rgb(0, 95, 204), which all but vanishes on
+   the blue ground this sheet is printed on */
+.cvt button:focus-visible,
+.cvt a:focus-visible,
+.cvt summary:focus-visible {
   outline: 2px solid var(--cvt-ink);
   outline-offset: 2px;
 }
@@ -1631,7 +1659,16 @@
      every mock read-out, so hiding its label would leave invented confidences
      and dimensions on the product uncaveated. It shrinks; it never disappears. */
   .cvt-ind,
-  .cvt-hud-top .cvt-eyebrow {
+  .cvt-hud-top .cvt-tableview-title {
+    font-family: var(--cvt-mono);
+    font-size: var(--cvt-t-1);
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--cvt-ink-dim);
+    font-weight: 400;
+    margin: 0;
+  }
+  .cvt-eyebrow {
     display: none;
   }
   .cvt-hud-top {
@@ -2045,26 +2082,29 @@
   text-wrap: pretty;
 }
 /* the break: the line stops short and the gap is marked where it stops */
+/* the break: the run stops short, and the gap is struck through so it reads as a
+   break rather than as the line simply running out */
 .cvt-circuit-seg[data-state="breaks"] .cvt-circuit-line {
-  border-top-style: solid;
   position: relative;
-  margin-right: 12px;
+  margin-right: 18px;
 }
 .cvt-circuit-seg[data-state="breaks"] .cvt-circuit-line::after {
   content: "";
   position: absolute;
-  right: -12px;
-  top: -5px;
-  width: 9px;
-  height: 9px;
-  border-left: 1.5px solid var(--cvt-ink);
-  transform: skewX(-20deg);
+  right: -18px;
+  top: -7px;
+  width: 14px;
+  height: 15px;
+  border-left: 2px solid var(--cvt-ink);
+  border-right: 2px solid var(--cvt-ink);
+  transform: skewX(-22deg);
 }
 /* past the break nothing carries, so the line goes to a dashed hairline */
 .cvt-circuit-seg[data-state="dead"] .cvt-circuit-line {
   border-top: 1px dashed var(--cvt-line);
 }
-.cvt-circuit-seg[data-state="dead"] b,
-.cvt-circuit-seg[data-state="dead"] em {
-  opacity: 0.55;
+/* the dashed line is what marks a dead segment; fading its text as well dropped
+   it to 3.25:1 on the panel, under the 4.5:1 floor for 11px type */
+.cvt-circuit-seg[data-state="dead"] b {
+  color: var(--cvt-ink-dim);
 }

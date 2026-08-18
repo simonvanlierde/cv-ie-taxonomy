@@ -204,7 +204,7 @@ describe("panel progressive disclosure", () => {
     expect(failure.closest("details")).toBeNull();
 
     // secondary: rubric marks live inside a closed <details>
-    const rubric = within(dialog).getByText(/rubric marks/i);
+    const rubric = within(dialog).getByText(/rubric marks \(/i);
     const details = rubric.closest("details");
     expect(details).not.toBeNull();
     expect(details).not.toHaveAttribute("open");

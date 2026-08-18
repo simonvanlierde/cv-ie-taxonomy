@@ -228,6 +228,24 @@ export function CvTaxonomy({
       top: scrollEl.offsetTop + plateauCentre(scale) * span,
       behavior: smooth ? "smooth" : "auto",
     });
+    if (!smooth) return;
+
+    // Land the reader ON the cells the stop just brought out. The callouts are
+    // drawn inside the SVG, which precedes the rail in DOM order, so tabbing on
+    // from the rail walks *away* from them — a keyboard user could reach a
+    // scale's chips only by shift-tabbing backwards past everything. Moving
+    // focus to the first chip makes the stop behave like the skip link it is.
+    const target = cells.find((c) => c.scale === scale && !c.structurallyEmpty);
+    if (!target) return;
+    const land = () => {
+      const chip = document.getElementById(`cvt-co-${target.id}`);
+      // only once the chapter is actually on stage; before that it is aria-hidden
+      if (chip?.getAttribute("tabindex") === "0") chip.focus();
+    };
+    // scrollend fires when the smooth scroll settles; the timeout covers engines
+    // without it, and firing land() twice is harmless
+    window.addEventListener("scrollend", land, { once: true });
+    setTimeout(land, 700);
   }, []);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: mount-only by design — a later mobile↔desktop resize must not yank the reader's scroll position
@@ -529,9 +547,6 @@ const Rail = memo(function Rail({
             {/* the prose pins while its chapter's overlays are on the stage, so the
                 two are read together rather than in sequence */}
             <div className="cvt-chapter-inner">
-              <p className="cvt-eyebrow">
-                <span className="cvt-dot" aria-hidden /> {scale} scale
-              </p>
               <h2>{copy.title}</h2>
               <p className="cvt-body">{copy.body}</p>
             </div>
@@ -553,7 +568,6 @@ const Rail = memo(function Rail({
 export function Hero({ hint }: { hint?: string }) {
   return (
     <>
-      <p className="cvt-eyebrow">Review paper · interactive supplement</p>
       <h1 className="cvt-title">
         What can a machine
         <br />
@@ -673,7 +687,6 @@ function ThemeToggle({ theme, onToggle }: { theme: Theme; onToggle: () => void }
 export const Outro = memo(function Outro() {
   return (
     <section className="cvt-outro" id="cvt-matrix" aria-label="Full taxonomy matrix">
-      <p className="cvt-eyebrow">The full matrix</p>
       <h2>
         The honest map is mostly gaps: by the paper's own rubric, none of the twelve tasks earns a
         Strong on worn, real-world products.
@@ -729,7 +742,7 @@ function TableView() {
         }}
       >
         <div className="cvt-panel-head">
-          <p className="cvt-eyebrow">Table S2 · text view</p>
+          <h2 className="cvt-tableview-title">Table S2 · text view</h2>
           <button
             type="button"
             className="cvt-panel-close"
@@ -900,6 +913,10 @@ export function DetailBody({ cell }: { cell: Cell }) {
             mode="warn"
           />
         )}
+        {/* The run belongs where the panel opens, not folded into "More detail":
+            it is the derivation of the verdict stated three lines above it, and
+            behind a closed <details> nobody meets the mechanism at all. */}
+        <Row label="How the verdict was derived" value={<RubricCircuit cell={cell} />} />
       </dl>
 
       <details className="cvt-panel-more">
@@ -923,7 +940,6 @@ export function DetailBody({ cell }: { cell: Cell }) {
             value={
               <>
                 <span className="cvt-mono">{cell.rubricMarks}</span>
-                <RubricCircuit cell={cell} />
                 <RubricKey />
               </>
             }

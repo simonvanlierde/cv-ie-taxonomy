@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { cells, splitOf } from "./data/taxonomy";
 import type { Verdict } from "./data/types";
 import { contrast, luminance } from "./test-helpers";
 import { SURFACE, VERDICT_HEIGHT, VERDICT_RAMP } from "./theme";
@@ -74,5 +75,14 @@ describe("verdict height", () => {
 
   it("leaves Absent a visible hairline rather than nothing", () => {
     expect(VERDICT_HEIGHT.Absent).toBeGreaterThan(0);
+  });
+
+  // the figure's whole purpose: emptiness has to win the glance, so the ink the
+  // twelve cells actually claim must stay under half the area they could
+  it("keeps the void larger than the ink across the real taxonomy", () => {
+    const claimed = cells
+      .map((c) => VERDICT_HEIGHT[splitOf(c)?.[0] ?? c.maturity])
+      .reduce((a, b) => a + b, 0);
+    expect(claimed / cells.length).toBeLessThan(0.5);
   });
 });

@@ -107,13 +107,16 @@ const VERDICT_TOKEN: Record<Verdict, string | null> = {
  * finding. Height is the second, stronger channel: a bay's block rises to its
  * verdict, so a row's silhouette carries the claim before any label is read.
  * `Absent` keeps a hairline rather than nothing, so an empty cell still reads as
- * a cell. Fractions of the bay, ordered; verdictRamp.test.ts holds the order.
+ * a cell. Fractions of the bay, ordered; verdictRamp.test.ts holds the order, and
+ * holds the void to more than half the figure — at Partial = 0.66 the six Partial
+ * cells filled two thirds of their bays and the grid read "mostly two-thirds
+ * full", which is not what the paper found.
  */
 export const VERDICT_HEIGHT: Record<Verdict, number> = {
   Strong: 1,
-  Partial: 0.66,
-  "Emerging-but-narrow": 0.46,
-  "Plausible-but-unvalidated": 0.28,
+  Partial: 0.5,
+  "Emerging-but-narrow": 0.33,
+  "Plausible-but-unvalidated": 0.19,
   Absent: 0.02,
 };
 

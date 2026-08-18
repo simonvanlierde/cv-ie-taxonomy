@@ -19,7 +19,7 @@ describe("MobileStepper", () => {
     for (let i = 0; i < 4; i++) {
       await user.click(container.querySelector(".cvt-stepper-next") as HTMLButtonElement);
     }
-    expect(screen.getByText(/the full matrix/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /mostly gaps/i })).toBeInTheDocument();
     expect(container.querySelector(".cvt-stepper-next")).toBeDisabled();
   });
 
