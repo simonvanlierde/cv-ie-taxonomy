@@ -21,4 +21,10 @@ describe("MiniMatrix", () => {
       .filter((b) => b.getAttribute("aria-pressed") === "true");
     expect(pressed).toHaveLength(1);
   });
+
+  it("keeps the Strong threshold in the drawing without a redundant label", () => {
+    render(<MiniMatrix selectedId={null} onSelect={() => {}} />);
+
+    expect(screen.queryByText(/strong.*unclaimed/i)).not.toBeInTheDocument();
+  });
 });

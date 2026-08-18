@@ -1,11 +1,16 @@
 import { cellAt, INFO_TYPES, SCALES, splitOf, VERDICT_LETTER } from "./data/taxonomy";
-import type { Cell, Scale } from "./data/types";
-import { SCALE_VAR } from "./theme";
-import { VerdictSwatch } from "./VerdictSwatch";
+import type { Cell, Scale, Verdict } from "./data/types";
+import { SCALE_VAR, VERDICT_HEIGHT, VERDICT_VAR } from "./theme";
 
-/** Standalone, selectable 3x4 taxonomy grid — the same markup as the Outro's matrix
- *  figure, but each cell is a toggle button reporting its selection instead of
- *  opening the detail panel directly. */
+/**
+ * The taxonomy as ink on the sheet, not as twelve cards.
+ *
+ * Every cell is a bay of ruled ground with a block standing in it, and the
+ * block's height is the verdict. A row's silhouette therefore carries the
+ * finding: the reader sees where the map is empty before reading a word. The
+ * `Strong` shelf is ruled across the top of every bay and nothing reaches it,
+ * which is the paper's central claim drawn rather than asserted.
+ */
 export function MiniMatrix({
   selectedId,
   onSelect,
@@ -15,9 +20,8 @@ export function MiniMatrix({
 }) {
   return (
     <div className="cvt-matrix">
-      <span />
-      {INFO_TYPES.map((i) => (
-        <span key={i} className="cvt-mx-h">
+      {INFO_TYPES.map((i, index) => (
+        <span key={i} className="cvt-mx-h" style={{ gridColumn: index + 2, gridRow: 1 }}>
           {i}
         </span>
       ))}
@@ -26,6 +30,15 @@ export function MiniMatrix({
       ))}
     </div>
   );
+}
+
+/** A split cell stands at its stronger sub-verdict and rules its weaker one
+ *  across the block, so the gap between the two sub-tasks is visible too. */
+function subRule(split: readonly [Verdict, Verdict] | undefined) {
+  if (!split) return null;
+  const [strong, weak] = split;
+  const inner = VERDICT_HEIGHT[weak] / VERDICT_HEIGHT[strong];
+  return <span className="cvt-mx-subrule" style={{ bottom: `${inner * 100}%` }} aria-hidden />;
 }
 
 function MiniMatrixRow({
@@ -46,26 +59,49 @@ function MiniMatrixRow({
         const cell = cellAt(scale, info);
         // a compound cell shows both sub-task verdicts rather than flattening to one
         const split = splitOf(cell);
+        const standsAt = split ? split[0] : cell.maturity;
         return (
           <button
             key={cell.id}
+            id={`cvt-mx-${cell.id}`}
             type="button"
             className="cvt-mx-cell"
             data-ghost={!!cell.structurallyEmpty}
+            data-verdict={VERDICT_LETTER[cell.maturity]}
             aria-pressed={cell.id === selectedId}
             aria-label={
-              split
-                ? `${scale} · ${info}: ${cell.subVerdicts?.map((s) => `${s.label} ${s.maturity}`).join("; ")}`
-                : `${scale} · ${info}: ${cell.maturity}`
+              cell.structurallyEmpty
+                ? `${scale} · ${info}: structurally empty, answered at the component scale`
+                : split
+                  ? `${scale} · ${info}: ${cell.subVerdicts?.map((s) => `${s.label} ${s.maturity}`).join("; ")}`
+                  : `${scale} · ${info}: ${cell.maturity}`
             }
             onClick={() => onSelect(cell)}
           >
-            <VerdictSwatch verdict={cell.maturity} split={split} size={24} />
-            <b>
-              {split
-                ? split.map((v) => VERDICT_LETTER[v]).join(" / ")
-                : VERDICT_LETTER[cell.maturity]}
-            </b>
+            {/* a structurally empty bay is hatched, as a drawing hatches a void:
+                no block, no letter — it is not a short bar and not an Absent,
+                it is a cell with no task of its own */}
+            <span
+              className="cvt-mx-block"
+              style={
+                cell.structurallyEmpty
+                  ? { top: 0 }
+                  : {
+                      height: `${VERDICT_HEIGHT[standsAt] * 100}%`,
+                      background: VERDICT_VAR[standsAt] ?? "none",
+                    }
+              }
+              aria-hidden
+            >
+              {subRule(split)}
+            </span>
+            {!cell.structurallyEmpty && (
+              <b className="cvt-mx-letter">
+                {split
+                  ? split.map((v) => VERDICT_LETTER[v]).join(" / ")
+                  : VERDICT_LETTER[cell.maturity]}
+              </b>
+            )}
             <span className="cvt-mx-name">
               {cell.structurallyEmpty
                 ? "structurally empty"

@@ -6,7 +6,7 @@
     <title>CV × Industrial Ecology: exploded taxonomy</title>
     <meta
       name="description"
-      content="An interactive exploded-teardown map of the computer-vision-for-industrial-ecology taxonomy: which vision task recovers which product data, at which physical scale, and how far you can trust it. Interactive companion to Paper 2, Table S1."
+      content="An interactive exploded-teardown map of the computer-vision-for-industrial-ecology taxonomy: which vision task recovers which product data, at which physical scale, and how far you can trust it. Interactive companion to the paper's Table S2."
     />
 
     <!-- Inline so it costs no request and cannot 404: the fan's hub and grille. -->
@@ -15,9 +15,21 @@
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%230072B2' stroke-width='2.5'/%3E%3Ccircle cx='16' cy='16' r='3.5' fill='%230072B2'/%3E%3Cpath d='M16 12.5V4M19.5 18l7.4 4.3M12.5 18l-7.4 4.3' stroke='%230072B2' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E"
     />
 
+    <!-- Both faces are variable and self-hosted; the CSS that requests them arrives
+         with the bundle, so without a preload the first paint sets in the fallback
+         and reflows. Vite hashes these to the same assets the stylesheet uses. -->
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/src/assets/Overpass.woff2" />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      crossorigin
+      href="/src/assets/OverpassMono.woff2"
+    />
+
     <!-- The rubber-band over-scroll colour before CSS lands, per scheme. -->
-    <meta name="theme-color" content="#dce8f1" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#0b1622" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#0d3b5e" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#050c14" media="(prefers-color-scheme: dark)" />
 
     <meta property="og:type" content="website" />
     <meta property="og:title" content="What can a machine actually see?" />
@@ -40,7 +52,8 @@
     <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body>
-    <div id="root"></div>
+    <!-- the host page owns the landmark; the island is a component, not a document -->
+    <main id="root"></main>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

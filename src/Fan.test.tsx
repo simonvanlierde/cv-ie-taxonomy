@@ -1,13 +1,14 @@
 import { render, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { cellById } from "./data/taxonomy";
+import { cellById, cells, taxonomy } from "./data/taxonomy";
 import { Fan } from "./Fan";
+import { FRAMES } from "./frames";
 import { TIMELINE } from "./timeline";
 
 /**
  * The floating chips ARE the controls. Their operability must track the chapter
- * and the info-type filter — never the focus dimming, which only fades siblings
- * to 0.45 while leaving them plainly on screen.
+ * — never the focus dimming, which only fades siblings to 0.45 while leaving
+ * them plainly on screen.
  *
  * Deriving `active` from opacity meant that focusing one chip stripped tabIndex
  * and set aria-hidden on every sibling, so Tab left the fan after a single chip.
@@ -24,7 +25,6 @@ const renderFan = (props: Partial<Parameters<typeof Fan>[0]> = {}) =>
       <Fan
         p={COMPONENT_PLATEAU}
         focus={null}
-        isDim={() => false}
         onSelect={noop}
         onHover={noop}
         reduceMotion={true}
@@ -44,6 +44,36 @@ const COMPONENT_CHIPS = [
 ];
 
 describe("chip operability", () => {
+  it("drops chips outside the camera frame from the tab ring, but never the selected one", () => {
+    // component-quantity's frame is tight around the motor: the identity chip in
+    // the left gutter is not on the sheet while that detail is open, and a chip
+    // the reader cannot see is not a tab stop. The opener stays focusable so
+    // focus has somewhere to return to.
+    const selected = cellById("component-quantity");
+    const { container, rerender } = renderFan({
+      focus: selected,
+      frame: FRAMES["component-quantity"],
+    });
+    expect(chip(container, "component-identity")).toHaveAttribute("tabindex", "-1");
+    expect(chip(container, "component-identity")).toHaveAttribute("aria-hidden", "true");
+    expect(chip(container, "component-quantity")).toHaveAttribute("tabindex", "0");
+    // camera home: the whole chapter is back in the ring
+    rerender(
+      <svg aria-label="test host">
+        <title>test host</title>
+        <Fan
+          p={COMPONENT_PLATEAU}
+          focus={selected}
+          onSelect={noop}
+          onHover={noop}
+          reduceMotion={true}
+          frame={null}
+        />
+      </svg>,
+    );
+    expect(chip(container, "component-identity")).toHaveAttribute("tabindex", "0");
+  });
+
   it("makes every chip of the on-stage chapter focusable", () => {
     const { container } = renderFan();
     for (const id of COMPONENT_CHIPS) {
@@ -73,12 +103,36 @@ describe("chip operability", () => {
       expect(chip(container, id), id).toHaveAttribute("tabindex", "-1");
     }
   });
+});
 
-  it("takes filtered-out chips out of the tab order", () => {
-    const { container } = renderFan({ isDim: (c) => c.informationType !== "Identity" });
+describe("chip copy vs. verdict", () => {
+  // Verdict vocabulary, derived from the source-of-truth legend (never hand-copied):
+  // each verdict's own words, so a chip mentioning another verdict's word is caught.
+  const VERDICT_WORDS = taxonomy.meta.maturityLevels.map((m) => ({
+    verdict: m.verdict,
+    words: m.verdict
+      .toLowerCase()
+      .split("-")
+      .filter((w) => w !== "but"),
+  }));
 
-    expect(chip(container, "component-identity")).toHaveAttribute("tabindex", "0");
-    expect(chip(container, "component-structure")).toHaveAttribute("tabindex", "-1");
+  it("never lets a chip's read-out contradict its own cell's maturity", () => {
+    const { container } = renderFan();
+    for (const cell of cells) {
+      const text = container
+        .querySelector(`#cvt-co-${cell.id} .cvt-co-text`)
+        ?.textContent?.toLowerCase();
+      if (!text) continue;
+      for (const { verdict, words } of VERDICT_WORDS) {
+        if (verdict === cell.maturity) continue;
+        for (const word of words) {
+          expect(
+            text,
+            `${cell.id}: "${text}" reads like ${verdict}, but is ${cell.maturity}`,
+          ).not.toContain(word);
+        }
+      }
+    }
   });
 });
 
@@ -103,7 +157,7 @@ describe("compact fan", () => {
   it("drops the floating chips but keeps painting the annotations", () => {
     const { container } = renderFan({ compact: true });
     expect(container.querySelectorAll(".cvt-co")).toHaveLength(0);
-    // …which is exactly why the illustrative caveat must survive on mobile
+    // …which is exactly why the annotations must remain painted on mobile
     expect(container.querySelectorAll(".ov-layer")).toHaveLength(9);
     expect(within(container).getByText(/desk_fan/)).toBeInTheDocument();
   });

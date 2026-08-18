@@ -1,15 +1,34 @@
 // Camera frames in Fan viewBox coordinates. VIEW is the whole desktop canvas and
 // the home frame; each cell frame zooms toward the part its read-out points at.
-// These are hand-tuned starting rects (like the callout positions in Fan.tsx) —
-// fine-tune visually in Task 3. Chips are only clickable at their chapter's
+// These are hand-tuned rects, like the callout positions in Fan.tsx: retune them
+// by eye, against the rendered fan. Chips are only clickable at their chapter's
 // plateau, so a plateau-state frame tracks the part closely enough.
 
 export type Frame = { x: number; y: number; w: number; h: number };
 
-export const VIEW: Frame = { x: -250, y: -25, w: 1070, h: 950 };
+// The drawing occupies roughly x 120..520, y 100..800. The frame is kept close
+// around it so the fan commands the sheet: a wider frame spends the viewport on
+// empty gutters and renders the product small, which is the opposite of what a
+// teardown sheet is for.
+// y starts at -5, not 40: the drifted front grille rises to y ≈ 0 at the
+// material plateau, and a home frame that began below it cropped the top of the
+// drawing at every zoom (and, clamped into VIEW, on the phone's explode steps).
+export const VIEW: Frame = { x: -120, y: -5, w: 800, h: 875 };
 export const HOME_FRAME: Frame = VIEW;
 
 export const frameToViewBox = (f: Frame) => `${f.x} ${f.y} ${f.w} ${f.h}`;
+
+/** The smallest frame holding both, grown by `pad` on every side. */
+export const unionFrame = (a: Frame, b: Frame, pad = 0): Frame => {
+  const x = Math.min(a.x, b.x) - pad;
+  const y = Math.min(a.y, b.y) - pad;
+  return {
+    x,
+    y,
+    w: Math.max(a.x + a.w, b.x + b.w) + pad - x,
+    h: Math.max(a.y + a.h, b.y + b.h) + pad - y,
+  };
+};
 
 /** Keep a frame within `bounds`: shrink to fit, then slide inside. */
 export const clampFrame = (f: Frame, bounds: Frame): Frame => {
@@ -23,7 +42,9 @@ export const clampFrame = (f: Frame, bounds: Frame): Frame => {
 // Product chapter: fan assembled around [300,400]. Component: exploded. Material:
 // drifted. One frame per cell id in taxonomy.json.
 export const FRAMES: Record<string, Frame> = {
-  "product-identity": { x: 150, y: 560, w: 320, h: 240 },
+  // wide enough for the OCR read-out, which hangs right of the rating label and
+  // was being cut mid-string by the detail's edge on the ?cell= entry
+  "product-identity": { x: 130, y: 540, w: 440, h: 300 },
   "product-quantity": { x: 120, y: 200, w: 380, h: 520 },
   "product-structure": { x: 120, y: 200, w: 380, h: 520 },
   "product-condition": { x: 150, y: 590, w: 320, h: 200 },

@@ -1,5 +1,5 @@
 // Types for the CV-in-IE taxonomy. The single source of truth is taxonomy.json,
-// which mirrors Paper 2, Table S1. Do not change verdicts here. Change the draft,
+// which mirrors Paper 2, Table S2. Do not change verdicts here. Change the draft,
 // then the JSON.
 
 export type Scale = "Product" | "Component" | "Material";

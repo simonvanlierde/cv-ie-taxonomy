@@ -1,8 +1,9 @@
-import { type ReactNode, useState } from "react";
-import { CellList, Hero, Outro } from "./CvTaxonomy";
+import type { Dispatch, ReactNode, SetStateAction } from "react";
+import { useState } from "react";
+import { CellList, Hero, IllustrativeDisclosure, MaturityKey, Outro } from "./CvTaxonomy";
 import { CHAPTER_COPY } from "./chapters";
 import { SCALES } from "./data/taxonomy";
-import type { Cell, InfoType, Scale } from "./data/types";
+import type { Cell, Scale } from "./data/types";
 import { Fan } from "./Fan";
 import type { Frame } from "./frames";
 import { SCALE_VAR } from "./theme";
@@ -31,10 +32,6 @@ const STEP_FRAMES: Frame[] = [
   { x: 130, y: -25, w: 400, h: 900 }, // material: drifted parts
 ];
 
-// one stable empty set: the stepper has no info-type filter, and a fresh Set
-// each render would defeat CellList's referential quiet
-const NO_FILTER: Set<InfoType> = new Set();
-
 /**
  * Mobile act one, paged instead of scrolled. Five steps — intro, the three
  * physical scales, then the full matrix — navigated by arrows. The fan owns the
@@ -46,16 +43,30 @@ export function MobileStepper({
   onOpen,
   reduceMotion,
   themeToggle,
+  step,
+  setStep,
+  collapsed,
+  setCollapsed,
+  inert = false,
 }: {
   onOpen: (cell: Cell, focusId?: string) => void;
   reduceMotion: boolean;
   themeToggle: ReactNode;
+  /** Where the reader is, owned by the parent: the layout seam unmounts this
+   *  whole component on a resize, and a reader mid-read must not restart. */
+  step: number;
+  setStep: Dispatch<SetStateAction<number>>;
+  /** The sheet folds down to its handle on the scale steps, leaving the fan
+   *  alone on stage. Sticky across steps by choice: a reader who chose the
+   *  fan-only view keeps it while paging. Intro and matrix always show theirs.
+   *  Parent-owned for the same reason as `step`. */
+  collapsed: boolean;
+  setCollapsed: Dispatch<SetStateAction<boolean>>;
+  /** true while the modal detail sheet covers this, which must take it out of
+   *  the accessibility tree — a browse cursor ignores a focus trap */
+  inert?: boolean;
 }) {
-  const [step, setStep] = useState(0);
-  // The sheet folds down to its handle on the scale steps, leaving the fan
-  // alone on stage. Sticky across steps by choice: a reader who chose the
-  // fan-only view keeps it while paging. Intro and matrix always show theirs.
-  const [collapsed, setCollapsed] = useState(false);
+  const [introExpanded, setIntroExpanded] = useState(false);
   const scale: Scale | null = step >= 1 && step <= 3 ? (SCALES[step - 1] ?? null) : null;
   const isMatrix = step === 4;
   const sheetCollapsed = collapsed && scale !== null;
@@ -64,12 +75,17 @@ export function MobileStepper({
   const viewBox = useCamera(STEP_FRAMES[Math.min(step, 3)] ?? INTRO_FRAME, reduceMotion);
 
   return (
-    <div className="cvt-stepper">
+    <div className="cvt-stepper" inert={inert}>
       <div className="cvt-stepper-top">
-        <span className="cvt-hud-tag">illustrative read-outs: no model ran here</span>
+        <IllustrativeDisclosure />
         {themeToggle}
       </div>
-      <div className="cvt-step" data-step={labels[step]} data-collapsed={sheetCollapsed}>
+      <div
+        className="cvt-step"
+        data-step={labels[step]}
+        data-collapsed={sheetCollapsed}
+        data-intro-expanded={step === 0 && introExpanded}
+      >
         {/* the fan is the full-screen backdrop on every step but the matrix,
             walking apart as you advance; the sheet floats over its lower third.
             Its overlay labels are the mobile tap targets for the cell modal. */}
@@ -78,7 +94,6 @@ export function MobileStepper({
             <Fan
               p={scale ? STEP_P[scale] : 0}
               focus={null}
-              isDim={() => false}
               onSelect={onOpen}
               onHover={() => {}}
               reduceMotion={reduceMotion}
@@ -89,8 +104,23 @@ export function MobileStepper({
         )}
 
         {step === 0 && (
-          <section className="cvt-step-body cvt-step-intro">
-            <Hero />
+          <section className="cvt-step-body cvt-step-intro" id="cvt-start" tabIndex={-1}>
+            <Hero
+              expanded={introExpanded}
+              detailsId="cvt-intro-more"
+              disclosureControl={
+                <button
+                  type="button"
+                  className="cvt-intro-toggle"
+                  aria-expanded={introExpanded}
+                  aria-controls="cvt-intro-more"
+                  onClick={() => setIntroExpanded((expanded) => !expanded)}
+                >
+                  {introExpanded ? "Show less" : "How to read this"}
+                  <span aria-hidden>{introExpanded ? "−" : "+"}</span>
+                </button>
+              }
+            />
           </section>
         )}
 
@@ -105,14 +135,17 @@ export function MobileStepper({
             />
             {!sheetCollapsed && (
               <>
-                <p className="cvt-eyebrow">
-                  <span className="cvt-dot" aria-hidden /> {scale} scale
-                </p>
                 <h2>{CHAPTER_COPY[scale].title}</h2>
+                <MaturityKey />
+                {/* the cells before the prose: on a phone the sheet peeks a
+                    third of the screen, and the four rows are the controls —
+                    under the paragraph they sat below its fold with nothing
+                    to say they were there */}
+                <CellList scale={scale} onOpen={onOpen} />
+                <p className="cvt-step-context-cue" aria-hidden="true">
+                  Context below ↓
+                </p>
                 <p className="cvt-body">{CHAPTER_COPY[scale].body}</p>
-                {/* no InfoFilter here: a four-row list needs no filtering, and the
-                    chips only stole space from the fan — the desktop HUD keeps them */}
-                <CellList scale={scale} activeInfo={NO_FILTER} onOpen={onOpen} />
               </>
             )}
           </section>
@@ -128,28 +161,41 @@ export function MobileStepper({
       </div>
 
       <nav className="cvt-stepper-nav" aria-label="Section navigation">
-        <button
-          type="button"
-          className="cvt-stepper-btn"
-          onClick={() => setStep((s) => Math.max(0, s - 1))}
-          disabled={step === 0}
-        >
-          <span aria-hidden>‹</span> Back
-        </button>
-        <ol className="cvt-stepper-dots" aria-hidden>
-          {labels.map((label, i) => (
-            <li key={label} data-active={i === step} />
-          ))}
-        </ol>
-        <button
-          type="button"
-          className="cvt-stepper-btn cvt-stepper-next"
-          onClick={() => setStep((s) => Math.min(4, s + 1))}
-          disabled={step === 4}
-        >
-          {step === 0 ? "Start" : labels[Math.min(step + 1, labels.length - 1)]}{" "}
-          <span aria-hidden>›</span>
-        </button>
+        {step > 0 ? (
+          <button
+            type="button"
+            className="cvt-stepper-btn"
+            onClick={() => setStep((s) => Math.max(0, s - 1))}
+          >
+            <span aria-hidden>‹</span> Back
+          </button>
+        ) : (
+          <span className="cvt-stepper-spacer" />
+        )}
+        <div className="cvt-stepper-progress">
+          <p className="cvt-stepper-status" role="status" aria-live="polite" aria-atomic="true">
+            {labels[step]} · {step + 1}/{labels.length}
+          </p>
+          <ol className="cvt-stepper-dots" aria-hidden="true">
+            {labels.map((label, i) => (
+              <li key={label} data-active={i === step} />
+            ))}
+          </ol>
+        </div>
+        {/* named for where it goes; on the last step there is nowhere to go, so
+            it leaves the bar rather than sitting there disabled under the name
+            of the step the reader is already on */}
+        {step < 4 ? (
+          <button
+            type="button"
+            className="cvt-stepper-btn cvt-stepper-next"
+            onClick={() => setStep((s) => Math.min(4, s + 1))}
+          >
+            {step === 0 ? "Start" : labels[step + 1]} <span aria-hidden>›</span>
+          </button>
+        ) : (
+          <span className="cvt-stepper-spacer" />
+        )}
       </nav>
     </div>
   );

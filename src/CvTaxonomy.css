@@ -1,12 +1,24 @@
 /* ===========================================================================
-   CV × Industrial Ecology — scroll-driven exploded taxonomy
-   Identity: an engineering teardown seen through a machine's viewfinder.
-   A dominant sticky fan explodes as you scroll; the compact CV read-outs
-   around it ARE the controls. Blueprint field, monospace data layer,
-   textures (never colour) carrying maturity. Dark default; light via media
-   query (a cyanotype blueprint-paper palette); host can force either with
-   data-theme. All three faces self-hosted (OFL) so the read-out layer renders
-   identically on every machine, not left to a system fallback.
+   CV × Industrial Ecology — one drawing sheet, scroll-driven
+
+   The page is not a web page containing a drawing. It is a single sheet, and
+   the reader is on it: ruled border, a graticule that carries printed
+   coordinates rather than texture, a title block in the ISO 7200 corner, and
+   the maturity ramp as a permanent margin instrument. The exploded fan holds
+   the drawing field, and the CV read-outs docked to its parts ARE the controls.
+
+   Cyanotype, both exposures. Light is the print itself, Prussian-blue paper
+   with the linework burnt out white; dark takes the same sheet almost to
+   black. Both grounds are dark, which is why one scale-hue set and one
+   segmentation set serve both. Maturity is ink coverage and a letter, never
+   colour; a texture layer stands in where fills flatten.
+
+   Two faces, self-hosted (OFL): Overpass for display and body, Overpass Mono
+   for every read-out, coordinate and title-block field — one drafting hand,
+   never left to a system fallback.
+
+   No cards, no shadows, no rounded panels. The component language is ruled
+   lines, hairlines, dashed hairlines for absence, balloons and leaders.
    =========================================================================== */
 
 /* --cvt-bg is generated from theme.ts (the surface's single source); the rest of
@@ -14,10 +26,10 @@
 @import "./theme.generated.css";
 
 /* Type system — engineering-drawing register.
-   Display + data are one superfamily: Overpass (Highway-Gothic / DIN lineage)
-   and its Overpass Mono sibling, so the headlines and the machine read-outs
-   speak the same drafting hand. IBM Plex Sans is the neutral body workhorse.
-   Overpass faces are variable (wght 100–900); Plex Sans ships 400 + 600. */
+   Display, body and data are one superfamily: Overpass (Highway-Gothic / DIN
+   lineage) and its Overpass Mono sibling, so the headline, the prose and the
+   machine read-outs all speak the same drafting hand. Both are variable
+   (wght 100–900). */
 @font-face {
   font-family: "Overpass";
   src: url("./assets/Overpass.woff2") format("woff2");
@@ -30,47 +42,68 @@
   font-weight: 100 900;
   font-display: swap;
 }
+/* Metric-compatible stand-ins for the swap window: the system face scaled and
+   re-lined to Overpass's advance width and vertical metrics, so the first paint
+   sets in the same measure and the swap does not reflow. Numbers computed with
+   fontkit over the real files (mean advance of a prose sample; hhea metrics):
+   Overpass vs Arial/Helvetica, Overpass Mono vs Menlo. Windows' Consolas has
+   no override and simply swaps, as before. */
 @font-face {
-  font-family: "IBM Plex Sans";
-  src: url("./assets/IBMPlexSans-400.woff2") format("woff2");
-  font-weight: 400;
-  font-display: swap;
+  font-family: "Overpass Fallback";
+  src: local("Arial"), local("Helvetica");
+  size-adjust: 99.67%;
+  ascent-override: 88.59%;
+  descent-override: 38.43%;
+  line-gap-override: 0%;
 }
 @font-face {
-  font-family: "IBM Plex Sans";
-  src: url("./assets/IBMPlexSans-600.woff2") format("woff2");
-  font-weight: 600;
-  font-display: swap;
+  font-family: "Overpass Mono Fallback";
+  src: local("Menlo");
+  size-adjust: 102.32%;
+  ascent-override: 86.3%;
+  descent-override: 37.43%;
+  line-gap-override: 0%;
 }
-
 /* Palette. Each token is declared once, as light-dark(light, dark); which arm
    wins is decided by the element's used color-scheme, so the OS preference, the
    host's `theme` prop and the in-page toggle all flow through a single switch
    (`color-scheme` on .cvt) instead of three restatements of the same 10 values.
-   The dark arm is the blueprint ground; the light arm is cyanotype paper:
-   pale blue-white ground, Prussian-navy ink. */
+   The light arm is the cyanotype print, Prussian-blue paper with white
+   linework; the dark arm is the same sheet taken almost to black. */
 .cvt {
   container: cvt / inline-size;
   color-scheme: light dark;
 
   /* --cvt-bg comes from theme.generated.css (imported above) */
-  --cvt-bg2: light-dark(#cedded, #0f1d2e);
-  --cvt-grid: light-dark(rgba(19, 70, 122, 0.1), rgba(125, 165, 205, 0.09));
-  --cvt-ink: light-dark(#0e2740, #e8f1f8);
-  --cvt-ink-dim: light-dark(#40607b, #8ba6bd);
-  --cvt-line: light-dark(rgba(16, 58, 100, 0.4), rgba(190, 215, 235, 0.38));
-  --cvt-card: light-dark(rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.035));
-  --cvt-card-hi: light-dark(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.07));
-  --cvt-panel: light-dark(#e7eff7, #101f30);
-  /* status text sits on --cvt-panel at ~11px, so both arms hold the 4.5:1 text
-     floor there (theme.test.ts): the old #b45309/#2ea043 light arms read at 4.3
-     and 2.9 */
-  --cvt-warn: light-dark(#9a4a08, #ffb454);
-  --cvt-ok: light-dark(#116329, #2ea043);
+  --cvt-bg2: light-dark(#0a3050, #020609);
+  --cvt-grid: light-dark(rgba(233, 244, 255, 0.13), rgba(207, 227, 242, 0.11));
+  --cvt-ink: light-dark(#e9f4ff, #cfe3f2);
+  --cvt-ink-dim: light-dark(#9dc2df, #6f93b0);
+  --cvt-line: light-dark(rgba(233, 244, 255, 0.34), rgba(207, 227, 242, 0.3));
+  --cvt-card: light-dark(rgba(233, 244, 255, 0.06), rgba(207, 227, 242, 0.05));
+  --cvt-card-hi: light-dark(rgba(233, 244, 255, 0.11), rgba(207, 227, 242, 0.09));
+  --cvt-panel: light-dark(#0a3050, #020609);
+  /* status text sits on --cvt-panel at 11px, so both arms hold the 4.5:1 text
+     floor there (theme.test.ts). Both grounds are dark now, so one amber and one
+     green clear it on either; the old dark-on-pale arms would vanish. */
+  --cvt-warn: light-dark(#ffb454, #ffb454);
+  --cvt-ok: light-dark(#4ade80, #4ade80);
 
-  --cvt-mono: "Overpass Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  --cvt-display: "Overpass", "IBM Plex Sans", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
-  --cvt-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Six steps, and every rule picks one. The floor is 11px and it is reserved
+     for uppercase tracked mono, which reads a size larger than it measures;
+     anything sentence-case, and every verdict the reader is meant to weigh,
+     starts at t-2. Below t-4 the steps sit ~2px apart, which is the smallest
+     gap that still reads as a step rather than a rounding error. */
+  --cvt-t-1: 0.6875rem;
+  --cvt-t-2: 0.8125rem;
+  --cvt-t-3: 0.9375rem;
+  --cvt-t-4: 1.1875rem;
+  --cvt-t-5: clamp(1.55rem, 2.7vw, 2.15rem);
+  --cvt-t-6: clamp(2.35rem, 4vw, 3.4rem);
+
+  --cvt-mono: "Overpass Mono", "Overpass Mono Fallback", ui-monospace, Menlo, Consolas, monospace;
+  --cvt-display: "Overpass", "Overpass Fallback", ui-sans-serif, system-ui, sans-serif;
+  --cvt-sans: "Overpass", "Overpass Fallback", ui-sans-serif, system-ui, sans-serif;
 
   position: relative;
   -webkit-text-size-adjust: 100%;
@@ -80,9 +113,25 @@
   background-image:
     linear-gradient(var(--cvt-grid) 1px, transparent 1px),
     linear-gradient(90deg, var(--cvt-grid) 1px, transparent 1px);
-  background-size: 28px 28px;
+  background-size: 32px 32px;
   font-family: var(--cvt-sans);
+  /* the base of the scale, so anything that sets no size of its own — and every
+     control, now that they inherit instead of taking the UA's 13.3px Arial —
+     still lands on a step */
+  font-size: var(--cvt-t-3);
   overflow-x: clip;
+}
+
+/* Both exposures are dark grounds, so the browser's own surfaces are painted from
+   the palette rather than left to the used color-scheme, which on the light arm
+   would hand a blue sheet a light scrollbar and a default selection blue. */
+.cvt {
+  scrollbar-color: var(--cvt-line) transparent;
+  caret-color: var(--cvt-ink);
+}
+.cvt ::selection {
+  background: var(--cvt-ink);
+  color: var(--cvt-bg);
 }
 
 /* host prop or in-page toggle: pin the scheme, and every light-dark() follows */
@@ -94,23 +143,16 @@
 }
 
 /* ---- shared bits ------------------------------------------------------------- */
-.cvt-eyebrow {
+/* two classes deep: the dialog sits inside the outro, whose h2 rule (and the
+   panel's own) would otherwise set this label in display size */
+.cvt-panel .cvt-tableview-title {
   font-family: var(--cvt-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.26em;
+  font-size: var(--cvt-t-1);
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--cvt-ink-dim);
-  margin: 0 0 0.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.cvt-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 3px;
-  background: var(--hue);
-  display: inline-block;
+  font-weight: 400;
+  margin: 0;
 }
 .cvt-cite {
   font-family: var(--cvt-mono);
@@ -144,13 +186,26 @@
 }
 
 /* ---- scroll layout: dominant stage, slim rail ----------------------------------- */
+/* the narrative rail's own reserved width, named once so the narrow-sheet
+   instrument (below) can stop short of it without a second, driftable
+   number of its own */
 .cvt-scroll {
+  --cvt-rail-max: 360px;
+  --cvt-rail-gap: clamp(1rem, 2.5vw, 2.5rem);
+
   display: grid;
-  grid-template-columns: 1fr minmax(280px, 360px);
-  column-gap: clamp(1rem, 2.5vw, 2.5rem);
+  grid-template-columns: 1fr minmax(280px, var(--cvt-rail-max));
+  column-gap: var(--cvt-rail-gap);
   padding: 0 clamp(1rem, 2.5vw, 2.5rem);
   max-width: 1440px;
   margin: 0 auto;
+}
+/* on the sheet, content starts clear of the row references in the left band */
+@container cvt (width >= 881px) {
+  .cvt-scroll {
+    padding-left: max(3rem, 2.5vw);
+    padding-right: max(3rem, 2.5vw);
+  }
 }
 /* transparent to the desktop grid, so the stage and rail place themselves as
    direct grid items; becomes a real block on mobile (see the media query) */
@@ -161,20 +216,28 @@
   position: relative;
   min-width: 0;
 }
+/* The instrument is fixed in the sheet's left margin, so the drawing column
+   starts clear of it — but only where there is room for both. Below this the
+   margin band costs more than the overlap it prevents, so the instrument goes
+   and the drawing takes the whole sheet. */
+@container cvt (width >= 1180px) {
+  .cvt-stagecol {
+    padding-left: 296px;
+  }
+}
+/* Below the wide sheet there is no room for a margin band, but the letters still
+   need their key — without it P/E/U/A mean nothing. The instrument becomes a
+   single ruled line along the bottom instead of standing down. */
 .cvt-sticky {
   position: sticky;
   top: 0;
-  height: 100vh;
+  height: 100dvh;
+  /* clear of the coordinate ruler, which was cropping the top of the drawing on
+     tall viewports */
+  padding-top: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-/* an @supports override, not a same-rule fallback pair: the minifier dedupes
-   the latter away, silently stranding engines without dvh at no height */
-@supports (height: 100dvh) {
-  .cvt-sticky {
-    height: 100dvh;
-  }
 }
 .cvt-fan {
   width: 100%;
@@ -374,7 +437,11 @@
 /* interactive callouts — compact read-outs, the controls themselves */
 .cvt-co {
   cursor: pointer;
-  transition: opacity 0.25s ease;
+  /* No opacity transition. The scrub already drives this value every frame, and
+     a 0.25s ease meant the *computed* opacity lagged the floored one the
+     component renders: a chip became tabbable while still transitioning up from
+     0.2, so "operable implies visible" held in React and not on screen. The only
+     step change left is the hover dim, which is better instant anyway. */
 }
 .cvt-co-bg {
   fill: var(--cvt-panel);
@@ -406,45 +473,86 @@
 .cvt-co:focus {
   outline: none;
 }
+/* Hover already swaps the plate stroke, so a focused chip needs an indicator
+   hover does not use: the same ring the layer taps carry. A stroke-width change
+   alone was indistinguishable from hover and near-invisible in a screenshot.
+   The ring goes on the plate, not the group: the group's box takes in the
+   leader line, so an outline there drew a 250px empty rectangle across the
+   drawing. Engines that do not outline SVG shapes still get the heavier plate. */
+.cvt-co:focus-visible {
+  outline: none;
+}
 .cvt-co:focus-visible .cvt-co-bg {
   stroke: var(--cvt-ink);
   stroke-width: 2.4;
+  outline: 2px solid var(--cvt-ink);
+  outline-offset: 3px;
 }
 
 /* ---- HUD --------------------------------------------------------------------------- */
 .cvt-hud {
   position: absolute;
-  inset: 0;
+  /* clear of the sheet's ruled border and its coordinate rulers on every side,
+     so the drawing's own read-outs never sit on top of the sheet's furniture */
+  inset: 30px 0 0;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   padding: clamp(0.8rem, 2vh, 1.4rem) 0;
   pointer-events: none;
 }
-.cvt-hud-top,
-.cvt-hud-bottom {
+.cvt-hud-top {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 1rem;
   flex-wrap: wrap;
 }
-.cvt-hud-top {
-  align-items: flex-start;
+.cvt-illustrative-note {
+  margin: 0;
+  width: fit-content;
+  color: var(--cvt-ink-dim);
+  font-family: var(--cvt-mono);
+  font-size: var(--cvt-t-1);
+  line-height: 1.35;
+  letter-spacing: 0.04em;
+  opacity: 0.78;
+  pointer-events: none;
 }
+.cvt-hud > .cvt-illustrative-note {
+  position: absolute;
+  left: 0;
+  bottom: 40px;
+}
+/* the theme toggle: the stage's bottom-right corner, where no chip lands and
+   nothing scrolls */
 .cvt-hud-actions {
+  position: absolute;
+  right: 0;
+  /* clear of the sheet's ruled border (22px) by the same margin the furniture keeps */
+  bottom: 40px;
   display: flex;
   align-items: center;
   gap: 0.6rem;
   pointer-events: auto;
+}
+/* the instrument strip owns the narrow sheet's bottom, so the stamp goes up top
+   and the chapter rail drops beneath it (see .cvt-ind's narrow-sheet margin) */
+@container cvt (width < 1180px) {
+  .cvt-hud-actions {
+    /* under the coordinate ruler, above the chapter rail's dropped position */
+    top: 10px;
+    bottom: auto;
+  }
 }
 .cvt-theme-toggle {
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 0.65rem;
   border-radius: 7px;
   border: 1px solid var(--cvt-line);
   background: var(--cvt-card);
@@ -455,6 +563,11 @@
     background 0.15s,
     border-color 0.15s;
 }
+.cvt-theme-toggle-label {
+  margin-left: 0.4rem;
+  font-family: var(--cvt-mono);
+  font-size: var(--cvt-t-1);
+}
 .cvt-theme-toggle:hover {
   color: var(--cvt-ink);
   background: var(--cvt-card-hi);
@@ -464,105 +577,102 @@
   width: 15px;
   height: 15px;
 }
-.cvt-hud-tag {
-  font-family: var(--cvt-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--cvt-ink-dim);
-  border: 1px dashed var(--cvt-line);
-  border-radius: 5px;
-  padding: 0.25rem 0.5rem;
-}
 .cvt-ind {
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 0 0.5rem;
   display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
+  gap: 1rem;
+  /* the zoomed fan can run right under this band, and white linework on white
+     linework is unreadable; the rail keeps its own ground */
+  background: var(--cvt-bg);
+  border: 1px solid var(--cvt-line);
 }
 .cvt-ind li {
+  display: flex;
+  align-items: center;
+  pointer-events: auto;
+}
+.cvt-ind button,
+.cvt-ind a {
   font-family: var(--cvt-mono);
-  font-size: 0.7rem;
+  font-size: var(--cvt-t-1);
   letter-spacing: 0.2em;
+  /* a stop that wraps stops being a stop: "THE MAP" broke over two lines and
+     pushed the rail out of alignment */
+  white-space: nowrap;
   text-transform: uppercase;
   color: var(--cvt-ink-dim);
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  background: none;
+  border: 0;
+  padding: 0.45rem 0.2rem;
+  cursor: pointer;
+  text-decoration: none;
   transition: color 0.3s;
 }
-.cvt-ind li::before {
+.cvt-ind button::before,
+.cvt-ind a::before {
   content: "";
-  width: 18px;
+  width: 30px;
   height: 3px;
   border-radius: 2px;
   background: var(--cvt-line);
+  /* the rule owns its full measure and scales from the left, so the active
+     state draws outward without animating layout */
+  transform: scaleX(0.6);
+  transform-origin: left center;
   transition:
     background 0.3s,
-    width 0.3s;
+    transform 0.3s;
 }
-.cvt-ind li[data-active="true"] {
+.cvt-ind [data-active="true"] {
   color: var(--cvt-ink);
 }
-.cvt-ind li[data-active="true"]::before {
+.cvt-ind [data-active="true"]::before {
   background: var(--hue);
-  width: 30px;
+  transform: scaleX(1);
 }
-/* a <fieldset>, so the chips are a named group without an ARIA role */
-.cvt-filtergroup {
-  border: 0;
-  margin: 0;
-  padding: 0;
-  min-inline-size: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.4rem;
-}
-/* the <legend> renders outside the fieldset's flex box, so it right-aligns itself */
-.cvt-filters-label {
-  margin-inline-start: auto;
-  padding: 0;
-  font-family: var(--cvt-mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--cvt-ink-dim);
-}
-.cvt-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  justify-content: flex-end;
-  pointer-events: auto;
-}
-.cvt-chip {
-  font-family: var(--cvt-mono);
-  font-size: 0.72rem;
+.cvt-ind button:hover,
+.cvt-ind a:hover {
   color: var(--cvt-ink);
-  background: var(--cvt-panel);
-  border: 1px solid var(--cvt-line);
-  border-radius: 999px;
-  padding: 0.28rem 0.7rem;
-  cursor: pointer;
-  transition:
-    background 0.18s,
-    color 0.18s;
 }
-.cvt-chip:hover {
-  background: var(--cvt-card-hi);
+/* the closing figure has no scale hue of its own; it takes the sheet's ink */
+.cvt-ind-end {
+  --hue: var(--cvt-ink);
 }
-.cvt-chip[aria-pressed="true"] {
-  background: var(--cvt-ink);
-  color: var(--cvt-bg);
-  border-color: var(--cvt-ink);
+/* Below the wide sheet the rail tightens and drops beneath the instrument line.
+   Declared here rather than beside the other narrow-sheet rules because it has
+   to come after .cvt-ind's own margin. */
+@container cvt (width < 1180px) {
+  .cvt-ind {
+    gap: 0.6rem;
+    margin-top: 34px;
+  }
+  .cvt-ind button,
+  .cvt-ind a {
+    letter-spacing: 0.1em;
+  }
+  .cvt-ind button::before,
+  .cvt-ind a::before {
+    width: 18px;
+  }
 }
 
 /* ---- rail ---------------------------------------------------------------------------- */
 .cvt-rail {
   min-width: 0;
+  /* The tail: the timeline is measured over this column, so the sticky stage
+     holds exactly as long as the column runs. Without a run-out after the last
+     chapter, its prose is centred at p ≈ 0.97 and the drawing has left the
+     sheet before the reader gets to it; a full 100vh left a dead screen of
+     degraded drawing between the last chapter and the closing figure. 50vh
+     puts the three chapter centres at p ≈ 0.25 / 0.54 / 0.84 — inside the
+     plateaus in timeline.ts, which is what those windows were measured for.
+     Retune the two together. */
+  padding-bottom: 50vh;
 }
 .cvt-hero {
   min-height: 92vh;
@@ -572,14 +682,14 @@
 }
 .cvt-title {
   font-family: var(--cvt-display);
-  font-size: clamp(2.35rem, 4vw, 3.4rem);
+  font-size: var(--cvt-t-6);
   font-weight: 800;
   letter-spacing: -0.022em;
   line-height: 0.98;
   margin: 0 0 1.15rem;
 }
 .cvt-sub {
-  font-size: 1rem;
+  font-size: var(--cvt-t-3);
   line-height: 1.6;
   color: var(--cvt-ink-dim);
   margin: 0 0 1.4rem;
@@ -590,29 +700,35 @@
   font-style: normal;
   font-weight: 600;
 }
-.cvt-legendline {
-  list-style: none;
-  margin: 0 0 2rem;
-  padding: 0;
+.cvt-hero-contract {
+  max-width: 46ch;
+  margin: 0.75rem 0;
+  color: var(--cvt-ink);
+  font-size: var(--cvt-t-3);
+  line-height: 1.5;
+}
+.cvt-maturity-key {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem 1.1rem;
-}
-.cvt-legendline li {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-family: var(--cvt-mono);
-  font-size: 0.72rem;
+  gap: 0.35rem 0.8rem;
+  margin: 0.7rem 0 1rem;
+  padding: 0;
+  list-style: none;
   color: var(--cvt-ink-dim);
+  font-family: var(--cvt-mono);
+  font-size: var(--cvt-t-1);
 }
-.cvt-legendline b {
+.cvt-maturity-key li {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+.cvt-maturity-key b {
   color: var(--cvt-ink);
   font-family: var(--cvt-display);
 }
 .cvt-scrollhint {
   font-family: var(--cvt-mono);
-  font-size: 0.72rem;
+  font-size: var(--cvt-t-1);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--cvt-ink-dim);
@@ -626,8 +742,8 @@
   display: inline-block;
   margin-top: 0.9rem;
   font-family: var(--cvt-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
+  font-size: var(--cvt-t-2);
+  letter-spacing: 0.02em;
   color: var(--cvt-ink-dim);
   text-decoration: underline;
   text-decoration-style: dotted;
@@ -661,7 +777,7 @@
 .cvt-chapter h2,
 .cvt-outro h2 {
   font-family: var(--cvt-display);
-  font-size: clamp(1.55rem, 2.7vw, 2.15rem);
+  font-size: var(--cvt-t-5);
   font-weight: 700;
   letter-spacing: -0.015em;
   line-height: 1.1;
@@ -674,7 +790,7 @@
   text-underline-offset: 7px;
 }
 .cvt-body {
-  font-size: 0.93rem;
+  font-size: var(--cvt-t-3);
   line-height: 1.6;
   color: var(--cvt-ink-dim);
   max-width: 46ch;
@@ -691,28 +807,32 @@
    whole canvas rather than the narrow rail column. */
 .cvt-outro {
   grid-column: 1 / -1;
-  min-height: 70vh;
-  padding: 12vh 0 14vh;
+  /* the closing figure is one screen: thesis over it, figure and caption side
+     by side under, so the skip link lands on the whole argument at once */
+  /* clear of the fixed coordinate ruler when the page is at its end */
+  padding: max(8vh, 72px) 0 10vh;
+  scroll-margin-top: 0;
+}
+.cvt-outro:focus {
+  outline: none;
 }
 .cvt-outro h2 {
-  max-width: 34ch;
+  max-width: 56ch;
 }
 
 /* ---- explorable: act two — the full matrix as a driveable instrument ------------------- */
 .cvt-explorable {
   display: grid;
-  /* one column until a cell is selected: the hint lives above the matrix, so an
-     empty detail column would only reserve dead space */
-  grid-template-columns: minmax(0, max-content);
+  /* the sheet's own geometry again: the figure holds the drawing field, and a
+     narrative column beside it carries the caption until a detail takes its
+     place. The matrix track is max-content, so opening a detail shifts nothing. */
+  grid-template-columns: minmax(0, max-content) minmax(300px, 400px);
   gap: clamp(1.5rem, 4vw, 3.5rem);
   align-items: start;
-  margin: 2rem 0 0;
+  margin: 1rem 0 0;
 }
-/* matrix takes its natural width (its cells are wide), detail gets a fixed,
-   readable column beside it; the matrix never crushes the detail. The matrix
-   track is max-content either way, so opening the detail shifts nothing. */
-.cvt-explorable[data-open="true"] {
-  grid-template-columns: minmax(0, max-content) minmax(300px, 400px);
+.cvt-explorable-col {
+  min-width: 0;
 }
 /* the matrix's own min-width would otherwise force its track wider than the
    canvas, same reason .cvt-matrixwrap used to scroll the old figure */
@@ -735,25 +855,55 @@
   height: 70vh;
   overflow-y: auto;
 }
+.cvt-inline-region {
+  outline: none;
+  /* focus-in scrolls the region into view; keep it below the fixed ruler rather
+     than flush under it */
+  scroll-margin-top: 5rem;
+}
+.cvt-inline-region:focus-visible {
+  outline: 2px solid var(--cvt-ink);
+  outline-offset: 4px;
+}
+.cvt-inline-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
 .cvt-inline-title {
   font-family: var(--cvt-display);
-  font-size: 1.15rem;
+  font-size: var(--cvt-t-4);
   line-height: 1.2;
   margin: 0 0 0.9rem;
 }
 .cvt-inline-prompt {
-  color: var(--cvt-ink-dim);
-  font-size: 0.95rem;
-  margin: 2rem 0 0;
+  color: var(--cvt-ink);
+  font-size: var(--cvt-t-3);
+  margin: 1.2rem 0 1.4rem;
 }
-@container cvt (width < 881px) {
-  .cvt-explorable[data-open="true"] {
+/* Below the wide sheet the figure and a column cannot share the canvas (the
+   matrix is 660px wide), so the column dissolves into the grid: the prompt sits
+   above the figure and the caption or the detail below it, as a printed figure
+   reads. The detail then flows at its own height; the outro is outside the
+   column the scroll timeline is measured over, so its height moves nothing. */
+@container cvt (width < 1180px) {
+  .cvt-explorable {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .cvt-explorable-col,
+  .cvt-explorable-idle {
+    display: contents;
+  }
+  .cvt-inline-prompt {
+    order: -1;
+    margin: 0;
   }
   .cvt-explorable[data-open="true"] .cvt-inline-detail {
     position: static;
-    /* no scroll timeline on mobile (the stepper pages), so let it flow */
     height: auto;
+    /* a reading measure, not the whole canvas */
+    max-width: 720px;
     overflow-y: visible;
     margin-top: 1.4rem;
     padding-top: 1.4rem;
@@ -761,17 +911,20 @@
   }
 }
 
+/* The matrix is ink on the sheet: ruled bays, one block each, height carrying the
+   verdict. No cards, no radius, no fill behind them — the ground is the sheet. */
 .cvt-matrix {
   display: grid;
   grid-template-columns: auto repeat(4, minmax(0, 1fr));
-  gap: 0.5rem;
+  column-gap: 2px;
+  row-gap: 1.3rem;
   align-items: stretch;
-  margin: 1.2rem 0 1.1rem;
+  margin: 0.4rem 0 0;
   min-width: 660px;
 }
 .cvt-mx-h {
   font-family: var(--cvt-mono);
-  font-size: 0.66rem;
+  font-size: var(--cvt-t-1);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--cvt-ink-dim);
@@ -788,6 +941,7 @@
   gap: 0.4rem;
   padding-right: 0.5rem;
   color: var(--cvt-ink-dim);
+  align-self: center;
 }
 /* the small scale swatch, shared by the matrix row heads and the panel eyebrow */
 .cvt-mx-row::before,
@@ -800,55 +954,115 @@
   flex-shrink: 0;
 }
 .cvt-mx-cell {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 0.55rem;
-  background: var(--cvt-card);
-  border: 1px solid var(--cvt-line);
-  border-radius: 8px;
-  padding: 0.85rem 0.9rem;
+  position: relative;
+  display: block;
+  height: 176px;
+  /* three lines of clearance under the floor: the split cell's label is the
+     longest, and a label that climbs into its own block is unreadable */
+  padding: 0 0 3.9rem;
+  background: none;
+  border: 0;
+  border-left: 0.5px solid var(--cvt-grid);
+  /* the dashed top edge IS the Strong shelf: every bay shows the rung it would
+     have to reach, and none of them does */
+  border-top: 1.5px dashed var(--cvt-line);
+  border-bottom: 1px solid var(--cvt-line);
+  border-radius: 0;
   color: var(--cvt-ink);
   cursor: pointer;
-  font-family: var(--cvt-display);
-  font-size: 0.95rem;
   text-align: left;
-  transition: background 0.15s;
 }
-.cvt-mx-cell:hover {
-  background: var(--cvt-card-hi);
+.cvt-mx-cell:last-child {
+  border-right: 0.5px solid var(--cvt-grid);
 }
-/* the instrument shows its state: the selected cell reads as pressed-in ink */
+/* the block stands on the bay floor; its height is the verdict */
+.cvt-mx-block {
+  position: absolute;
+  left: 7px;
+  right: 7px;
+  bottom: 3.9rem;
+  display: block;
+}
+/* a split cell stands at its stronger sub-verdict and rules the weaker one across */
+.cvt-mx-subrule {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px dashed var(--cvt-bg);
+}
+.cvt-mx-letter {
+  position: absolute;
+  left: 7px;
+  top: 0.25rem;
+  font-family: var(--cvt-mono);
+  font-size: var(--cvt-t-2);
+  color: var(--cvt-ink);
+}
+.cvt-mx-cell:hover .cvt-mx-block,
+.cvt-mx-cell:focus-visible .cvt-mx-block {
+  outline: 1.5px solid var(--cvt-ink);
+  outline-offset: 2px;
+}
+/* the instrument shows its state: the selected bay is ruled on all four sides */
 .cvt-mx-cell[aria-pressed="true"] {
-  background: var(--cvt-card-hi);
+  background: var(--cvt-card);
   border-color: var(--cvt-ink);
-  box-shadow: inset 0 0 0 1px var(--cvt-ink);
 }
-.cvt-mx-cell[data-ghost="true"] {
-  border-style: dashed;
-  opacity: 0.6;
+/* absence is drawn as open ground with a dashed floor, never as a faint card */
+/* Absent carries no ramp step, so its block arrives with no fill; all it needs
+   is the dashed floor that says the bay is empty rather than short. */
+.cvt-mx-cell[data-verdict="A"] .cvt-mx-block {
+  border-top: 1px dashed var(--cvt-line);
+}
+/* hatched, as a drawing hatches a void: the bay has no task, so it has no
+   floor to stand a block on — which is not what Absent's dashed floor says */
+.cvt-mx-cell[data-ghost="true"] .cvt-mx-block {
+  border-top: 0;
+  background: repeating-linear-gradient(-45deg, var(--cvt-grid) 0 1px, transparent 1px 10px);
 }
 /* The verdict spelled out: at full width the figure has room, so no value is
    reachable only by decoding a glyph. */
+/* the verdict word runs under the bay floor, as a drawing's dimension text does */
 .cvt-mx-name {
+  position: absolute;
+  left: 7px;
+  right: 2px;
+  bottom: 0;
   font-family: var(--cvt-mono);
-  font-size: 0.6rem;
+  font-size: var(--cvt-t-2);
   line-height: 1.35;
   letter-spacing: 0.02em;
   color: var(--cvt-ink-dim);
   min-width: 0;
+  /* the cell only budgets three lines under the floor (see .cvt-mx-cell); a
+     name long enough to outrun that clips clean here rather than bleeding
+     into the row below */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .cvt-foot {
   font-family: var(--cvt-mono);
-  font-size: 0.7rem;
+  font-size: var(--cvt-t-2);
   line-height: 1.6;
   color: var(--cvt-ink-dim);
-  max-width: 92ch;
+  /* a caption is read, not scanned: 92ch ran to ~113 characters a line */
+  max-width: 72ch;
+}
+.cvt-foot p {
+  margin: 0;
+}
+.cvt-foot p + p {
+  margin-top: 0.8rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--cvt-grid);
 }
 
 /* ---- table view: the figure's WCAG-clean twin ------------------------------------------- */
 .cvt-tableview {
-  margin: 1.2rem 0 1.6rem;
+  margin: 1.2rem 0 0;
 }
 .cvt-tableview-open {
   display: inline-flex;
@@ -859,7 +1073,7 @@
   border-radius: 999px;
   padding: 0.45rem 0.95rem;
   font-family: var(--cvt-mono);
-  font-size: 0.72rem;
+  font-size: var(--cvt-t-2);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--cvt-ink);
@@ -878,13 +1092,14 @@
   border-collapse: collapse;
   width: 100%;
   min-width: 720px;
-  font-size: 0.8rem;
+  font-size: var(--cvt-t-2);
 }
 .cvt-tablewrap caption {
-  caption-side: bottom;
-  padding-top: 0.8rem;
+  /* above the table: the rubric key is read before the marks column it decodes */
+  caption-side: top;
+  padding-bottom: 0.8rem;
   font-family: var(--cvt-mono);
-  font-size: 0.68rem;
+  font-size: var(--cvt-t-2);
   color: var(--cvt-ink-dim);
   text-align: left;
 }
@@ -897,7 +1112,7 @@
 }
 .cvt-tablewrap thead th {
   font-family: var(--cvt-mono);
-  font-size: 0.64rem;
+  font-size: var(--cvt-t-1);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--cvt-ink-dim);
@@ -920,27 +1135,18 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
-}
-/* an @supports override, not a same-rule fallback pair — see .cvt-sticky */
-@supports (height: 100dvh) {
-  .cvt-stepper {
-    height: 100dvh;
-  }
 }
 /* The backdrop. Its containing block is .cvt-step (positioned), so it spans
    the space between the bars; the bottom inset stops just shy of the sheet's
    peek, letting the silhouette tuck slightly behind it. */
+/* The bottom inset reserves the sheet's space, so it reads the same custom
+   property as the sheet's max-height below. */
 .cvt-step-stage {
   position: absolute;
-  inset: 0 0 26vh;
+  inset: 0 0 var(--cvt-sheet-max);
   transition: inset 0.35s ease;
-}
-@supports (inset: 26dvh) {
-  .cvt-step-stage {
-    inset: 0 0 26dvh;
-  }
 }
 /* sheet folded to its handle: the fan takes the freed space */
 .cvt-step[data-collapsed="true"] .cvt-step-stage {
@@ -961,6 +1167,8 @@
   padding: 0.6rem clamp(1rem, 4vw, 1.5rem) 0.2rem;
 }
 .cvt-step {
+  --cvt-sheet-max: 40dvh;
+
   position: relative;
   z-index: 1;
   flex: 1;
@@ -979,7 +1187,7 @@
   position: relative;
   z-index: 1;
   min-width: 0;
-  max-height: 32vh;
+  max-height: var(--cvt-sheet-max);
   overflow-y: auto;
   overscroll-behavior: contain;
   background: var(--cvt-panel);
@@ -989,21 +1197,22 @@
   padding: 0.4rem 1.1rem 1.1rem;
   box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.18);
 }
-@supports (max-height: 32dvh) {
-  .cvt-step-body {
-    max-height: 32dvh;
-  }
+.cvt-step[data-step="Intro"] {
+  --cvt-sheet-max: 44dvh;
 }
-/* grabber-style affordance: the sheet reads as a sheet, and its body scrolls.
-   Scale steps carry a real toggle button instead (the pseudo bows out). */
-.cvt-step-body:not(:has(.cvt-sheet-toggle))::before {
-  content: "";
-  display: block;
-  width: 38px;
-  height: 4px;
-  border-radius: 2px;
-  background: var(--cvt-line);
-  margin: 0.2rem auto 0.8rem;
+.cvt-step[data-intro-expanded="true"] {
+  --cvt-sheet-max: min(68dvh, 34rem);
+}
+@media (max-height: 640px) and (orientation: portrait) {
+  .cvt-step {
+    --cvt-sheet-max: 54dvh;
+  }
+  .cvt-step[data-step="Intro"] {
+    --cvt-sheet-max: 60dvh;
+  }
+  .cvt-step[data-intro-expanded="true"] {
+    --cvt-sheet-max: 76dvh;
+  }
 }
 /* the grabber as a control: full-width tap target, bar drawn by the pseudo */
 .cvt-sheet-toggle {
@@ -1014,6 +1223,7 @@
   background: none;
   border: 0;
   cursor: pointer;
+  min-height: 44px;
 }
 .cvt-sheet-toggle::after {
   content: "";
@@ -1027,9 +1237,37 @@
 .cvt-step[data-collapsed="true"] .cvt-step-body {
   padding-bottom: 0.4rem;
 }
+.cvt-intro-toggle {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0.75rem 0 0;
+  padding: 0.55rem 0;
+  border: 0;
+  border-top: 1px solid var(--cvt-line);
+  border-bottom: 1px solid var(--cvt-line);
+  background: transparent;
+  color: var(--cvt-ink);
+  font-family: var(--cvt-mono);
+  font-size: var(--cvt-t-2);
+  cursor: pointer;
+}
+.cvt-intro-toggle span {
+  font-size: var(--cvt-t-4);
+}
+.cvt-step-context-cue {
+  margin: 0 0 0.65rem;
+  color: var(--cvt-ink-dim);
+  font-family: var(--cvt-mono);
+  font-size: var(--cvt-t-1);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
 .cvt-step-body > h2 {
   font-family: var(--cvt-display);
-  font-size: clamp(1.4rem, 6vw, 1.9rem);
+  font-size: var(--cvt-t-5);
   line-height: 1.1;
   margin: 0.2rem 0 0.6rem;
 }
@@ -1072,32 +1310,46 @@
 .cvt-stepper-nav {
   position: relative;
   z-index: 2;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(76px, 1fr) auto minmax(76px, 1fr);
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  padding: 0.7rem clamp(1rem, 4vw, 1.5rem);
+  padding: 0.7rem clamp(1rem, 4vw, 1.5rem) calc(0.7rem + env(safe-area-inset-bottom));
   background: var(--cvt-bg);
   border-top: 1px solid var(--cvt-line);
 }
 .cvt-stepper-btn {
   font-family: var(--cvt-mono);
-  font-size: 0.8rem;
+  font-size: var(--cvt-t-2);
   padding: 0.5rem 0.95rem;
   border: 1px solid var(--cvt-line);
   border-radius: 999px;
   background: var(--cvt-card);
   color: var(--cvt-ink);
   cursor: pointer;
-}
-.cvt-stepper-btn:disabled {
-  opacity: 0.3;
-  cursor: default;
+  min-height: 44px;
 }
 .cvt-stepper-next {
+  justify-self: end;
   background: var(--cvt-ink);
   color: var(--cvt-bg);
   border-color: var(--cvt-ink);
+}
+.cvt-stepper-spacer {
+  min-width: 76px;
+}
+.cvt-stepper-progress {
+  display: grid;
+  justify-items: center;
+  gap: 0.3rem;
+}
+.cvt-stepper-status {
+  margin: 0;
+  color: var(--cvt-ink-dim);
+  font-family: var(--cvt-mono);
+  font-size: var(--cvt-t-1);
+  white-space: nowrap;
 }
 .cvt-stepper-dots {
   display: flex;
@@ -1120,22 +1372,26 @@
 .cvt-footer {
   max-width: 1440px;
   margin: 0 auto;
-  padding: 1.3rem clamp(1rem, 2.5vw, 2.5rem) 2.4rem;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem 1.2rem;
-  border-top: 1px solid var(--cvt-line);
+  padding: 0 clamp(1rem, 2.5vw, 2.5rem) 2.4rem;
   font-family: var(--cvt-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.04em;
+  font-size: var(--cvt-t-1);
+  letter-spacing: 0.08em;
   color: var(--cvt-ink-dim);
+}
+@container cvt (width >= 881px) {
+  .cvt-footer {
+    padding-left: max(3rem, 2.5vw);
+    padding-right: max(3rem, 2.5vw);
+  }
 }
 .cvt-footer a {
   display: inline-flex;
   align-items: center;
-  color: var(--cvt-ink-dim);
+  gap: 0.35rem;
+  color: var(--cvt-ink);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
 }
 .cvt-footer a:hover {
   color: var(--cvt-ink);
@@ -1144,7 +1400,7 @@
 /* ---- detail panel ------------------------------------------------------------------------ */
 .cvt-panel::backdrop {
   /* near-transparent: the zoomed fan stays visible beside the panel, not dimmed out */
-  background: rgba(0, 0, 0, 0.06);
+  background: rgba(0, 0, 0, 0.12);
   animation: cvt-fade 0.2s ease;
 }
 .cvt-panel {
@@ -1164,10 +1420,12 @@
   max-height: 100vh;
   overflow-y: auto;
   background: var(--cvt-panel);
+  /* A detail view drawn on the sheet, not a panel floating over an app: ruled
+     on the sheet side, no shadow, no radius. The scale hue stays as a hairline
+     rule rather than the 3px side-tab it was. */
   border: none;
-  border-left: 3px solid var(--hue);
+  border-left: 1px solid var(--hue);
   padding: 1.6rem 1.6rem 3rem;
-  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.35);
   outline: none;
   color: var(--cvt-ink);
   font-family: var(--cvt-sans);
@@ -1210,52 +1468,59 @@
 }
 .cvt-panel-scale {
   font-family: var(--cvt-mono);
-  font-size: 0.72rem;
+  font-size: var(--cvt-t-1);
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--cvt-ink-dim);
-  margin: 0 0 0.3rem;
+  /* it sits under the title now, so the space it needs is above it */
+  margin: 0.4rem 0 0.3rem;
   display: flex;
   align-items: center;
   gap: 0.45rem;
 }
 .cvt-panel h2 {
   font-family: var(--cvt-display);
-  font-size: 1.55rem;
+  font-size: var(--cvt-t-5);
   line-height: 1.12;
   letter-spacing: -0.01em;
   margin: 0;
 }
 .cvt-panel-close {
   flex-shrink: 0;
+  display: grid;
+  place-items: center;
   width: 34px;
   height: 34px;
-  border-radius: 8px;
+  border-radius: 0;
   border: 1px solid var(--cvt-line);
-  background: var(--cvt-card);
+  background: none;
   color: var(--cvt-ink);
   cursor: pointer;
-  font-size: 0.9rem;
+}
+.cvt-panel-close svg {
+  width: 16px;
+  height: 16px;
 }
 .cvt-panel-close:hover {
   background: var(--cvt-card-hi);
 }
+/* the verdict reads as a ruled band across the detail, not a card inside it */
 .cvt-verdict {
   display: flex;
   align-items: center;
   gap: 0.8rem;
-  padding: 0.8rem;
-  border: 1px solid var(--cvt-line);
-  border-radius: 10px;
-  margin-bottom: 1rem;
+  padding: 0.7rem 0 0.9rem;
+  border-top: 1.5px solid var(--cvt-line);
+  border-bottom: 1.5px solid var(--cvt-line);
+  margin-bottom: 1.1rem;
 }
 .cvt-verdict strong {
   display: block;
   font-family: var(--cvt-display);
-  font-size: 1rem;
+  font-size: var(--cvt-t-4);
 }
 .cvt-verdict span {
-  font-size: 0.84rem;
+  font-size: var(--cvt-t-2);
   color: var(--cvt-ink-dim);
   line-height: 1.4;
 }
@@ -1287,7 +1552,7 @@
 }
 .cvt-subverdicts li {
   font-family: var(--cvt-mono);
-  font-size: 0.82rem;
+  font-size: var(--cvt-t-2);
   color: var(--cvt-ink-dim);
 }
 .cvt-subverdicts b {
@@ -1302,7 +1567,7 @@
 }
 .cvt-row dt {
   font-family: var(--cvt-mono);
-  font-size: 0.66rem;
+  font-size: var(--cvt-t-1);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--cvt-ink-dim);
@@ -1311,7 +1576,7 @@
 /* :where() so a class on the <dd> (.cvt-mono) can set its own font-size */
 :where(.cvt-row) dd {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: var(--cvt-t-3);
   line-height: 1.5;
 }
 .cvt-row-warn dd {
@@ -1319,7 +1584,20 @@
 }
 .cvt-mono {
   font-family: var(--cvt-mono);
-  font-size: 0.82rem;
+  font-size: var(--cvt-t-2);
+}
+/* the key that decodes the marks: subordinate to them, but still readable */
+.cvt-rubric-key {
+  margin: 0.45rem 0 0;
+  font-size: var(--cvt-t-2);
+  line-height: 1.5;
+  color: var(--cvt-ink-dim);
+  text-wrap: pretty;
+}
+.cvt-rubric-key b {
+  font-family: var(--cvt-mono);
+  font-weight: 600;
+  color: var(--cvt-ink);
 }
 .cvt-panel-more {
   margin-top: 0.4rem;
@@ -1327,7 +1605,7 @@
 .cvt-panel-more > summary {
   cursor: pointer;
   font-family: var(--cvt-mono);
-  font-size: 0.72rem;
+  font-size: var(--cvt-t-2);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--cvt-ink-dim);
@@ -1347,7 +1625,7 @@
 }
 .cvt-status {
   font-family: var(--cvt-mono);
-  font-size: 0.68rem;
+  font-size: var(--cvt-t-1);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   padding: 0.2rem 0.55rem;
@@ -1387,7 +1665,7 @@
 }
 .cvt-cites .cvt-cite-chip {
   font-family: var(--cvt-sans);
-  font-size: 0.74rem;
+  font-size: var(--cvt-t-2);
   line-height: 1.3;
 }
 .cvt-cite-chip:hover {
@@ -1429,7 +1707,7 @@
 }
 .cvt-cite-apa {
   margin: 0;
-  font-size: 0.82rem;
+  font-size: var(--cvt-t-2);
   line-height: 1.5;
   /* hanging indent, as a printed reference list has */
   padding-left: 1.4rem;
@@ -1440,7 +1718,7 @@
   padding-top: 0.5rem;
   border-top: 1px solid var(--cvt-line);
   font-family: var(--cvt-mono);
-  font-size: 0.68rem;
+  font-size: var(--cvt-t-1);
 }
 .cvt-cite-meta a {
   color: var(--cvt-ink-dim);
@@ -1450,85 +1728,29 @@
 }
 
 /* ---- focus --------------------------------------------------------------------------------- */
-.cvt button:focus {
+.cvt button,
+.cvt input,
+.cvt select {
+  font: inherit;
+}
+.cvt button:focus,
+.cvt a:focus,
+.cvt summary:focus {
   outline: none;
 }
-.cvt button:focus-visible {
+/* links too: Chrome's default ring is rgb(0, 95, 204), which all but vanishes on
+   the blue ground this sheet is printed on */
+.cvt button:focus-visible,
+.cvt a:focus-visible,
+.cvt summary:focus-visible {
   outline: 2px solid var(--cvt-ink);
   outline-offset: 2px;
 }
 
 /* ---- mobile --------------------------------------------------------------------------------- */
+/* Below the breakpoint the stepper is on stage, not the sheet; only what the
+   stepper renders (the outro and its cell lists) needs rules. */
 @container cvt (width < 881px) {
-  .cvt-scroll {
-    display: block;
-    padding: 0 1rem;
-  }
-  /* a real block now, so it is the sticky stage's containing block: the stage
-     stays pinned across the chapters, then releases at the wrapper's end — the
-     outro sits after it in flow, no paint-over needed */
-  .cvt-pinwrap {
-    display: block;
-    position: relative;
-  }
-  .cvt-stagecol {
-    position: sticky;
-    top: 0;
-    z-index: 5;
-  }
-  .cvt-sticky {
-    position: static;
-    height: 34vh;
-    background-color: var(--cvt-bg);
-    background-image:
-      linear-gradient(var(--cvt-grid) 1px, transparent 1px),
-      linear-gradient(90deg, var(--cvt-grid) 1px, transparent 1px);
-    background-size: 28px 28px;
-    border-bottom: 1px solid var(--cvt-line);
-  }
-  @supports (height: 34dvh) {
-    .cvt-sticky {
-      height: 34dvh;
-    }
-  }
-  .cvt-fan {
-    max-height: 32vh;
-  }
-  /* keep the theme toggle reachable up top; drop the wordier HUD labels.
-     The illustrative caveat is NOT one of them: the compact fan still paints
-     every mock read-out, so hiding its label would leave invented confidences
-     and dimensions on the product uncaveated. It shrinks; it never disappears. */
-  .cvt-ind,
-  .cvt-hud-top .cvt-eyebrow {
-    display: none;
-  }
-  .cvt-hud-top {
-    gap: 0.5rem;
-  }
-  /* the eyebrow is gone, so the actions are the row: caveat left, toggle right */
-  .cvt-hud-actions {
-    flex: 1;
-    justify-content: space-between;
-  }
-  .cvt-hud-tag {
-    font-size: 0.5rem;
-    letter-spacing: 0.04em;
-    padding: 0.2rem 0.35rem;
-    min-width: 0;
-  }
-  .cvt-hud {
-    padding: 0.5rem;
-  }
-  /* no chip-row rules here: the stepper renders no InfoFilter — a four-row
-     list needs no filtering, and the chips only crowded the small stage */
-  .cvt-hero {
-    min-height: 46vh;
-    padding: 2rem 0;
-  }
-  .cvt-chapter {
-    min-height: auto;
-    padding: 3rem 0;
-  }
   .cvt-outro {
     min-height: auto;
     padding: 3rem 0 6rem;
@@ -1541,29 +1763,48 @@
      out-cascades the base .cvt-matrix rules at equal specificity.) */
   .cvt-matrix {
     min-width: 0;
-    gap: 0.3rem;
+    grid-template-columns: max-content repeat(4, minmax(0, 1fr));
+    column-gap: 2px;
+    row-gap: 1rem;
   }
   .cvt-mx-name {
     display: none;
   }
+  /* the name is gone, so the bay needs only a line of clearance under its floor */
   .cvt-mx-cell {
-    justify-content: center;
-    gap: 0.4rem;
-    padding: 0.7rem 0.3rem;
+    height: 150px;
+    padding-bottom: 0.4rem;
   }
-  .cvt-mx-h {
-    font-size: 0.56rem;
-    letter-spacing: 0.04em;
+  .cvt-mx-block {
+    bottom: 0.4rem;
+    left: 4px;
+    right: 4px;
+  }
+  .cvt-mx-letter {
+    left: 4px;
+    white-space: nowrap;
+  }
+  /* four headers over four ~60px bays: set on end like a drawing's dimension
+     text rather than crushed into one another */
+  .cvt-mx-h:not(.cvt-mx-row) {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    justify-self: center;
+    letter-spacing: 0.1em;
+    padding: 0 0 0.3rem;
   }
   .cvt-mx-row {
     padding-right: 0.3rem;
+    padding-left: 0;
   }
   /* the callouts live on the desktop svg; on mobile each chapter lists its cells */
+  /* ruled rows, as the sheet rules everything else: the phone's own idiom
+     stops at the sheet that slides up, it does not extend to the cell list */
   .cvt-mgroup {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    gap: 0.45rem;
-    margin-top: 1.2rem;
+    margin: 0.2rem 0 1.1rem;
+    border-top: 0.5px solid var(--cvt-line);
   }
   .cvt-mcell {
     display: flex;
@@ -1571,27 +1812,25 @@
     gap: 0.6rem;
     width: 100%;
     text-align: left;
-    background: var(--cvt-card);
-    border: 1px solid var(--cvt-line);
-    border-left: 3px solid var(--hue);
-    border-radius: 9px;
-    padding: 0.55rem 0.7rem;
+    background: none;
+    border: 0;
+    border-bottom: 0.5px solid var(--cvt-line);
+    border-radius: 0;
+    padding: 0.55rem 0.2rem;
     color: var(--cvt-ink);
     cursor: pointer;
+    min-height: 44px;
   }
   .cvt-mcell[data-ghost="true"] {
-    border-style: dashed;
+    border-bottom-style: dashed;
     opacity: 0.65;
-  }
-  .cvt-mcell[data-dim="true"] {
-    opacity: 0.3;
   }
   .cvt-mcell-info {
     font-family: var(--cvt-mono);
     /* fixed width so every task label starts on the same column with Overpass
        Mono's wider metrics — a tidy read-out grid, not a ragged left edge */
     width: 6.3em;
-    font-size: 0.68rem;
+    font-size: var(--cvt-t-2);
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--cvt-ink-dim);
@@ -1601,12 +1840,12 @@
     flex: 1;
     min-width: 0;
     overflow-wrap: break-word;
-    font-size: 0.82rem;
+    font-size: var(--cvt-t-2);
     line-height: 1.25;
   }
   .cvt-mcell b {
     font-family: var(--cvt-display);
-    font-size: 1rem;
+    font-size: var(--cvt-t-4);
   }
   .cvt-panel {
     top: auto;
@@ -1619,6 +1858,11 @@
     border-top: 3px solid var(--hue);
     border-radius: 16px 16px 0 0;
     overscroll-behavior: contain;
+  }
+  .cvt-panel-close,
+  .cvt-back-start {
+    min-width: 44px;
+    min-height: 44px;
   }
   /* mobile is a bottom sheet: it slides up from the bottom, not in from the side */
   @starting-style {
@@ -1668,7 +1912,7 @@
   margin-left: auto;
   align-self: center;
   font-family: var(--cvt-mono);
-  font-size: 0.72rem;
+  font-size: var(--cvt-t-2);
   letter-spacing: 0.1em;
   padding: 0.35rem 0.7rem;
   border: 1px solid var(--cvt-line);
@@ -1679,4 +1923,529 @@
 }
 .cvt-share:hover {
   border-color: var(--cvt-ink-dim);
+}
+
+/* ---- sheet furniture ---------------------------------------------------------
+   Fixed to the viewport, not the document: the reader stays on one sheet while
+   the drawing moves under it. All of it is aria-hidden decoration over a live
+   document, so it never takes a pointer event and never enters the tab order. */
+.cvt-sheet,
+.cvt-titleblock,
+.cvt-instrument {
+  position: fixed;
+  z-index: 3;
+  pointer-events: none;
+  font-family: var(--cvt-mono);
+  font-size: var(--cvt-t-1);
+  letter-spacing: 0.08em;
+  color: var(--cvt-ink-dim);
+}
+.cvt-sheet {
+  inset: 0;
+  overflow: hidden;
+}
+/* the sheet's mat: an opaque margin the width of the ruler bands, so whatever
+   scrolls under the frame — the drawing on its way out, the closing thesis on
+   its way in — slides under the sheet's edge instead of through its refs */
+.cvt-sheet::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  border: 31px solid var(--cvt-bg);
+}
+.cvt-sheet-border {
+  position: absolute;
+  inset: 22px;
+  border: 1.5px solid var(--cvt-line);
+}
+/* the second rule inside the first is what makes it read as a drawn sheet edge
+   rather than a CSS box */
+.cvt-sheet-border::after {
+  content: "";
+  position: absolute;
+  inset: 9px;
+  border: 0.5px solid var(--cvt-grid);
+}
+/* One reference every three 32px divisions, so a callout can be cited as F4. */
+.cvt-ruler {
+  position: absolute;
+  display: flex;
+}
+.cvt-ruler-x {
+  top: 26px;
+  left: 34px;
+  right: 34px;
+}
+.cvt-ruler-x span {
+  width: 96px;
+  flex: 0 0 96px;
+}
+.cvt-ruler-y {
+  flex-direction: column;
+  top: 34px;
+  bottom: 34px;
+  left: 27px;
+}
+.cvt-ruler-y span {
+  height: 96px;
+  flex: 0 0 96px;
+}
+
+/* ISO 7200 puts the title block bottom-right; on this sheet bottom-right is the
+   narrative column, and every chapter's prose scrolled under the block on its way
+   up. It takes the bottom of the left margin band instead, under the instrument,
+   where nothing scrolls. Below the wide sheet there is no band and no corner the
+   prose does not pass through, so it stands down (the caption repeats its facts). */
+.cvt-titleblock {
+  left: 40px;
+  bottom: 40px;
+  width: 268px;
+  border: 1.5px solid var(--cvt-line);
+  background: var(--cvt-panel);
+  margin: 0;
+}
+@container cvt (width < 1180px) {
+  .cvt-titleblock {
+    display: none;
+  }
+}
+.cvt-tb-title {
+  font-family: var(--cvt-display);
+  font-size: var(--cvt-t-2);
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.3;
+  color: var(--cvt-ink);
+  padding: 0.5rem 0.55rem;
+  border-bottom: 1.5px solid var(--cvt-line);
+}
+.cvt-tb-row {
+  display: grid;
+  grid-template-columns: 68px 1fr;
+  border-top: 0.5px solid var(--cvt-grid);
+}
+.cvt-tb-row:first-of-type {
+  border-top: 0;
+}
+.cvt-tb-row dt {
+  padding: 0.3rem 0.45rem;
+  text-transform: uppercase;
+  border-right: 0.5px solid var(--cvt-grid);
+}
+.cvt-tb-row dd {
+  padding: 0.3rem 0.45rem;
+  margin: 0;
+  color: var(--cvt-ink);
+}
+/* a labelled blank, not a placeholder: the deposit is planned and does not exist */
+.cvt-tb-blank {
+  color: var(--cvt-ink-dim);
+  opacity: 0.65;
+  font-style: italic;
+}
+
+/* the title block, laid along the sheet's bottom edge: the same ruled cells the
+   margin block draws, run as one strip, so what faded out at the outro's top
+   arrives here in flow */
+.cvt-foot-tb {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0;
+  border: 1.5px solid var(--cvt-line);
+  /* a wrapped line's cells rule their own top; the first line's rule hides
+     under the strip's border */
+  overflow: hidden;
+}
+.cvt-foot-tb .cvt-tb-row {
+  display: flex;
+  /* centre, not baseline: the code cell holds an icon, and baseline-aligning
+     an inline-flex link dropped its label under the other cells */
+  align-items: center;
+  border-top: 0.5px solid var(--cvt-grid);
+  margin-top: -0.5px;
+  border-right: 0.5px solid var(--cvt-grid);
+}
+.cvt-foot-tb .cvt-tb-row dd {
+  white-space: nowrap;
+}
+/* the title takes the slack; the fields sit at their own width */
+.cvt-foot-tb .cvt-tb-row-title {
+  flex: 1 1 auto;
+}
+.cvt-foot-tb .cvt-tb-row-title dd {
+  white-space: normal;
+  font-family: var(--cvt-display);
+  font-size: var(--cvt-t-2);
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+/* Top-left margin, under the chapter rail: the one corner of the sheet no
+   callout reaches and no prose runs into. Stacking it over the title block put
+   it through the narrative column; the bottom-left corner is where the Product
+   and Material callouts land. */
+.cvt-instrument {
+  left: 40px;
+  top: 80px;
+  width: 268px;
+  padding: 0.55rem 0.6rem;
+  border: 1.5px solid var(--cvt-line);
+  background: var(--cvt-panel);
+}
+.cvt-instrument-head {
+  margin: 0 0 0.4rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.cvt-rung {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0.15rem 0;
+  line-height: 1.3;
+}
+.cvt-rung i {
+  width: 22px;
+  height: 11px;
+  flex: 0 0 22px;
+  border: 1px solid var(--cvt-line);
+}
+.cvt-rung b {
+  color: var(--cvt-ink);
+  font-weight: 600;
+}
+.cvt-rung[data-claimed="true"] {
+  color: var(--cvt-ink);
+}
+/* the empty top of the ramp is the paper's finding, so it is drawn, not omitted */
+.cvt-rung[data-claimed="false"] i {
+  border-style: dashed;
+}
+.cvt-rung[data-verdict="A"] i {
+  border-style: dashed;
+}
+/* the instrument takes a reading: the rung of the cell under the pointer or
+   focus is drawn in full ink and its swatch ruled hard, so the reader's eye can
+   check a chip's letter against the ramp without leaving the drawing */
+.cvt-rung {
+  transition: color 0.15s;
+}
+.cvt-rung[data-reading="true"] {
+  color: var(--cvt-ink);
+}
+.cvt-rung[data-reading="true"] i {
+  outline: 1.5px solid var(--cvt-ink);
+  outline-offset: 1px;
+}
+
+/* The detail takes the narrative column's place, so nothing has to clear it —
+   the sheet reconfigures instead of being covered; the furniture in the left
+   margin stays in place. */
+
+/* ---- detail: an enlargement drawn on the sheet -------------------------------
+   Ruled like a detail view, with a leader running out of its edge toward the
+   drawing it enlarges. No shadow, no radius, nothing floating: it is ON the
+   sheet, which is why it cannot be a <dialog> — that element is always in the
+   top layer, so it can only ever sit over the drawing. */
+/* the column holds both; the rail keeps its height while the detail is open */
+.cvt-railcol {
+  position: relative;
+  min-width: 0;
+}
+/* The prose steps aside rather than unmounting. visibility:hidden takes it out
+   of the tab order and the accessibility tree — the detail stands in its place
+   for the reader too — while the box keeps the height the scroll needs. */
+.cvt-railcol[data-detail="open"] .cvt-rail {
+  visibility: hidden;
+}
+/* The slot is the sticky, zero-height thing; the detail overflows it. A float
+   here was meant to be zero-height too, but the hero's flex box could not
+   overlap it and dropped below it, lengthening the column — and the column IS
+   the scroll timeline, so every chapter jumped the moment a detail opened. */
+.cvt-detail-slot {
+  position: sticky;
+  /* inside the sheet's ruled border and clear of the coordinate ruler: the one
+     element rebuilt to live ON the sheet must not punch through its frame */
+  top: 48px;
+  height: 0;
+  z-index: 2;
+}
+.cvt-detail {
+  position: relative;
+  width: 100%;
+  max-height: calc(100dvh - 96px);
+  overflow-y: auto;
+  padding: 1.4rem 1.2rem 3rem;
+  border: 1.5px solid var(--cvt-line);
+  background: var(--cvt-panel);
+  outline: none;
+}
+/* More below. The detail scrolls inside itself, and at a laptop height its foot
+   (sources, copy link) sits under the fold with nothing to say so. Its own
+   scroll timeline drives a fog of the panel ground along the bottom edge that
+   lifts as the reader reaches the end; an engine without scroll timelines, or a
+   detail short enough not to scroll, shows nothing — which is the status quo. */
+@supports (animation-timeline: scroll()) {
+  .cvt-detail::after {
+    content: "";
+    position: sticky;
+    bottom: 0;
+    display: block;
+    height: 64px;
+    /* rides over the last 64px of content rather than adding to the column */
+    margin: -64px 0 0;
+    background: linear-gradient(to bottom, transparent, var(--cvt-panel));
+    pointer-events: none;
+    animation: cvt-more-below linear both;
+    animation-timeline: scroll(nearest);
+  }
+  @keyframes cvt-more-below {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+}
+/* the leader: a rule running out of the detail's left edge toward the part */
+.cvt-detail::before {
+  content: "";
+  position: absolute;
+  top: 2.4rem;
+  right: 100%;
+  width: clamp(1rem, 3.5vw, 3.5rem);
+  border-top: 2px solid var(--cvt-ink-dim);
+}
+.cvt-detail:focus-visible {
+  outline: 2px solid var(--cvt-ink);
+  outline-offset: -2px;
+}
+/* mobile has no column to hand over, so the detail arrives as a bottom sheet */
+.cvt-detail-sheet {
+  position: fixed;
+  z-index: 60;
+  inset: auto 0 0;
+  max-height: 84dvh;
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 0;
+  border-top: 3px solid var(--hue);
+  /* the phone's own idiom for a surface sliding up over a page — the same
+     radius the peek sheet under it carries; the exception stops at the breakpoint */
+  border-radius: 16px 16px 0 0;
+}
+.cvt-detail-sheet::before {
+  content: none;
+}
+.cvt-detail .cvt-illustrative-note {
+  margin-bottom: 0.8rem;
+}
+.cvt-term-note {
+  margin: 0 0 0.9rem;
+  color: var(--cvt-ink-dim);
+  font-size: var(--cvt-t-2);
+  line-height: 1.5;
+}
+.cvt-term-note abbr {
+  color: var(--cvt-ink);
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+}
+.cvt-back-start {
+  display: block;
+  margin: 1.2rem 0 0;
+  padding: 0.35rem 0;
+  border: 0;
+  border-bottom: 1px solid var(--cvt-ink-dim);
+  background: none;
+  color: var(--cvt-ink-dim);
+  font: inherit;
+  cursor: pointer;
+}
+.cvt-back-start:hover,
+.cvt-back-start:focus-visible {
+  color: var(--cvt-ink);
+  border-color: var(--cvt-ink);
+}
+/* Arrival. The desktop detail is drawn onto the sheet — a short settle, no
+   travel; the phone's sheet slides up from the edge it belongs to, as the
+   platform's own sheets do. @starting-style runs on first paint, so a freshly
+   mounted region gets its entrance; the exit is the unmount, which is right for
+   a close (exit faster than entrance). Reduced motion zeroes both. */
+.cvt-detail {
+  transition:
+    translate 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.24s ease-out;
+}
+@starting-style {
+  .cvt-detail {
+    opacity: 0;
+    translate: 0 8px;
+  }
+  .cvt-detail-sheet {
+    opacity: 1;
+    translate: 0 40px;
+  }
+}
+
+/* The closing figure gets the whole sheet: the margin furniture belongs to the
+   drawing, and both boxes would otherwise sit over the matrix. The title block
+   fades rather than cuts — its content is about to arrive in the footer, in flow. */
+.cvt-scroll[data-chapter="outro"] .cvt-instrument {
+  display: none;
+}
+.cvt-titleblock {
+  transition:
+    opacity 0.4s ease,
+    visibility 0.4s;
+}
+.cvt-scroll[data-chapter="outro"] .cvt-titleblock {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Below the wide sheet there is no room for a margin band, but the letters still
+   need their key: without it P/E/U/A mean nothing. The instrument becomes a
+   single ruled strip along the bottom rather than standing down. Declared after
+   the base rule, which it has to override. */
+@container cvt (width < 1180px) {
+  .cvt-instrument {
+    top: auto;
+    bottom: 34px;
+    left: 34px;
+    /* stops short of the narrative column: prose arrives through that corner,
+       and a detail docks there. Derived from .cvt-scroll's own rail width and
+       gap (inherited custom properties), so widening the rail can't silently
+       reopen the overlap this rule exists to prevent. */
+    right: calc(var(--cvt-rail-max) + var(--cvt-rail-gap));
+    width: auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 0.9rem;
+    padding: 0.4rem 0.6rem;
+  }
+  .cvt-instrument .cvt-instrument-head {
+    margin: 0;
+  }
+  .cvt-instrument .cvt-rung {
+    padding: 0;
+  }
+  /* the drawing sits between the dropped chapter rail (stamp + rail, ~116px
+     under the ruler) and the instrument strip: the exploded grille and base
+     ran under both otherwise */
+  .cvt-sticky {
+    padding-top: 128px;
+    padding-bottom: 84px;
+  }
+  /* the detail stops short of the strip: they shared the sheet's bottom otherwise */
+  .cvt-scroll[data-panel="open"] .cvt-detail {
+    max-height: calc(100dvh - 150px);
+  }
+}
+
+/* the sheet is a desktop conceit: the stepper is its own object */
+@container cvt (width < 881px) {
+  .cvt-sheet,
+  .cvt-titleblock,
+  .cvt-instrument {
+    display: none;
+  }
+}
+
+/* ---- the rubric as a run that breaks -----------------------------------------
+   Three marks, drawn as a chain: evidence, capture, deployment. A segment that
+   carries is solid ink; the one that fails is broken; everything downstream is
+   dead, because the ladder's binding limit is wherever the chain first stops. */
+.cvt-circuits {
+  display: grid;
+  gap: 0.9rem;
+  margin: 0.7rem 0 0.2rem;
+}
+.cvt-circuit-sub {
+  margin: 0 0 0.3rem;
+  font-family: var(--cvt-mono);
+  font-size: var(--cvt-t-1);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cvt-ink-dim);
+}
+.cvt-circuit-run {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+}
+/* the electrodes: the far one only fills on a run that completes, and none does */
+.cvt-circuit-node {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  margin-top: 3px;
+  border: 1px solid var(--cvt-ink-dim);
+  border-radius: 50%;
+}
+.cvt-circuit-node[data-live="true"] {
+  background: var(--cvt-ink);
+  border-color: var(--cvt-ink);
+}
+.cvt-circuit-seg {
+  flex: 1 1 0;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0 0.3rem;
+}
+.cvt-circuit-line {
+  grid-column: 1 / -1;
+  height: 0;
+  margin: 6px 0 0.3rem;
+  border-top: 1.5px solid var(--cvt-ink);
+}
+.cvt-circuit-seg b {
+  font-family: var(--cvt-mono);
+  font-size: var(--cvt-t-2);
+  color: var(--cvt-ink);
+  line-height: 1.1;
+}
+.cvt-circuit-seg em {
+  font-style: normal;
+  /* sentence-case, so it starts at t-2 like everything else the reader weighs;
+     11px is reserved for uppercase tracked mono */
+  font-size: var(--cvt-t-2);
+  line-height: 1.35;
+  color: var(--cvt-ink-dim);
+  text-wrap: pretty;
+  /* a gutter before the next segment's mark: the labels ran into each other
+     and into the break glyph at the detail's width */
+  padding-right: 0.55rem;
+}
+/* the break: the line stops short and the gap is marked where it stops */
+/* the break: the run stops short, and the gap is struck through so it reads as a
+   break rather than as the line simply running out */
+.cvt-circuit-seg[data-state="breaks"] .cvt-circuit-line {
+  position: relative;
+  margin-right: 18px;
+}
+.cvt-circuit-seg[data-state="breaks"] .cvt-circuit-line::after {
+  content: "";
+  position: absolute;
+  right: -18px;
+  top: -7px;
+  width: 14px;
+  height: 15px;
+  border-left: 2px solid var(--cvt-ink);
+  border-right: 2px solid var(--cvt-ink);
+  transform: skewX(-22deg);
+}
+/* past the break nothing carries, so the line goes to a dashed hairline */
+.cvt-circuit-seg[data-state="dead"] .cvt-circuit-line {
+  border-top: 1px dashed var(--cvt-line);
+}
+/* the dashed line is what marks a dead segment; fading its text as well dropped
+   it to 3.25:1 on the panel, under the 4.5:1 floor for 11px type */
+.cvt-circuit-seg[data-state="dead"] b {
+  color: var(--cvt-ink-dim);
 }

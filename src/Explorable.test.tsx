@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { Explorable } from "./Explorable";
@@ -6,14 +6,14 @@ import { Explorable } from "./Explorable";
 describe("Explorable", () => {
   it("shows a prompt until a cell is selected, then fills the detail inline (no dialog)", async () => {
     render(<Explorable />);
-    expect(screen.getByText(/select any cell/i)).toBeInTheDocument();
+    expect(screen.getByText(/select a cell/i)).toBeInTheDocument();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: /component · quantity/i }));
 
     // inline detail is present, still no modal dialog; the prompt has done its job
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    expect(screen.queryByText(/select any cell/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/select a cell/i)).not.toBeInTheDocument();
     expect(screen.getByText(/where it breaks/i)).toBeInTheDocument();
   });
 
@@ -21,7 +21,8 @@ describe("Explorable", () => {
     render(<Explorable />);
     await userEvent.click(screen.getByRole("button", { name: /component · quantity/i }));
 
-    expect(screen.getByText("Component · Quantity")).toBeInTheDocument();
+    // the caption now names the drawing convention too, and sits under the title
+    expect(screen.getByText("detail · Component · Quantity")).toBeInTheDocument();
     // the task heading comes from the cell itself, not a hardcoded string
     expect(screen.getByRole("heading", { level: 3 })).toBeInTheDocument();
   });
@@ -39,5 +40,48 @@ describe("Explorable", () => {
       .getAllByRole("button")
       .filter((b) => b.getAttribute("aria-pressed") === "true");
     expect(stillOne).toHaveLength(1);
+  });
+
+  it("steps along the matrix on ArrowRight while the instrument has focus", async () => {
+    const user = userEvent.setup();
+    render(<Explorable />);
+    await user.click(screen.getByRole("button", { name: /component · quantity/i }));
+    expect(screen.getByRole("complementary", { name: /component · quantity/i })).toHaveFocus();
+
+    await user.keyboard("{ArrowRight}");
+
+    expect(
+      screen.getByRole("complementary", { name: /component · structure/i }),
+    ).toBeInTheDocument();
+    // Esc afterwards returns focus to the bay the reader ended on
+    await user.keyboard("{Escape}");
+    expect(screen.getByRole("button", { name: /component · structure/i })).toHaveFocus();
+  });
+
+  it("closes on Esc and lands focus back on the cell that opened it", async () => {
+    const user = userEvent.setup();
+    render(<Explorable />);
+
+    const cell = screen.getByRole("button", { name: /component · quantity/i });
+    await user.click(cell);
+    const region = screen.getByRole("complementary", { name: /component · quantity/i });
+    expect(region).toHaveFocus();
+
+    await user.keyboard("{Escape}");
+
+    expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
+    // act one's detail behaves identically; the two surfaces teach one contract
+    expect(cell).toHaveFocus();
+  });
+
+  it("closes on its own close control", async () => {
+    const user = userEvent.setup();
+    render(<Explorable />);
+
+    await user.click(screen.getByRole("button", { name: /material · identity/i }));
+    const region = screen.getByRole("complementary", { name: /material · identity/i });
+    await user.click(within(region).getByRole("button", { name: /close details/i }));
+
+    expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
   });
 });

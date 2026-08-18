@@ -12,7 +12,7 @@ body {
   text-size-adjust: 100%;
   /* Match the component's theme on rubber-band over-scroll, following the OS. */
   color-scheme: light dark;
-  background-color: light-dark(#dce8f1, #0b1622);
+  background-color: light-dark(#0d3b5e, #050c14);
 }
 
 /* When a theme is explicitly in force, CvTaxonomy stamps it on <html>.
@@ -22,11 +22,11 @@ body {
    theme, which is the very bug this pair of rules exists to kill. */
 html[data-theme="light"] {
   color-scheme: light;
-  background-color: #dce8f1;
+  background-color: #0d3b5e;
 }
 html[data-theme="dark"] {
   color-scheme: dark;
-  background-color: #0b1622;
+  background-color: #050c14;
 }
 #root {
   min-height: 100vh;

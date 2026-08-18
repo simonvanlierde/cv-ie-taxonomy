@@ -1,4 +1,5 @@
 import {
+  type CSSProperties,
   memo,
   type ReactNode,
   type RefObject,
@@ -21,15 +22,17 @@ import {
   taxonomy,
   VERDICT_LETTER,
 } from "./data/taxonomy";
-import type { Cell, InfoType, Scale } from "./data/types";
+import type { Cell, Scale, Verdict } from "./data/types";
 import { Explorable } from "./Explorable";
-import { Fan } from "./Fan";
-import { FRAMES, HOME_FRAME } from "./frames";
+import { chipFrame, Fan } from "./Fan";
+import { clampFrame, FRAMES, type Frame, HOME_FRAME, unionFrame, VIEW } from "./frames";
 import { MobileStepper } from "./MobileStepper";
 import { Cite, CitedProse } from "./References";
-import { BREAKPOINT_PX, SCALE_VAR, SURFACE, THEME_VARS, type Theme } from "./theme";
+import { RubricCircuit } from "./RubricCircuit";
+import { BREAKPOINT_PX, SCALE_VAR, SURFACE, THEME_VARS, type Theme, VERDICT_VAR } from "./theme";
 import { plateauCentre, TIMELINE } from "./timeline";
 import { useCamera } from "./useCamera";
+import { useDialogRegion } from "./useDialogRegion";
 import { useScrollProgress } from "./useScrollProgress";
 import { VerdictSwatch } from "./VerdictSwatch";
 
@@ -43,9 +46,13 @@ function chapterAt(p: number): Chapter {
   return "outro";
 }
 
-// the one dim rule, shared by the fan, the mobile list and the matrix
-const isDimmed = (activeInfo: Set<InfoType>, c: Cell) =>
-  activeInfo.size > 0 && !activeInfo.has(c.informationType);
+/** The camera frame for a cell's detail: its part frame, grown to hold its own
+ *  chip, kept inside the drawing. */
+export function frameFor(cellId: string): Frame {
+  const part = FRAMES[cellId] ?? HOME_FRAME;
+  const chip = chipFrame(cellId);
+  return chip ? clampFrame(unionFrame(part, chip, 16), VIEW) : part;
+}
 
 /** Reactive `matchMedia`: re-renders when the query flips (OS reduced-motion toggle,
  *  viewport crossing a breakpoint), not just on mount. */
@@ -65,23 +72,36 @@ function useMediaQuery(query: string): boolean {
   );
 }
 
-/** Whether the component root is narrower than the layout breakpoint, measured via
- *  ResizeObserver. Stores the boolean, not the raw width, so a resize drag only
- *  re-renders on the frame the threshold is crossed. null until the first
- *  measurement, so callers fall back to a viewport guess for the first paint. */
-function useContainerNarrow(ref: RefObject<HTMLElement | null>): boolean | null {
+/** I is skipped, as on a real drawing: it reads as a 1 against the row numbers. */
+// biome-ignore lint/security/noSecrets: the drawing sheet's column references
+const COLUMN_REFS = "ABCDEFGHJKLMNPQRSTUVWXYZ".split("");
+/** one ruler column, matching `.cvt-ruler-x span` in the stylesheet */
+const RULER_STEP_PX = 96;
+
+/** The component root's width, measured via ResizeObserver and stored quantised:
+ *  whether it is narrower than the layout breakpoint, and how many 96px ruler
+ *  columns it holds. Not the raw width, so a resize drag only re-renders on the
+ *  frames a threshold is crossed. `narrow` is null until the first measurement,
+ *  so callers fall back to a viewport guess for the first paint. */
+function useContainerSize(ref: RefObject<HTMLElement | null>): {
+  narrow: boolean | null;
+  columns: number;
+} {
   const [narrow, setNarrow] = useState<boolean | null>(null);
+  const [columns, setColumns] = useState(COLUMN_REFS.length);
   useEffect(() => {
     const el = ref.current;
     if (!el || typeof ResizeObserver === "undefined") return;
     const ro = new ResizeObserver((entries) => {
       const w = entries[0]?.contentRect.width;
-      if (typeof w === "number") setNarrow(w < BREAKPOINT_PX);
+      if (typeof w !== "number") return;
+      setNarrow(w < BREAKPOINT_PX);
+      setColumns(Math.min(COLUMN_REFS.length, Math.ceil(w / RULER_STEP_PX)));
     });
     ro.observe(el);
     return () => ro.disconnect();
   }, [ref]);
-  return narrow;
+  return { narrow, columns };
 }
 
 /** Lock page scroll while a modal is open, so the scrub and camera stay put
@@ -129,16 +149,20 @@ export function CvTaxonomy({
   debugProgress?: number;
 } = {}) {
   const rootRef = useRef<HTMLDivElement>(null);
+  /** the narrative column: the scroll timeline is measured over it, not over the
+   *  whole scroll section, so the closing figure's height cannot drag the
+   *  chapters off the sticky stage */
   const scrollRef = useRef<HTMLDivElement>(null);
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const lastFocused = useRef<string | null>(null);
+  /** cancels a chapter stop's pending focus landing (timer + scrollend listener) */
+  const cancelLanding = useRef<(() => void) | null>(null);
 
   const reduceMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
   // render exactly one fan: full on desktop, compact on mobile. The container's own
   // width drives this (so an embed adapts to its slot, not the viewport); the
   // viewport query only stands in for the first paint, before anything is measured.
   const viewportIsMobile = useMediaQuery(`(max-width: ${BREAKPOINT_PX - 1}px)`);
-  const containerNarrow = useContainerNarrow(rootRef);
+  const { narrow: containerNarrow, columns } = useContainerSize(rootRef);
   const isMobile = containerNarrow ?? viewportIsMobile;
 
   // Theme has one owner, resolved here: the user's toggle beats the host's prop,
@@ -185,44 +209,90 @@ export function CvTaxonomy({
     };
   }, [forcedTheme]);
 
-  const scrollP = useScrollProgress(scrollRef, !reduceMotion, !isMobile);
-  const p = debugProgress ?? scrollP;
-  const chapter = chapterAt(p);
+  const scroll = useScrollProgress(scrollRef, !reduceMotion, !isMobile);
+  const p = debugProgress ?? scroll.p;
+  // the chapter reads the raw scroll, not the spring: it gates the sheet
+  // furniture and the rail, which must answer an anchor jump at once
+  const chapter = chapterAt(debugProgress ?? scroll.raw);
 
   const [selected, setSelected] = useState<Cell | null>(
     () => cells.find((c) => c.id === initialCell) ?? null,
   );
   const [hovered, setHovered] = useState<Cell | null>(null);
-  const [activeInfo, setActiveInfo] = useState<Set<InfoType>>(new Set());
+  // The mobile stepper's reading position lives up here because the layout seam
+  // unmounts the stepper: an ordinary window resize, or a tablet turned
+  // portrait→landscape mid-read, would otherwise drop the reader back on step 0.
+  const [step, setStep] = useState(0);
+  const [sheetCollapsed, setSheetCollapsed] = useState(false);
   // the camera target derives from the selection (frames.test.ts holds FRAMES
   // to a frame per cell), so open/close paths cannot desync the two
-  const zoomFrame = selected ? (FRAMES[selected.id] ?? HOME_FRAME) : null;
+  // The zoom holds only while the reader is in the selected cell's chapter: the
+  // sheet is not locked while a detail is open, and a frame tuned for one
+  // chapter's explode state frames the wrong geometry once the parts move on, so
+  // scrolling on pulls the camera home while the detail stays docked.
+  // The frame is the part's frame grown to hold the chip that opened it: an
+  // enlargement that cropped the read-out the reader clicked, and magnified the
+  // mock numbers around it, spent the zoom on the wrong thing.
+  const zoomFrame =
+    selected && (isMobile || chapter === selected.scale) ? frameFor(selected.id) : null;
   // On mobile the compact fan ignores this viewBox, so cut instantly rather than
   // burn a per-frame spring re-rendering the whole tree for output nobody sees.
-  const viewBox = useCamera(zoomFrame ?? HOME_FRAME, reduceMotion || isMobile);
-
-  // the drawer's 0.28s exit keeps rendering after `selected` clears; hold the
-  // last cell so it slides out with its content, not as an empty card
-  const lastSelected = useRef<Cell | null>(null);
-  if (selected) lastSelected.current = selected;
-  const panelCell = selected ?? lastSelected.current;
+  // Always mounted at home: a ?cell= deep link then dives from the whole
+  // drawing to the part, instead of opening on a close-up of one corner.
+  const viewBox = useCamera(zoomFrame ?? HOME_FRAME, reduceMotion || isMobile, HOME_FRAME);
 
   const focus = hovered ?? selected;
-  const isDim = (c: Cell) => isDimmed(activeInfo, c);
 
   // A ?cell= deep link lands the desktop page on that cell's chapter plateau, so
   // the zoom frame (tuned for the chapter's explode state) frames real geometry
   // instead of a giant assembled close-up, and the chip is operable on close.
-  // Declared BEFORE useBodyScrollLock below: effects run in order, and the lock
-  // pins the page at whatever scroll position it finds — this must set it first.
+  /** Scroll to where a scale's chapter is at full strength. The deep link and the
+   *  chapter rail share it: both want a fan state whose chips are operable and
+   *  whose camera frames point at real geometry. */
+  const goToScale = useCallback((scale: Scale, smooth = true) => {
+    const scrollEl = scrollRef.current;
+    if (!scrollEl) return;
+    const span = scrollEl.offsetHeight - window.innerHeight;
+    if (span <= 0) return;
+    const top = scrollEl.getBoundingClientRect().top + window.scrollY;
+    window.scrollTo({
+      top: top + plateauCentre(scale) * span,
+      behavior: smooth ? "smooth" : "auto",
+    });
+    if (!smooth) return;
+
+    // Land the reader ON the cells the stop just brought out. The callouts are
+    // drawn inside the SVG, which precedes the rail in DOM order, so tabbing on
+    // from the rail walks *away* from them — a keyboard user could reach a
+    // scale's chips only by shift-tabbing backwards past everything. Moving
+    // focus to the first chip makes the stop behave like the skip link it is.
+    const target = cells.find((c) => c.scale === scale && !c.structurallyEmpty);
+    if (!target) return;
+    const land = () => {
+      const chip = document.getElementById(`cvt-co-${target.id}`);
+      // only once the chapter is actually on stage; before that it is aria-hidden
+      if (chip?.getAttribute("tabindex") === "0") chip.focus();
+    };
+    // scrollend fires when the smooth scroll settles; the timeout covers engines
+    // without it, and firing land() twice is harmless. Both are cancellable: a
+    // pending landing that outlives the component would move focus into a tree
+    // that is no longer on the page.
+    cancelLanding.current?.();
+    const timer = setTimeout(land, 700);
+    window.addEventListener("scrollend", land, { once: true });
+    cancelLanding.current = () => {
+      clearTimeout(timer);
+      window.removeEventListener("scrollend", land);
+    };
+  }, []);
+
+  useEffect(() => () => cancelLanding.current?.(), []);
+
   // biome-ignore lint/correctness/useExhaustiveDependencies: mount-only by design — a later mobile↔desktop resize must not yank the reader's scroll position
   useEffect(() => {
-    const scrollEl = scrollRef.current;
-    if (!initialCell || isMobile || !scrollEl) return;
+    if (!initialCell || isMobile) return;
     const cell = cells.find((c) => c.id === initialCell);
-    if (!cell) return;
-    const span = scrollEl.offsetHeight - window.innerHeight;
-    if (span > 0) window.scrollTo(0, scrollEl.offsetTop + plateauCentre(cell.scale) * span);
+    if (cell) goToScale(cell.scale, false);
   }, []);
 
   const openCell = useCallback(
@@ -244,20 +314,47 @@ export function CvTaxonomy({
     [reduceMotion],
   );
 
-  // native <dialog> owns focus-trap, Esc and focus-return; we only drive open/close
+  // Arrow keys step the docked detail through its chapter's siblings — the
+  // chips are the controls, and while a detail is open most of them are out of
+  // frame, so the keyboard needs a way along the ring that is not Tab.
   useEffect(() => {
-    const dlg = dialogRef.current;
-    if (!dlg) return;
-    if (selected) {
-      // focus the trigger first so the dialog restores to it (not <body>) on close
-      if (lastFocused.current) document.getElementById(lastFocused.current)?.focus();
-      if (!dlg.open) dlg.showModal();
-    } else if (dlg.open) {
-      dlg.close();
-    }
-  }, [selected]);
+    if (!selected || isMobile) return;
+    const onKey = (e: KeyboardEvent) => {
+      const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+      if (!step || e.altKey || e.metaKey || e.ctrlKey) return;
+      // scoped to the drawing and its docked detail; act two has its own
+      const t = e.target as HTMLElement | null;
+      if (!t?.closest(".cvt-detail, .cvt-fan") || t.closest("input, textarea, select")) return;
+      const ring = cells.filter((c) => c.scale === selected.scale);
+      const i = ring.findIndex((c) => c.id === selected.id);
+      const next = ring[(i + step + ring.length) % ring.length];
+      if (!next) return;
+      e.preventDefault();
+      openCell(next, `cvt-co-${next.id}`);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [selected, isMobile, openCell]);
 
-  useBodyScrollLock(selected !== null);
+  const closeCell = useCallback(() => {
+    withViewTransition(() => setSelected(null), !reduceMotion);
+  }, [reduceMotion]);
+
+  const backToStart = useCallback(() => {
+    // A deep link has no opener to restore focus to. Return to the named hero
+    // instead, and focus that landmark after the detail unmounts.
+    lastFocused.current = null;
+    closeCell();
+    window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+    requestAnimationFrame(() =>
+      document.getElementById("cvt-start")?.focus({ preventScroll: true }),
+    );
+  }, [closeCell, reduceMotion]);
+
+  // Only the covering sheet locks the page. A detail drawn on the sheet is not
+  // modal, and a scroll lock would make it modal in behaviour while non-modal in
+  // ARIA — the reader scrolls on and the detail rides its column.
+  useBodyScrollLock(isMobile && selected !== null);
 
   return (
     <div
@@ -266,10 +363,32 @@ export function CvTaxonomy({
       data-theme={effectiveTheme}
       style={THEME_VARS[effectiveTheme]}
     >
+      {/* On mobile the sheet has no narrative column to give up, so the detail
+          arrives as a bottom sheet over the stepper — same region, same focus
+          contract, different place on the page. */}
+      {isMobile && selected && (
+        <DetailRegion
+          cell={selected}
+          returnFocusTo={lastFocused.current}
+          onClose={closeCell}
+          onBackToStart={
+            selected.id === initialCell && !lastFocused.current ? backToStart : undefined
+          }
+          compact
+          modal
+        />
+      )}
       {isMobile ? (
         <MobileStepper
           onOpen={openCell}
           reduceMotion={reduceMotion}
+          step={step}
+          setStep={setStep}
+          collapsed={sheetCollapsed}
+          setCollapsed={setSheetCollapsed}
+          // the sheet covers the stepper, so the stepper's controls must leave
+          // the accessibility tree with it: a browse cursor walks past a trap
+          inert={selected !== null}
           themeToggle={
             <ThemeToggle
               theme={effectiveTheme}
@@ -278,7 +397,14 @@ export function CvTaxonomy({
           }
         />
       ) : (
-        <div className="cvt-scroll" ref={scrollRef}>
+        <div
+          className="cvt-scroll"
+          data-chapter={chapter}
+          data-panel={selected ? "open" : undefined}
+        >
+          <SheetFrame columns={columns} />
+          <TitleBlock />
+          <MaturityInstrument live={CLAIMED_VERDICTS} reading={focus?.maturity ?? null} />
           {/* The stage + chapters share one wrapper, placed directly by the grid. */}
           <div className="cvt-pinwrap">
             {/* ---- sticky stage: the fan IS the interface ---- */}
@@ -287,41 +413,91 @@ export function CvTaxonomy({
                 <Fan
                   p={p}
                   focus={focus}
-                  isDim={isDim}
                   onSelect={openCell}
                   onHover={setHovered}
                   reduceMotion={reduceMotion}
                   compact={isMobile}
                   viewBox={viewBox}
+                  frame={zoomFrame}
                 />
                 <div className="cvt-hud">
-                  <div className="cvt-hud-top">
-                    <span className="cvt-eyebrow">CV × industrial ecology</span>
-                    <div className="cvt-hud-actions">
-                      <span className="cvt-hud-tag">illustrative read-outs: no model ran here</span>
-                      <ThemeToggle
-                        theme={effectiveTheme}
-                        onToggle={() =>
-                          setThemeOverride(effectiveTheme === "dark" ? "light" : "dark")
-                        }
-                      />
-                    </div>
+                  <IllustrativeDisclosure />
+                  {/* In the drawing's own column, in flow, never fixed: a stamp
+                      fixed over the narrative column sat on the prose scrolling
+                      under it. Bottom-right of the stage on the wide sheet; on
+                      the narrow one the instrument strip holds the bottom, so
+                      it takes the top-right and the chapter rail drops under it. */}
+                  <div className="cvt-hud-actions">
+                    <ThemeToggle
+                      theme={effectiveTheme}
+                      onToggle={() =>
+                        setThemeOverride(effectiveTheme === "dark" ? "light" : "dark")
+                      }
+                    />
                   </div>
-                  <div className="cvt-hud-bottom">
+                  <div className="cvt-hud-top">
+                    {/* Operable, not just an indicator: the fan's own chips are
+                        gated to their chapter's plateau, so before this a desktop
+                        keyboard user could not reach the Component or Material
+                        cells at all — only a scroll wheel could bring them on
+                        stage. Each stop is a real button that goes there. */}
                     <ol className="cvt-ind" aria-label="Physical scale chapters">
                       {SCALES.map((s) => (
-                        <li key={s} data-active={chapter === s} style={{ "--hue": SCALE_VAR[s] }}>
-                          {s}
+                        <li key={s} style={{ "--hue": SCALE_VAR[s] }}>
+                          <button
+                            type="button"
+                            data-active={chapter === s}
+                            aria-current={chapter === s ? "true" : undefined}
+                            onClick={() => goToScale(s)}
+                          >
+                            {s}
+                          </button>
                         </li>
                       ))}
+                      <li className="cvt-ind-end">
+                        <a href="#cvt-matrix" data-active={chapter === "outro"}>
+                          the map
+                        </a>
+                      </li>
                     </ol>
-                    <InfoFilter active={activeInfo} onChange={setActiveInfo} />
                   </div>
                 </div>
               </div>
             </div>
 
-            <Rail chapter={chapter} activeInfo={activeInfo} onOpen={openCell} />
+            {/* Both live in the narrative column. The rail stays mounted even
+                while the detail is open, because its chapters ARE the scroll
+                length the whole narrative is measured over — swapping it out
+                collapsed the page and dropped the reader at the outro. */}
+            <div
+              className="cvt-railcol"
+              ref={scrollRef}
+              data-detail={selected ? "open" : undefined}
+            >
+              {/* before the rail, not after it: the detail is sticky, and sticky
+                  cannot pin above its own static position — placed last it sat
+                  at the far end of the rail's five thousand pixels and never
+                  appeared on screen at all */}
+              {selected && (
+                // a zero-height sticky slot: the detail rides it down the column
+                // without adding to the column's height, which is the scroll
+                // timeline — a detail that lengthened it remapped every chapter
+                // under the reader the moment it opened
+                <div className="cvt-detail-slot">
+                  <DetailRegion
+                    cell={selected}
+                    // a deep link has no opener; its cell's own callout is the
+                    // nearest thing to one, and the link has scrolled it on stage
+                    returnFocusTo={lastFocused.current ?? `cvt-co-${selected.id}`}
+                    onClose={closeCell}
+                    onBackToStart={
+                      selected.id === initialCell && !lastFocused.current ? backToStart : undefined
+                    }
+                  />
+                </div>
+              )}
+              <Rail chapter={chapter} />
+            </div>
           </div>
           {/* full-width row: the stage's sticky column ends here, and the matrix
               gets the whole canvas as a captioned paper figure */}
@@ -330,58 +506,162 @@ export function CvTaxonomy({
       )}
 
       {/* licences live in the repo (LICENSE + README), not the chrome */}
-      <footer className="cvt-footer">
-        <span>© 2026 Simon van Lierde</span>
-        <a
-          href="https://github.com/simonvanlierde/cv-ie-taxonomy"
-          target="_blank"
-          rel="noreferrer"
-          aria-label="Source on GitHub"
-          title="Source on GitHub"
-        >
-          <GitHubIcon />
-        </a>
-      </footer>
-
-      {/* biome-ignore lint/a11y/useKeyWithClickEvents: native <dialog> already closes on Esc; onClick only adds backdrop-click for mouse users */}
-      {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: a backdrop click lands on the <dialog> itself, so the handler has nowhere else to live */}
-      <dialog
-        ref={dialogRef}
-        className="cvt-panel"
-        aria-label={panelCell ? `${panelCell.scale} · ${panelCell.informationType}` : undefined}
-        style={panelCell ? { "--hue": SCALE_VAR[panelCell.scale] } : undefined}
-        onClose={() => setSelected(null)}
-        onClick={(e) => {
-          // click on the backdrop (the dialog itself, outside its content) closes it
-          if (e.target === dialogRef.current) dialogRef.current?.close();
-        }}
-      >
-        {panelCell && <DetailPanel cell={panelCell} onClose={() => dialogRef.current?.close()} />}
-      </dialog>
+      <SheetFooter />
     </div>
   );
 }
 
-// ---- narrative rail (memoized: only re-renders on chapter/filter change,
-// not on every scroll frame) -------------------------------------------------
-const Rail = memo(function Rail({
-  chapter,
-  activeInfo,
-  onOpen,
+// ---- sheet furniture ---------------------------------------------------------
+// The page is one drawing sheet, so its border, graticule references, title block
+// and maturity instrument are fixed to the viewport rather than scrolling with the
+// content: you stay on the sheet and the drawing moves under it. All of it is
+// decorative chrome over a live document, so it takes no pointer events and is
+// hidden from the accessibility tree — every fact it shows is stated in the
+// document proper (the title block repeats the figure caption's provenance, the
+// instrument repeats the legend).
+
+const ROW_REFS = Array.from({ length: 20 }, (_, i) => i + 1);
+
+/** `columns`: how many column references the sheet is wide enough to show,
+ *  from the container measurement — the rest were DOM under overflow: hidden. */
+const SheetFrame = memo(function SheetFrame({ columns }: { columns: number }) {
+  return (
+    <div className="cvt-sheet" aria-hidden>
+      <div className="cvt-sheet-border" />
+      <div className="cvt-ruler cvt-ruler-x">
+        {COLUMN_REFS.slice(0, columns).map((c) => (
+          <span key={c}>{c}</span>
+        ))}
+      </div>
+      <div className="cvt-ruler cvt-ruler-y">
+        {ROW_REFS.map((r) => (
+          <span key={r}>{r}</span>
+        ))}
+      </div>
+    </div>
+  );
+});
+
+/** The title block's fields, once: the fixed ISO 7200 block on the sheet and the
+ *  page footer both draw them, so the two cannot disagree. The DOI row is
+ *  deliberately empty rather than absent: the deposit is planned, and a
+ *  labelled blank says so without implying one exists. */
+function TitleRows() {
+  return (
+    <>
+      <div className="cvt-tb-row">
+        <dt>date</dt>
+        <dd>{taxonomy.meta.scanDate}</dd>
+      </div>
+      <div className="cvt-tb-row">
+        <dt>doi</dt>
+        <dd className="cvt-tb-blank">not yet deposited</dd>
+      </div>
+    </>
+  );
+}
+
+/** ISO 7200 block in the sheet's margin: decoration over the document, hidden
+ *  from AT — the footer states the same fields for real. */
+const TitleBlock = memo(function TitleBlock() {
+  return (
+    <dl className="cvt-titleblock" aria-hidden>
+      <div className="cvt-tb-title">{taxonomy.meta.title}</div>
+      <TitleRows />
+    </dl>
+  );
+});
+
+/** The sheet's end: the title block again, laid along the bottom edge as one
+ *  strip, with the page's own two fields (©, code) added. The fixed block fades
+ *  as the closing figure rises, and this is where its content lands. */
+function SheetFooter() {
+  return (
+    <footer className="cvt-footer">
+      <dl className="cvt-foot-tb">
+        <div className="cvt-tb-row cvt-tb-row-title">
+          <dt>title</dt>
+          <dd>{taxonomy.meta.title}</dd>
+        </div>
+        <TitleRows />
+        <div className="cvt-tb-row">
+          <dt>©</dt>
+          <dd>2026 Simon van Lierde</dd>
+        </div>
+        <div className="cvt-tb-row">
+          <dt>code</dt>
+          <dd>
+            <a
+              href="https://github.com/simonvanlierde/cv-ie-taxonomy"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <GitHubIcon /> GitHub
+            </a>
+          </dd>
+        </div>
+      </dl>
+    </footer>
+  );
+}
+
+/** The ramp as a permanent instrument. It replaces a legend that appeared once in
+ *  the hero and scrolled away, leaving every letter after it to be recalled. The
+ *  hollow Strong rung keeps the paper's finding on screen without explaining it twice. */
+const MaturityInstrument = memo(function MaturityInstrument({
+  live,
+  reading,
 }: {
-  chapter: Chapter;
-  activeInfo: Set<InfoType>;
-  onOpen: (cell: Cell, focusId?: string) => void;
+  live: Set<Verdict>;
+  /** the verdict of the cell under the pointer or focus: an instrument reads
+   *  the thing being pointed at, so its rung lights while the chip is hot */
+  reading: Verdict | null;
 }) {
   return (
+    <div className="cvt-instrument" aria-hidden>
+      <p className="cvt-instrument-head">maturity</p>
+      {taxonomy.meta.maturityLevels.map((level) => (
+        <p
+          className="cvt-rung"
+          key={level.verdict}
+          data-claimed={live.has(level.verdict)}
+          data-verdict={level.letter}
+          data-reading={reading === level.verdict}
+        >
+          {/* an unreached rung is hollow, so it takes no fill at all rather than
+              a fill the stylesheet has to override */}
+          <i
+            style={
+              live.has(level.verdict)
+                ? { background: VERDICT_VAR[level.verdict] ?? "none" }
+                : undefined
+            }
+          />
+          <b>{level.letter}</b>
+          {level.verdict}
+        </p>
+      ))}
+    </div>
+  );
+});
+
+/** Which rungs any cell actually reaches, so a later verdict change updates the drawing. */
+const CLAIMED_VERDICTS = new Set<Verdict>(
+  cells.flatMap((c) => [c.maturity, ...(c.subVerdicts ?? []).map((s) => s.maturity)]),
+);
+
+// ---- narrative rail (memoized: only re-renders on chapter change, not on
+// every scroll frame) ---------------------------------------------------------
+const Rail = memo(function Rail({ chapter }: { chapter: Chapter }) {
+  return (
     <div className="cvt-rail">
-      <section className="cvt-hero">
-        <Hero hint="Click any read-out on the fan to see the evidence." />
+      <section className="cvt-hero" id="cvt-start" tabIndex={-1}>
+        <Hero hint="Click a read-out on the fan to see the evidence." />
         <p className="cvt-scrollhint" aria-hidden>
           scroll to take it apart <span className="cvt-scrollhint-arrow">↓</span>
         </p>
         <a className="cvt-skip" href="#cvt-matrix">
-          or skip to the full matrix
+          or skip to the matrix
         </a>
       </section>
 
@@ -397,14 +677,9 @@ const Rail = memo(function Rail({
             {/* the prose pins while its chapter's overlays are on the stage, so the
                 two are read together rather than in sequence */}
             <div className="cvt-chapter-inner">
-              <p className="cvt-eyebrow">
-                <span className="cvt-dot" aria-hidden /> {scale} scale
-              </p>
               <h2>{copy.title}</h2>
               <p className="cvt-body">{copy.body}</p>
             </div>
-            {/* mobile only: this scale's cells as a plain list */}
-            <CellList scale={scale} activeInfo={activeInfo} onOpen={onOpen} />
           </section>
         );
       })}
@@ -418,47 +693,64 @@ const Rail = memo(function Rail({
 /** The hero's shared copy: eyebrow, title, sub and maturity legend. `hint` is
  *  the interaction sentence — the desktop rail points at the fan's chips, which
  *  the compact fan does not render, so the stepper omits it. */
-export function Hero({ hint }: { hint?: string }) {
+export function IllustrativeDisclosure() {
+  return <p className="cvt-illustrative-note">Simulated read-outs · no model run</p>;
+}
+
+export function MaturityKey() {
+  return (
+    <ul className="cvt-maturity-key" aria-label="Maturity letter key">
+      {taxonomy.meta.maturityLevels
+        .filter((level) => level.verdict !== "Strong")
+        .map((level) => (
+          <li key={level.verdict}>
+            <b>{level.letter}</b> {level.verdict}
+          </li>
+        ))}
+    </ul>
+  );
+}
+
+export function Hero({
+  hint,
+  expanded = true,
+  disclosureControl,
+  detailsId,
+}: {
+  hint?: string;
+  expanded?: boolean;
+  disclosureControl?: ReactNode;
+  detailsId?: string;
+}) {
   return (
     <>
-      <p className="cvt-eyebrow">Paper 2 · interactive supplement</p>
       <h1 className="cvt-title">
         What can a machine
         <br />
         actually see?
       </h1>
-      <p className="cvt-sub">
-        Circular-economy research keeps asking cameras to judge discarded products: what is this,
-        what's inside it, what's it worth? Here is one worn-out desk fan and the twelve ways
-        computer vision could answer, each judged by how well it actually works today.
-        {hint ? ` ${hint} ` : " "}Every verdict comes straight from the paper's{" "}
-        <span className="cvt-cite">Table&nbsp;S1</span>:{" "}
-        <em>the heavier the square, the stronger the evidence</em>. Colour just tells the three
-        scales apart.
+      <p className="cvt-hero-contract">
+        Every verdict comes from the paper&rsquo;s <span className="cvt-cite">Table&nbsp;S2</span>.
+        The heavier the square, the stronger the evidence; colour only separates physical scales.
       </p>
-      <ul className="cvt-legendline" aria-label="Maturity legend">
-        {taxonomy.meta.maturityLevels.map((m) => (
-          <li key={m.verdict} title={m.gloss}>
-            <VerdictSwatch verdict={m.verdict} size={18} />
-            <span>
-              <b>{m.letter}</b> {m.verdict}
-            </span>
-          </li>
-        ))}
-      </ul>
+      {disclosureControl}
+      <p className="cvt-sub" id={detailsId} hidden={!expanded}>
+        Circular-economy research keeps asking cameras to judge discarded products: what is this,
+        what's inside, what's it worth? Here is one worn-out desk fan and the twelve ways computer
+        vision could answer, each judged by how well it works today.
+        {hint ? ` ${hint}` : ""}
+      </p>
     </>
   );
 }
 
-/** One scale's cells as a plain list of buttons (the mobile stand-in for the
- *  fan's chips), dimmed by the information-type filter like everything else. */
+/** One scale's cells as a plain list of buttons: the mobile stand-in for the
+ *  fan's chips. */
 export function CellList({
   scale,
-  activeInfo,
   onOpen,
 }: {
   scale: Scale;
-  activeInfo: Set<InfoType>;
   onOpen: (cell: Cell, focusId?: string) => void;
 }) {
   return (
@@ -468,6 +760,7 @@ export function CellList({
         const hid = `cvt-m-${cell.id}`;
         // a compound cell shows both sub-task verdicts, as the matrix does
         const split = splitOf(cell);
+        const maturity = split ? split.join(" and ") : cell.maturity;
         return (
           <button
             key={cell.id}
@@ -475,58 +768,27 @@ export function CellList({
             type="button"
             className="cvt-mcell"
             data-ghost={!!cell.structurallyEmpty}
-            data-dim={isDimmed(activeInfo, cell)}
+            aria-label={`${scale} · ${info}: ${
+              cell.structurallyEmpty ? "answered at the component scale" : cell.task
+            }. Maturity: ${maturity}. Open details.`}
             onClick={() => onOpen(cell, hid)}
           >
             <VerdictSwatch verdict={cell.maturity} split={split} size={20} />
             <span className="cvt-mcell-info">{info}</span>
             <span className="cvt-mcell-task">
-              {cell.structurallyEmpty
-                ? "answered at the component scale"
-                : cell.task.split(/[,;]/)[0]}
+              {cell.structurallyEmpty ? "answered at the component scale" : cell.task}
             </span>
             <b>
-              {split
-                ? split.map((v) => VERDICT_LETTER[v]).join(" / ")
-                : VERDICT_LETTER[cell.maturity]}
+              {cell.structurallyEmpty
+                ? ""
+                : split
+                  ? split.map((v) => VERDICT_LETTER[v]).join(" / ")
+                  : VERDICT_LETTER[cell.maturity]}
             </b>
           </button>
         );
       })}
     </div>
-  );
-}
-
-/** The information-type filter chips; owns the set arithmetic so both layouts
- *  just hand it their state. */
-export function InfoFilter({
-  active,
-  onChange,
-}: {
-  active: Set<InfoType>;
-  onChange: (next: Set<InfoType>) => void;
-}) {
-  return (
-    <fieldset className="cvt-filtergroup">
-      <legend className="cvt-filters-label">filter &gt; information type</legend>
-      <div className="cvt-filters">
-        {INFO_TYPES.map((info) => (
-          <button
-            key={info}
-            type="button"
-            className="cvt-chip"
-            aria-pressed={active.has(info)}
-            onClick={() => {
-              const next = new Set(active);
-              next.has(info) ? next.delete(info) : next.add(info);
-              onChange(next);
-            }}
-          >
-            {info}
-          </button>
-        ))}
-      </div>
-    </fieldset>
   );
 }
 
@@ -541,6 +803,7 @@ function ThemeToggle({ theme, onToggle }: { theme: Theme; onToggle: () => void }
       title={`Switch to ${next} theme`}
     >
       {theme === "dark" ? <SunIcon /> : <MoonIcon />}
+      <span className="cvt-theme-toggle-label">{next}</span>
     </button>
   );
 }
@@ -550,27 +813,33 @@ function ThemeToggle({ theme, onToggle }: { theme: Theme; onToggle: () => void }
 // render skips it entirely) -----
 export const Outro = memo(function Outro() {
   return (
-    <section className="cvt-outro" id="cvt-matrix" aria-label="Full taxonomy matrix">
-      <p className="cvt-eyebrow">The full matrix</p>
+    // tabIndex -1: the skip link and the rail's "the map" target this id, and a
+    // focusable target is where the browser puts focus after the jump — without
+    // it a keyboard reader's next Tab started from wherever it was before
+    <section className="cvt-outro" id="cvt-matrix" aria-label="Full taxonomy matrix" tabIndex={-1}>
       <h2>
-        The honest map is mostly gaps: by the paper's own rubric, none of the twelve tasks earns a
-        Strong on worn, real-world products.
+        The honest map is mostly gaps: by the paper's own rubric, no task earns a Strong on worn,
+        real-world products.
       </h2>
-      <Explorable />
-      <TableView />
-      <p className="cvt-foot">
-        Maturity of candidate CV tasks per physical scale × information type, shown by ink weight
-        and letter:{" "}
-        {taxonomy.meta.maturityLevels.map((m, i) => (
-          <span key={m.verdict}>
-            {i > 0 ? " · " : ""}
-            <b>{m.letter}</b> {m.verdict.toLowerCase()}
-          </span>
-        ))}
-        . Dashed cells are structurally empty: no task of their own, because structure is a
-        component-scale question. A cell split on the diagonal carries two verdicts, one per
-        sub-task. Verdicts from Paper 2, Table S1; literature as of {taxonomy.meta.scanDate}.
-      </p>
+      <MaturityKey />
+      {/* the caption and the table twin ride the narrative column beside the
+          figure, and step aside for the detail the way act one's prose does */}
+      <Explorable>
+        <div className="cvt-foot">
+          <p>
+            Maturity of twelve vision tasks, by physical scale and information type. Each block
+            stands as high as its verdict; the dashed rule is Strong, and nothing reaches it.
+            Verdicts come from the paper&rsquo;s Table&nbsp;S2, literature as of{" "}
+            {taxonomy.meta.scanDate}.
+          </p>
+          <p>
+            Hatched cells have no task of their own: structure is a component-scale question. Two
+            letters mark two sub-tasks; the block stands at the stronger verdict and is ruled across
+            at the weaker.
+          </p>
+        </div>
+        <TableView />
+      </Explorable>
     </section>
   );
 });
@@ -593,34 +862,35 @@ function TableView() {
           setOpen(true);
         }}
       >
-        <TableIcon /> View as a plain table
+        <TableIcon /> Plain table
       </button>
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: native <dialog> already closes on Esc; onClick only adds backdrop-click for mouse users */}
       {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: a backdrop click lands on the <dialog> itself, so the handler has nowhere else to live */}
       <dialog
         ref={ref}
         className="cvt-panel cvt-tablepanel"
-        aria-label="The twelve verdicts as a plain table"
+        aria-label="Table S2 as a plain table"
         onClose={() => setOpen(false)}
         onClick={(e) => {
           if (e.target === ref.current) ref.current?.close();
         }}
       >
         <div className="cvt-panel-head">
-          <p className="cvt-eyebrow">Table S1 · text view</p>
+          <h2 className="cvt-tableview-title">Table S2 · text view</h2>
           <button
             type="button"
             className="cvt-panel-close"
             onClick={() => ref.current?.close()}
             aria-label="Close table view"
           >
-            ✕
+            <CloseIcon />
           </button>
         </div>
         <div className="cvt-tablewrap">
           <table>
             <caption>
-              The paper&rsquo;s Table S1 as text. Cells with two sub-tasks get a row each.
+              Table S2 as text. A cell with two sub-tasks has a row each.
+              <RubricKey />
             </caption>
             <thead>
               <tr>
@@ -628,7 +898,7 @@ function TableView() {
                 <th scope="col">Information type</th>
                 <th scope="col">Task</th>
                 <th scope="col">Maturity</th>
-                <th scope="col">Rubric marks (i·ii·iii·m)</th>
+                <th scope="col">{RUBRIC_LABEL}</th>
               </tr>
             </thead>
             <tbody>
@@ -638,7 +908,7 @@ function TableView() {
                     <th scope="row">{cell.scale}</th>
                     <td>{cell.informationType}</td>
                     <td>
-                      {cell.structurallyEmpty ? "— structurally empty —" : cell.task}
+                      {cell.structurallyEmpty ? "structurally empty" : cell.task}
                       {sub.label && <span className="cvt-subtask"> · {sub.label}</span>}
                     </td>
                     <td>
@@ -694,20 +964,92 @@ function ShareLink({ cellId }: { cellId: string }) {
 // cited) show no chip at all rather than an unexplained "n/a".
 const STATUS_LABEL: Record<string, string> = {
   Published: "peer-reviewed sources",
-  Mixed: "peer-reviewed + preprint sources",
-  Preprint: "preprint sources, not yet peer reviewed",
+  Mixed: "peer-reviewed and preprint sources",
+  Preprint: "preprint sources only",
 };
 
-// ---- detail panel ------------------------------------------------------------
-function DetailPanel({ cell, onClose }: { cell: Cell; onClose: () => void }) {
+// The paper records each cell as an evidence mark and two gates. The marks are
+// opaque on their own, so the key travels with them wherever they are shown.
+const RUBRIC_LABEL = "Rubric marks (E · capture · deployed)";
+
+function RubricKey() {
+  return (
+    <p className="cvt-rubric-key">
+      <b>E</b> is the evidence mark: <b>B</b> benchmarked product-general, <b>N</b> narrow class
+      only, <b>C</b> concept or adjacent domain only, <b>–</b> no method, or derived. Then two
+      gates, ✓ or ✗: survives end-of-life capture; deployed on the task. A ✗ on capture says why: ✗ᵐ
+      measured drop, ✗ᵃ inferred from an adjacent domain, ✗ᵘ untested.
+    </p>
+  );
+}
+
+// ---- detail: an enlargement drawn on the sheet ---------------------------------
+/**
+ * Act one's detail takes the narrative column's place rather than covering the
+ * drawing: click a callout and the sheet reconfigures around it, with a leader
+ * ruled back toward the part. That is why it is not a `<dialog>` — the element is
+ * always in the top layer, so it can only ever float over the sheet.
+ *
+ * The three behaviours `<dialog>` gave us for free live in `useDialogRegion`, and
+ * are now ours to test rather than take on trust.
+ */
+function DetailRegion({
+  cell,
+  onClose,
+  returnFocusTo,
+  onBackToStart,
+  compact = false,
+  modal = false,
+}: {
+  cell: Cell;
+  onClose: () => void;
+  returnFocusTo: string | null;
+  onBackToStart?: () => void;
+  compact?: boolean;
+  /** only the mobile sheet, which covers the drawing it belongs to */
+  modal?: boolean;
+}) {
+  const ref = useDialogRegion({ open: true, onClose, returnFocusTo, modal });
+  const shared = {
+    className: compact ? "cvt-detail cvt-detail-sheet" : "cvt-detail",
+    "aria-label": `${cell.scale} · ${cell.informationType}`,
+    style: { "--hue": SCALE_VAR[cell.scale] } as CSSProperties,
+    tabIndex: -1,
+  };
+  const body = <DetailPanel cell={cell} onClose={onClose} onBackToStart={onBackToStart} />;
+
+  // Two elements rather than one with a computed role: aria-modal is only valid
+  // alongside an explicit dialog role, and <aside> already means complementary.
+  return modal ? (
+    <div {...shared} ref={ref as RefObject<HTMLDivElement>} role="dialog" aria-modal="true">
+      {body}
+    </div>
+  ) : (
+    <aside {...shared} ref={ref as RefObject<HTMLElement>}>
+      {body}
+    </aside>
+  );
+}
+
+function DetailPanel({
+  cell,
+  onClose,
+  onBackToStart,
+}: {
+  cell: Cell;
+  onClose: () => void;
+  onBackToStart?: () => void;
+}) {
   return (
     <>
       <div className="cvt-panel-head">
         <div>
-          <p className="cvt-panel-scale">
-            {cell.scale} · {cell.informationType}
-          </p>
           <h2>{cell.task}</h2>
+          {/* under the title, not over it: the same words above a heading are a
+              kicker, and this names which cell of the sheet the detail enlarges */}
+          <p className="cvt-panel-scale">
+            detail · {cell.scale} · {cell.informationType}
+          </p>
         </div>
         <button
           type="button"
@@ -715,18 +1057,33 @@ function DetailPanel({ cell, onClose }: { cell: Cell; onClose: () => void }) {
           onClick={onClose}
           aria-label="Close details"
         >
-          ✕
+          <CloseIcon />
         </button>
       </div>
+      <IllustrativeDisclosure />
       <DetailBody cell={cell} />
+      {onBackToStart && (
+        <button type="button" className="cvt-back-start" onClick={onBackToStart}>
+          Back to start
+        </button>
+      )}
     </>
   );
 }
 
 export function DetailBody({ cell }: { cell: Cell }) {
   const level = maturityLevel(cell.maturity);
+  const mentionsEol = [cell.maturityNote, cell.failureMode, cell.example].some((value) =>
+    value?.includes("EoL"),
+  );
   return (
     <>
+      {mentionsEol && (
+        <p className="cvt-term-note">
+          <abbr title="End-of-life">EoL</abbr> means end-of-life capture: products photographed
+          after use, often damaged, dirty, incomplete, or poorly framed.
+        </p>
+      )}
       <div className="cvt-verdict">
         <VerdictSwatch verdict={cell.maturity} size={34} />
         <div>
@@ -759,10 +1116,14 @@ export function DetailBody({ cell }: { cell: Cell }) {
             mode="warn"
           />
         )}
+        {/* The run belongs where the panel opens, not folded into "More detail":
+            it is the derivation of the verdict stated three lines above it, and
+            behind a closed <details> nobody meets the mechanism at all. */}
+        <Row label="How it was derived" value={<RubricCircuit cell={cell} />} />
       </dl>
 
       <details className="cvt-panel-more">
-        <summary>More detail</summary>
+        <summary>More</summary>
         <dl className="cvt-panel-grid">
           {cell.methodFamily && (
             <Row
@@ -772,13 +1133,15 @@ export function DetailBody({ cell }: { cell: Cell }) {
           )}
           {cell.example && (
             <Row
-              label="Proven in a nearby field"
+              label="Proven nearby"
               value={<CitedProse text={cell.example} citeKeys={cell.citations} />}
             />
           )}
           {cell.hardware && <Row label="Typical hardware" value={cell.hardware} />}
-          <Row label="Rubric marks (i·ii·iii·m)" value={cell.rubricMarks} mono />
-          <Row label="How to handle the output" value={level.handling} />
+          {/* the paper's own notation, for a reader checking against Table S2; the
+              run above already glosses each mark, so the key stays with the table */}
+          <Row label={RUBRIC_LABEL} value={<span className="cvt-mono">{cell.rubricMarks}</span>} />
+          <Row label="Handling the output" value={level.handling} />
         </dl>
       </details>
 
@@ -823,6 +1186,22 @@ function Row({
 }
 
 // theme-toggle glyphs: sun shows in dark (→ switch to light), moon in light
+/** Drawn, not a glyph: the sheet has an icon system (sun, moon, mark) in one
+ *  stroke weight, and a Unicode ✕ rendered in whatever the fallback face is. */
+function CloseIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      aria-hidden="true"
+    >
+      <path d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  );
+}
 function SunIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -867,7 +1246,7 @@ function TableIcon() {
 // the GitHub mark, as the footer's source link
 function GitHubIcon() {
   return (
-    <svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor" aria-hidden="true">
+    <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
       <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z" />
     </svg>
   );

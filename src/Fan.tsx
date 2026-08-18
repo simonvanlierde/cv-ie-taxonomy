@@ -1,7 +1,7 @@
 import { type ReactNode, useId } from "react";
 import { cellById as cell, VERDICT_LETTER } from "./data/taxonomy";
 import type { Cell } from "./data/types";
-import { frameToViewBox, VIEW } from "./frames";
+import { type Frame, frameToViewBox, VIEW } from "./frames";
 import { SCALE_VAR, SEG_VAR as SEG } from "./theme";
 import { presence as presenceAt, seg, TIMELINE } from "./timeline";
 import { VerdictSwatch } from "./VerdictSwatch";
@@ -61,6 +61,51 @@ const CHIP_LEFT_EDGE = VIEW.x + 10;
 // A chapter is "on stage" once its presence crosses this: its chips become
 // operable and its OCR read-out starts typing. One threshold, used everywhere.
 const ON_STAGE = 0.5;
+
+/** The twelve chips, one per taxonomy cell: where each sits and what it says.
+ *  Left-gutter chips anchor to CHIP_LEFT_EDGE; right-gutter chips omit `x` and
+ *  anchor their right edge to CHIP_RIGHT_EDGE. Static on purpose: the camera
+ *  reads a chip's rect from here (`chipFrame`) so an enlargement can keep the
+ *  chip that opened it in frame. Leader targets live in the render, where the
+ *  part centres are. `id` is looked up through cellById at render, so a typo
+ *  throws rather than drawing a blank chip. */
+const CHIP_LAYOUT: {
+  id: string;
+  x?: number;
+  y: number;
+  text: string;
+  leadEdge?: "right" | "left";
+  strike?: boolean;
+}[] = [
+  // product (assembled fan)
+  { id: "product-identity", x: CHIP_LEFT_EDGE, y: 770, text: "OCR + db-match ok" },
+  { id: "product-quantity", y: 430, text: "H ~ 430 · Ø ~ 300", leadEdge: "left" },
+  { id: "product-condition", x: CHIP_LEFT_EDGE, y: 580, text: "wear? (instrumented only)" },
+  // clear of the HUD's scale indicator, which owns the bottom-left corner
+  { id: "product-structure", x: CHIP_LEFT_EDGE, y: 676, text: "structure -> component" },
+  // component (exploded fan)
+  { id: "component-identity", x: CHIP_LEFT_EDGE, y: 140, text: "detect > 6 parts" },
+  { id: "component-structure", y: 300, text: "segment · attached-to? E", leadEdge: "left" },
+  { id: "component-quantity", x: CHIP_LEFT_EDGE, y: 560, text: "dims > motor ~ 135 mm" },
+  { id: "component-condition", x: CHIP_LEFT_EDGE, y: 690, text: "brush wear? (unvalidated)" },
+  // material (drifted parts)
+  { id: "material-identity", y: 170, text: "steel · ABS · Cu · PCB", leadEdge: "left" },
+  { id: "material-quantity", x: CHIP_LEFT_EDGE, y: 140, text: "mass (derived only)", strike: true },
+  // the left gutter, under the mass chip: in the right gutter it sat on the
+  // drifted motor's corrosion tag
+  { id: "material-structure", x: CHIP_LEFT_EDGE, y: 250, text: "structure -> component" },
+  { id: "material-condition", y: 640, text: "corrosion? (unvalidated)", leadEdge: "left" },
+];
+
+/** A chip's plate as a frame in viewBox units, or null for an unknown id. The
+ *  camera unions this with the cell's part frame, so the enlargement never
+ *  crops the read-out the reader clicked. */
+export function chipFrame(id: string): Frame | null {
+  const c = CHIP_LAYOUT.find((k) => k.id === id);
+  if (!c) return null;
+  const w = chipWidth(c.text);
+  return { x: c.x ?? CHIP_RIGHT_EDGE - w, y: c.y - 23, w, h: CHIP_H };
+}
 
 const OCR_TEXT = 'OCR > "TYP 4212/A"';
 const OCR_W = monoWidth(OCR_TEXT, TAG_FONT) + 10;
@@ -127,11 +172,11 @@ type LayerTap = { cell: Cell; onSelect: (cell: Cell, focusId: string) => void };
 /**
  * One chapter's CV annotations, painted on the fan.
  *
- * Every number these draw is a mock, and the caveat that says so lives in the
- * HUD, not here — so on desktop the whole layer is hidden from the
- * accessibility tree. Fading a group to opacity 0 does not remove it, and a
- * screen reader would otherwise read all nine chapters' read-outs at once, out
- * of order, uncaveated. The chips carry the real, sourced content.
+ * Every number these draw is illustrative, not a model result. On desktop the
+ * whole layer is hidden from the accessibility tree. Fading a group to opacity
+ * 0 does not remove it, and a screen reader would otherwise read all nine
+ * chapters' read-outs at once, out of order. The chips carry the real, sourced
+ * content.
  *
  * With `tap` (the compact fan, which has no chips), the layer IS the control:
  * a labelled button opening its cell's modal, exposed only while its chapter
@@ -260,6 +305,7 @@ function Callout({
   opacity,
   active,
   selected,
+  frame,
   onSelect,
   onHover,
 }: {
@@ -272,17 +318,29 @@ function Callout({
   leadEdge?: "right" | "left";
   strike?: boolean;
   opacity: number;
-  /** operable: this chip's chapter is on stage and the filter has not excluded it.
+  /** operable: this chip's chapter is on stage.
    *  Deliberately NOT derived from `opacity` — a chip dimmed merely because a
    *  sibling has focus is still visible, so it must stay focusable and announced. */
   active: boolean;
   selected: boolean;
+  /** the camera's target while a detail is open; null when the camera is home */
+  frame: Frame | null;
   onSelect: (cell: Cell, focusId: string) => void;
   onHover: (cell: Cell | null) => void;
 }) {
   const letter = VERDICT_LETTER[cell.maturity];
   const w = chipWidth(text);
   const X = x ?? CHIP_RIGHT_EDGE - w;
+  // The zoom frames are tighter than the chip ring by construction, so while a
+  // detail is open most sibling chips sit outside the drawing's frame. A chip the
+  // reader cannot see is not a tab stop: operable implies visible. Its visible
+  // fragment stays clickable, and the selected chip stays focusable so focus has
+  // its opener to return to on close. Centre test, not bbox: a chip half in
+  // frame is still a control.
+  const cx = X + w / 2;
+  const inFrame =
+    !frame || (cx >= frame.x && cx <= frame.x + frame.w && y >= frame.y && y <= frame.y + frame.h);
+  const focusable = active && (selected || inFrame);
   const hid = `cvt-co-${cell.id}`;
   const start: readonly [number, number] = leadEdge === "right" ? [w, -6] : [0, -6];
   return (
@@ -293,9 +351,9 @@ function Callout({
       data-ghost={!!cell.structurallyEmpty}
       data-selected={selected}
       role="button"
-      tabIndex={active ? 0 : -1}
+      tabIndex={focusable ? 0 : -1}
       aria-label={`${cell.scale} · ${cell.informationType}: ${cell.task}. Maturity: ${cell.maturity}. Open details.`}
-      aria-hidden={!active}
+      aria-hidden={!focusable}
       transform={`translate(${X} ${y})`}
       style={{
         opacity,
@@ -334,19 +392,17 @@ function Callout({
 export function Fan({
   p,
   focus,
-  isDim,
   onSelect,
   onHover,
   reduceMotion,
   compact = false,
   viewBox,
+  frame = null,
 }: {
   /** global scroll progress 0..1 */
   p: number;
   /** hovered/selected cell: isolates its overlay annotations */
   focus: Cell | null;
-  /** info-type filter gate */
-  isDim: (cell: Cell) => boolean;
   onSelect: (cell: Cell, focusId: string) => void;
   onHover: (cell: Cell | null) => void;
   reduceMotion: boolean;
@@ -355,12 +411,26 @@ export function Fan({
   /** camera viewBox (from useCamera). Desktop zooms to the selected cell;
    *  the stepper drives per-step frames. Omitted: the static full box. */
   viewBox?: string;
+  /** the camera's target frame while a detail is open — the spring's
+   *  destination, not its current value, so the tab ring does not flicker
+   *  during the move. Chips outside it are not tab stops. */
+  frame?: Frame | null;
 }) {
   // scoped, so a second Fan on the page cannot steal this one's clip path
   const ocrClip = useId();
+  const captureId = useId();
 
   const e = seg(p, TIMELINE.explode[0], TIMELINE.explode[1]);
   const m = seg(p, TIMELINE.drift[0], TIMELINE.drift[1]);
+
+  // The capture degrades as the scales get smaller, because that is what the
+  // paper found: the evidence thins from product to material, and the reason is
+  // that nothing has been validated on the images a contributor would actually
+  // take. So the DRAWING loses definition while the read-outs stay crisp — the
+  // machine goes on reporting confident boxes over a picture it can see less and
+  // less of. Quantized, so a continuous scrub does not rebuild an SVG filter
+  // every frame; 0 through Product, and never blurred past legibility.
+  const blur = compact ? 0 : Math.round((e + m) * 0.6 * 20) / 20;
   const k = e + 0.1 * m;
   // assembled fan fills the canvas headroom; eases to 1 as the stack needs it
   const s = compact ? 1 : 1.3 - 0.3 * e;
@@ -391,18 +461,23 @@ export function Fan({
   const moC = cc(C.mo, V.mo, Z.mo);
   const baC = cc(C.ba, V.ba, Z.ba);
 
-  // chip opacity: chapter presence × filter/focus factors
-  const chip = (c: Cell) =>
-    presence[c.scale] * (isDim(c) ? 0.15 : focus && focus.id !== c.id ? 0.45 : 1);
+  // Operability tracks the chapter, never the focus dimming: a chip faded because
+  // a sibling is hovered is still on screen, so it stays tabbable. Deriving this
+  // from opacity made Tab skip every chip but the focused one — the chips are the
+  // controls, so that stranded keyboard users.
+  const interactive = (c: Cell) => presence[c.scale] > ON_STAGE;
+
+  // chip opacity: chapter presence × focus factor. Floored while the chip is
+  // operable, so "tabbable" and "visible" cannot come apart: mid-transition a
+  // chip could be focusable at 0.12–0.45, which put a keyboard user's focus ring
+  // on something they could barely see.
+  const chip = (c: Cell) => {
+    const o = presence[c.scale] * (focus && focus.id !== c.id ? 0.45 : 1);
+    return interactive(c) ? Math.max(o, 0.55) : o;
+  };
   // annotation opacity: strong when its chapter is active, isolated on hover/focus
   const deco = (c: Cell, base = 0.85) =>
-    presence[c.scale] * (isDim(c) ? 0 : focus ? (focus.id === c.id ? 1 : 0.05) : base);
-
-  // Operability tracks the chapter and the filter, never the focus dimming: a chip
-  // faded to 0.45 because a sibling is hovered is still on screen, so it stays
-  // tabbable. Deriving this from opacity made Tab skip every chip but the focused
-  // one — the chips are the controls, so that stranded keyboard users.
-  const interactive = (c: Cell) => presence[c.scale] > ON_STAGE && !isDim(c);
+    presence[c.scale] * (focus ? (focus.id === c.id ? 1 : 0.05) : base);
 
   const co = (id: string) => {
     const c = cell(id);
@@ -411,6 +486,7 @@ export function Fan({
       opacity: chip(c),
       active: interactive(c),
       selected: focus?.id === c.id,
+      frame,
       onSelect,
       onHover,
     };
@@ -428,97 +504,20 @@ export function Fan({
   const tapFor = (id: string): LayerTap | undefined =>
     compact ? { cell: cell(id), onSelect } : undefined;
 
-  // The twelve chips, one per taxonomy cell. `id` is looked up through cellById,
-  // so a typo throws at first render rather than rendering a blank chip. Declared
-  // in render because the leader targets read the live part centres.
-  const CALLOUTS: {
-    id: string;
-    x?: number;
-    y: number;
-    text: string;
-    lead?: readonly [number, number];
-    leadEdge?: "right" | "left";
-    strike?: boolean;
-  }[] = [
-    // product (assembled fan)
-    {
-      id: "product-identity",
-      x: CHIP_LEFT_EDGE,
-      y: 770,
-      text: "OCR + db-match ok",
-      lead: [sx(196), sy(737)],
-    },
-    {
-      id: "product-quantity",
-      y: 430,
-      text: "H ~ 430 · Ø ~ 300",
-      leadEdge: "left",
-      lead: [sx(500) + 14, sy(400)],
-    },
-    {
-      id: "product-condition",
-      x: CHIP_LEFT_EDGE,
-      y: 580,
-      text: "wear? (unvalidated)",
-      lead: [baC[0] - 92 * s, baC[1] + 12 * s],
-    },
-    // clear of the HUD's scale indicator, which owns the bottom-left corner
-    { id: "product-structure", x: CHIP_LEFT_EDGE, y: 676, text: "structure -> component" },
-
-    // component (exploded fan)
-    {
-      id: "component-identity",
-      x: CHIP_LEFT_EDGE,
-      y: 140,
-      text: "detect > 6 parts",
-      lead: [blC[0] - 106, blC[1] - 112],
-    },
-    {
-      id: "component-structure",
-      y: 300,
-      text: "segment · attached-to? E",
-      leadEdge: "left",
-      lead: [rgC[0] + 100, rgC[1] - 52],
-    },
-    {
-      id: "component-quantity",
-      x: CHIP_LEFT_EDGE,
-      y: 560,
-      text: "dims > motor ~ 135 mm",
-      lead: [moC[0] - 64, moC[1] + 62],
-    },
-    {
-      id: "component-condition",
-      x: CHIP_LEFT_EDGE,
-      y: 690,
-      text: "brush wear? (unvalidated)",
-      lead: [moC[0] - 76, moC[1] + 44],
-    },
-
-    // material (drifted parts)
-    {
-      id: "material-identity",
-      y: 170,
-      text: "steel · ABS · Cu · PCB",
-      leadEdge: "left",
-      lead: [fgC[0] + 30, fgC[1] - 52],
-    },
-    {
-      id: "material-quantity",
-      x: CHIP_LEFT_EDGE,
-      y: 140,
-      text: "mass (derived only)",
-      strike: true,
-    },
-    { id: "material-structure", y: 470, text: "structure -> component" },
-    {
-      id: "material-condition",
-      y: 640,
-      text: "corrosion? (unvalidated)",
-      leadEdge: "left",
-      lead: [moC[0] + 130, moC[1] - 36],
-    },
-  ];
+  // Leader targets per chip, read off the live part centres; the chips' own
+  // positions and labels are static (CHIP_LAYOUT), so the camera can know a
+  // chip's rect without rendering the fan.
+  const LEADS: Record<string, readonly [number, number]> = {
+    "product-identity": [sx(196), sy(737)],
+    "product-quantity": [sx(500) + 14, sy(400)],
+    "product-condition": [baC[0] - 92 * s, baC[1] + 12 * s],
+    "component-identity": [blC[0] - 106, blC[1] - 112],
+    "component-structure": [rgC[0] + 100, rgC[1] - 52],
+    "component-quantity": [moC[0] - 64, moC[1] + 62],
+    "component-condition": [moC[0] - 76, moC[1] + 44],
+    "material-identity": [fgC[0] + 30, fgC[1] - 52],
+    "material-condition": [moC[0] + 130, moC[1] - 36],
+  };
 
   // each part's primary silhouette, defined once and reused by the part, its
   // segmentation mask and its material tint (they must stay pixel-aligned)
@@ -540,10 +539,20 @@ export function Fan({
         compact ? undefined : { transform: `perspective(1200px) rotateX(1.2deg) rotateY(${ry}deg)` }
       }
     >
+      {blur > 0 && (
+        <defs>
+          <filter id={captureId} x="-8%" y="-8%" width="116%" height="116%">
+            <feGaussianBlur stdDeviation={blur} />
+          </filter>
+        </defs>
+      )}
       {/* ---- parts (painter's order: back to front), scaled about the centre.
              Each part carries its own segmentation mask + material tint so the
              annotations ride the explode. ---- */}
-      <g transform={`translate(${O[0] * (1 - s)} ${O[1] * (1 - s)}) scale(${s})`}>
+      <g
+        transform={`translate(${O[0] * (1 - s)} ${O[1] * (1 - s)}) scale(${s})`}
+        filter={blur > 0 ? `url(#${captureId})` : undefined}
+      >
         <g className="fan-part" transform={at(V.nk, Z.nk)}>
           <rect {...nkR} />
           <rect className="ov-segfill" {...nkR} style={{ opacity: segO, "--c": SEG.nk }} />
@@ -762,8 +771,8 @@ export function Fan({
                  omit `x` and anchor to CHIP_RIGHT_EDGE, so both columns track
                  the viewBox instead of being re-tuned by hand. Leader targets
                  are read off the live part centres. ---- */}
-          {CALLOUTS.map(({ id, ...chip }) => (
-            <Callout key={id} {...co(id)} {...chip} />
+          {CHIP_LAYOUT.map(({ id, ...chip }) => (
+            <Callout key={id} {...co(id)} {...chip} lead={LEADS[id]} />
           ))}
         </>
       )}

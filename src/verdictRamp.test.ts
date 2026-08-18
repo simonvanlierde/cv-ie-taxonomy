@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { cells, splitOf } from "./data/taxonomy";
 import type { Verdict } from "./data/types";
 import { contrast, luminance } from "./test-helpers";
-import { SURFACE, VERDICT_RAMP } from "./theme";
+import { SURFACE, VERDICT_HEIGHT, VERDICT_RAMP } from "./theme";
 
 /**
  * The ramp *is* the ordinal encoding, so its ordering is a correctness property,
@@ -52,5 +53,36 @@ describe("verdict ramp is selected per theme, not flipped", () => {
       const strong = VERDICT_RAMP[theme].Strong as string;
       expect(contrast(strong, SURFACE[theme])).toBeGreaterThan(4.5);
     }
+  });
+});
+
+// Height is the matrix's primary channel, so its order is the same correctness
+// property as the ramp's — and it must include Absent, which the ramp omits.
+describe("verdict height", () => {
+  const ALL: Verdict[] = [...ORDER, "Absent"];
+
+  it("descends with the verdict, Strong → Absent", () => {
+    const heights = ALL.map((v) => VERDICT_HEIGHT[v]);
+    expect(heights).toEqual([...heights].sort((a, b) => b - a));
+  });
+
+  it("keeps every step inside the bay", () => {
+    for (const v of ALL) {
+      expect(VERDICT_HEIGHT[v], v).toBeGreaterThan(0);
+      expect(VERDICT_HEIGHT[v], v).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it("leaves Absent a visible hairline rather than nothing", () => {
+    expect(VERDICT_HEIGHT.Absent).toBeGreaterThan(0);
+  });
+
+  // the figure's whole purpose: emptiness has to win the glance, so the ink the
+  // twelve cells actually claim must stay under half the area they could
+  it("keeps the void larger than the ink across the real taxonomy", () => {
+    const claimed = cells
+      .map((c) => VERDICT_HEIGHT[splitOf(c)?.[0] ?? c.maturity])
+      .reduce((a, b) => a + b, 0);
+    expect(claimed / cells.length).toBeLessThan(0.35);
   });
 });

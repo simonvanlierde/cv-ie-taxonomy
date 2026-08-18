@@ -11,22 +11,16 @@ export type Theme = "light" | "dark";
 export const BREAKPOINT_PX = 881;
 
 // Colourblind-safe (Okabe–Ito) hue per physical scale. Maturity is NEVER colour.
-// Selected per theme like SEG_HUE: the dark set is the Okabe–Ito original; on the
-// light surfaces the green and pink read at 2.5–2.8:1, so the light set keeps each
-// hue but is darkened to the 3:1 mark floor (theme.test.ts holds both sets there).
+// One set serves both themes: since the sheet went cyanotype, both grounds are dark,
+// so a hue that clears 3:1 on the blue paper clears it on the burnt-out sheet too
+// (theme.test.ts holds every hue against both surfaces). Product is Okabe–Ito's sky
+// blue rather than its blue, which would sit at 2.3:1 on paper of its own hue.
 // They clear 3:1 as marks but not 4.5:1 as text — carry them on a swatch, never
 // on the glyph text itself.
-export const SCALE_HUE: Record<Theme, Record<Scale, string>> = {
-  dark: {
-    Product: "#0072B2",
-    Component: "#009E73",
-    Material: "#CC79A7",
-  },
-  light: {
-    Product: "#0072B2",
-    Component: "#008a64",
-    Material: "#b25e8e",
-  },
+export const SCALE_HUE: Record<Scale, string> = {
+  Product: "#56B4E9",
+  Component: "#009E73",
+  Material: "#CC79A7",
 };
 
 /** the `var(--cvt-sc-…)` consumer map — anything painting a scale mark uses this,
@@ -37,28 +31,32 @@ export const SCALE_VAR: Record<Scale, string> = {
   Material: "var(--cvt-sc-material)",
 };
 
-// Maturity is ordinal, so it rides a neutral ramp: one hue, monotone in lightness,
-// stepped away from each theme's own surface rather than inverted from the other.
-// `Absent` is not a step — it is the hollow no-data cell, marked by its dashed
-// stroke. Order here is the encoding; `verdictRamp.test.ts` holds it to that.
+// The sheet's two exposures. Light is the cyanotype itself, Prussian-blue paper
+// with the linework burnt out white; dark is the same sheet taken almost to black.
+// Both are dark grounds, which is what lets the hue sets above collapse to one.
 export const SURFACE: Record<Theme, string> = {
-  light: "#dce8f1",
-  dark: "#0b1622",
+  light: "#0d3b5e",
+  dark: "#050c14",
 };
+
+// Maturity is ordinal, so it rides ink coverage: one ink, monotone in lightness,
+// stepped away from each exposure's own ground. `Absent` is not a step — it is the
+// hollow no-data cell, marked by its dashed stroke. Order here is the encoding;
+// `verdictRamp.test.ts` holds it to that.
 
 export const VERDICT_RAMP: Record<Theme, Record<Verdict, string | null>> = {
   light: {
-    Strong: "#0e2740",
-    Partial: "#485d72",
-    "Emerging-but-narrow": "#758899",
-    "Plausible-but-unvalidated": "#96a6b5",
+    Strong: "#e9f4ff",
+    Partial: "#b5cfe2",
+    "Emerging-but-narrow": "#85a8c3",
+    "Plausible-but-unvalidated": "#6b93b1",
     Absent: null,
   },
   dark: {
-    Strong: "#e8f1f8",
-    Partial: "#aab4bc",
-    "Emerging-but-narrow": "#7a848d",
-    "Plausible-but-unvalidated": "#56606b",
+    Strong: "#cfe3f2",
+    Partial: "#9ab5cb",
+    "Emerging-but-narrow": "#6d8ba5",
+    "Plausible-but-unvalidated": "#4e6c86",
     Absent: null,
   },
 };
@@ -71,31 +69,19 @@ export type SegSlot = (typeof SEG_SLOTS)[number];
 
 /**
  * Instance-segmentation overlay hues — a deliberate quote of COCO/YOLO output,
- * not maturity and not scale. Selected per theme rather than flipped: the dark
- * set is the neon original; the light set keeps each hue but is darkened to the
- * 3:1 mark floor against the light surface, where the neon reads at 1.2–2.2:1.
- * Both sets clear 4.5:1 under the tags' dark ink, and every mask carries a class
- * label, which is the secondary encoding the CVD floor band requires.
+ * not maturity and not scale. One neon set now serves both exposures: the darkened
+ * arm existed only for a pale surface, and the cyanotype has none. Every hue clears
+ * 3:1 on both grounds and 4.5:1 under the tags' dark ink, and every mask carries a
+ * class label, which is the secondary encoding the CVD floor band requires.
  */
-export const SEG_HUE: Record<Theme, Record<SegSlot, string>> = {
-  dark: {
-    fg: "#facc15",
-    bl: "#22d3ee",
-    rg: "#a78bfa",
-    mo: "#fb923c",
-    nk: "#f472b6",
-    ba: "#34d399",
-    warn: "#ffb454",
-  },
-  light: {
-    fg: "#9d810d",
-    bl: "#0691a6",
-    rg: "#8c75d2",
-    mo: "#bf6f2e",
-    nk: "#c85d95",
-    ba: "#24946b",
-    warn: "#ab7938",
-  },
+export const SEG_HUE: Record<SegSlot, string> = {
+  fg: "#facc15",
+  bl: "#22d3ee",
+  rg: "#a78bfa",
+  mo: "#fb923c",
+  nk: "#f472b6",
+  ba: "#34d399",
+  warn: "#ffb454",
 };
 
 /** the `var(--seg-…)` consumer map, derived from the same slot list as THEME_VARS */
@@ -114,6 +100,26 @@ const VERDICT_TOKEN: Record<Verdict, string | null> = {
   Absent: null,
 };
 
+/**
+ * The ramp again, as area. Ink coverage alone left `Partial` and
+ * `Plausible-but-unvalidated` two mid-tones roughly 20% apart on a 24px swatch,
+ * so a grid of twelve cells read as uniform — the exact opposite of the paper's
+ * finding. Height is the second, stronger channel: a bay's block rises to its
+ * verdict, so a row's silhouette carries the claim before any label is read.
+ * `Absent` keeps a hairline rather than nothing, so an empty cell still reads as
+ * a cell. Fractions of the bay, ordered; verdictRamp.test.ts holds the order, and
+ * holds the void to more than half the figure — at Partial = 0.66 the six Partial
+ * cells filled two thirds of their bays and the grid read "mostly two-thirds
+ * full", which is not what the paper found.
+ */
+export const VERDICT_HEIGHT: Record<Verdict, number> = {
+  Strong: 1,
+  Partial: 0.42,
+  "Emerging-but-narrow": 0.26,
+  "Plausible-but-unvalidated": 0.14,
+  Absent: 0.02,
+};
+
 /** the `var(--cvt-v-…)` consumer map for anything painting a ramp step */
 export const VERDICT_VAR = Object.fromEntries(
   Object.entries(VERDICT_TOKEN).map(([verdict, token]) => [verdict, token && `var(${token})`]),
@@ -121,8 +127,8 @@ export const VERDICT_VAR = Object.fromEntries(
 
 const themeVars = (theme: Theme): CSSProperties => {
   const vars: Record<string, string> = {};
-  for (const slot of SEG_SLOTS) vars[`--seg-${slot}`] = SEG_HUE[theme][slot];
-  for (const [scale, hex] of Object.entries(SCALE_HUE[theme])) {
+  for (const slot of SEG_SLOTS) vars[`--seg-${slot}`] = SEG_HUE[slot];
+  for (const [scale, hex] of Object.entries(SCALE_HUE)) {
     vars[`--cvt-sc-${scale.toLowerCase()}`] = hex;
   }
   for (const [verdict, token] of Object.entries(VERDICT_TOKEN)) {
