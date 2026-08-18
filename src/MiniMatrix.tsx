@@ -66,6 +66,7 @@ function MiniMatrixRow({
         return (
           <button
             key={cell.id}
+            id={`cvt-mx-${cell.id}`}
             type="button"
             className="cvt-mx-cell"
             data-ghost={!!cell.structurallyEmpty}

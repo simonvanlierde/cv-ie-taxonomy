@@ -842,6 +842,19 @@
   height: 70vh;
   overflow-y: auto;
 }
+.cvt-inline-region {
+  outline: none;
+}
+.cvt-inline-region:focus-visible {
+  outline: 2px solid var(--cvt-ink);
+  outline-offset: 4px;
+}
+.cvt-inline-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
 .cvt-inline-title {
   font-family: var(--cvt-display);
   font-size: var(--cvt-t-4);

@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { Explorable } from "./Explorable";
@@ -21,7 +21,8 @@ describe("Explorable", () => {
     render(<Explorable />);
     await userEvent.click(screen.getByRole("button", { name: /component · quantity/i }));
 
-    expect(screen.getByText("Component · Quantity")).toBeInTheDocument();
+    // the caption now names the drawing convention too, and sits under the title
+    expect(screen.getByText("detail · Component · Quantity")).toBeInTheDocument();
     // the task heading comes from the cell itself, not a hardcoded string
     expect(screen.getByRole("heading", { level: 3 })).toBeInTheDocument();
   });
@@ -39,5 +40,32 @@ describe("Explorable", () => {
       .getAllByRole("button")
       .filter((b) => b.getAttribute("aria-pressed") === "true");
     expect(stillOne).toHaveLength(1);
+  });
+
+  it("closes on Esc and lands focus back on the cell that opened it", async () => {
+    const user = userEvent.setup();
+    render(<Explorable />);
+
+    const cell = screen.getByRole("button", { name: /component · quantity/i });
+    await user.click(cell);
+    const region = screen.getByRole("complementary", { name: /component · quantity/i });
+    expect(region).toHaveFocus();
+
+    await user.keyboard("{Escape}");
+
+    expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
+    // act one's detail behaves identically; the two surfaces teach one contract
+    expect(cell).toHaveFocus();
+  });
+
+  it("closes on its own close control", async () => {
+    const user = userEvent.setup();
+    render(<Explorable />);
+
+    await user.click(screen.getByRole("button", { name: /material · identity/i }));
+    const region = screen.getByRole("complementary", { name: /material · identity/i });
+    await user.click(within(region).getByRole("button", { name: /close details/i }));
+
+    expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
   });
 });

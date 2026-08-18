@@ -1,19 +1,21 @@
 import { type RefObject, useEffect, useRef } from "react";
 
 /**
- * The behaviour `<dialog>` used to give us, for a region that lives in the
- * layout instead of floating over it.
+ * The behaviour `<dialog>` used to give us, for a detail region — with modality
+ * as a parameter, because it is a property of the layout rather than of the act.
  *
- * The detail is an enlargement drawn on the same sheet: it takes the narrative
- * column's place rather than covering the drawing, so it cannot be a `<dialog>`,
- * which is always in the top layer. That means the three things the element
- * handled natively are ours now — initial focus, a focus trap, and returning
- * focus to whatever opened it — and unlike the native versions they are ours to
- * test.
+ * A detail drawn ON the sheet is not modal: the drawing, the filters and the
+ * other cells are all still there and still usable, and trapping focus inside
+ * the enlargement would stop the reader doing the obvious next thing, which is
+ * look at another cell. The callouts are the controls; a modal detail makes the
+ * controls unreachable. A detail that *covers* the sheet — the mobile bottom
+ * sheet — is modal, because the content behind it is genuinely gone.
  *
- * Esc closes. Tab and Shift+Tab cycle inside the region. Focus goes in on open
- * and back to the opener on close, including when the opener has been re-rendered
- * in the meantime, which is why the caller passes an id rather than a node.
+ * Both get Esc and focus return. Only the covering one traps.
+ *
+ * Focus goes in on open and back to the opener on close, including when the
+ * opener has been re-rendered in the meantime, which is why the caller passes an
+ * id rather than a node.
  */
 const FOCUSABLE = [
   "a[href]",
@@ -29,11 +31,14 @@ export function useDialogRegion({
   open,
   onClose,
   returnFocusTo,
+  modal = false,
 }: {
   open: boolean;
   onClose: () => void;
   /** element id to restore focus to on close; null falls back to the body */
   returnFocusTo: string | null;
+  /** true only when the region covers what it belongs to (the mobile sheet) */
+  modal?: boolean;
 }): RefObject<HTMLElement | null> {
   const ref = useRef<HTMLElement>(null);
   // read inside the cleanup, so a re-render between open and close cannot
@@ -55,7 +60,7 @@ export function useDialogRegion({
         onClose();
         return;
       }
-      if (e.key !== "Tab") return;
+      if (e.key !== "Tab" || !modal) return;
       const items = [...region.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
         (el) => el.offsetParent !== null || el === document.activeElement,
       );
@@ -78,20 +83,17 @@ export function useDialogRegion({
       }
     };
 
-    // The Tab handler only guards the region's own two boundaries, which is
-    // enough while focus starts inside. It is not enough on its own: anything
-    // outside that is still focusable — a matrix cell, a footer link, a click
-    // anywhere — puts focus outside, and from there Tab walks the page freely
-    // with the region still claiming aria-modal. `<dialog>` prevented that by
-    // construction; this is the replacement. focusin catches every route in,
-    // pointer and keyboard alike.
+    // A trap needs both halves: the Tab handler guards the region's own edges,
+    // and this catches every other route out — a click, a programmatic focus,
+    // anything focusable after the region in DOM order. `<dialog>` prevented
+    // that class of escape by construction. Modal regions only.
     const onFocusIn = (e: FocusEvent) => {
       if (region.contains(e.target as Node)) return;
       region.focus();
     };
 
     document.addEventListener("keydown", onKeyDown);
-    document.addEventListener("focusin", onFocusIn);
+    if (modal) document.addEventListener("focusin", onFocusIn);
     return () => {
       document.removeEventListener("keydown", onKeyDown);
       document.removeEventListener("focusin", onFocusIn);
@@ -107,7 +109,7 @@ export function useDialogRegion({
         region.contains(document.activeElement) || document.activeElement === document.body;
       if (wasOurs) (opener ?? document.body).focus?.();
     };
-  }, [open, onClose]);
+  }, [open, onClose, modal]);
 
   return ref;
 }

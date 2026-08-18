@@ -17,18 +17,19 @@ import { frameOf, matchMediaStub } from "./test-helpers";
 /** the mobile list renders a button per cell, id `cvt-m-<cellId>`; use it as the trigger */
 const trigger = (cellId: string) => document.getElementById(`cvt-m-${cellId}`) as HTMLElement;
 
-describe("detail panel", () => {
+describe("detail on the sheet (desktop)", () => {
+  const detail = () => screen.findByRole("complementary", { name: /component · identity/i });
+
   it("opens on a cell click, and shows that cell's verdict", async () => {
     const user = userEvent.setup();
     render(<CvTaxonomy />);
 
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
 
     await user.click(trigger("component-identity"));
 
-    const dialog = await screen.findByRole("dialog");
-    expect(within(dialog).getByRole("heading", { level: 2 })).toBeInTheDocument();
-    expect(dialog).toHaveAttribute("aria-modal", "true");
+    const region = await detail();
+    expect(within(region).getByRole("heading", { level: 2 })).toBeInTheDocument();
   });
 
   it("moves focus into the detail when it opens", async () => {
@@ -36,82 +37,94 @@ describe("detail panel", () => {
     render(<CvTaxonomy />);
 
     await user.click(trigger("component-identity"));
-    const dialog = await screen.findByRole("dialog");
-
-    // the region itself, so a screen reader announces the detail's name and role
-    // before any control inside it
-    expect(dialog).toHaveFocus();
+    expect(await detail()).toHaveFocus();
   });
 
-  it("keeps Tab inside the detail while it is open", async () => {
+  it("does not trap focus: the sheet it is drawn on stays usable", async () => {
     const user = userEvent.setup();
     render(<CvTaxonomy />);
 
     await user.click(trigger("component-identity"));
-    const dialog = await screen.findByRole("dialog");
+    const region = await detail();
 
-    // walk further than the region has controls; focus must never leave it
-    for (let i = 0; i < 12; i++) await user.tab();
-    expect(dialog.contains(document.activeElement)).toBe(true);
-  });
-
-  it("pulls focus back when something outside the detail takes it", async () => {
-    const user = userEvent.setup();
-    render(<CvTaxonomy />);
-
-    await user.click(trigger("component-identity"));
-    const dialog = await screen.findByRole("dialog");
-
-    // Tab-cycling alone only guards the region's own edges. Anything outside
-    // that is still focusable — a matrix cell, a footer link, a stray click —
-    // lands focus outside, and from there Tab walked the whole page with the
-    // region still claiming aria-modal.
+    // Deliberate. An enlargement drawn ON the sheet is not modal: the drawing,
+    // the filters and the other eleven cells are still there, and the obvious
+    // next thing a reader does is look at another cell. Trapping made the fan's
+    // own callouts — the controls — unreachable while a detail was open.
     const outside = document.querySelector<HTMLElement>(".cvt-footer a");
     outside?.focus();
-
-    expect(dialog.contains(document.activeElement)).toBe(true);
+    expect(region.contains(document.activeElement)).toBe(false);
+    expect(outside).toHaveFocus();
   });
 
   it("closes on Esc, landing focus back on the cell that opened it", async () => {
     const user = userEvent.setup();
     render(<CvTaxonomy />);
 
-    const opener = trigger("component-identity");
-    await user.click(opener);
-    await screen.findByRole("dialog");
+    await user.click(trigger("component-identity"));
+    await detail();
 
     await user.keyboard("{Escape}");
 
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    // by id, not by node: on desktop the detail replaces the column the opener
-    // lives in, so the element that comes back is a different node
+    expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
+    // by id, not by node: the detail replaces the column the opener lives in,
+    // so the element that comes back is a different node
     expect(trigger("component-identity")).toHaveFocus();
     expect(document.activeElement).not.toBe(document.body);
   });
 
-  it("closes on the panel's own close button", async () => {
+  it("closes on the detail's own close button", async () => {
     const user = userEvent.setup();
     render(<CvTaxonomy />);
 
     await user.click(trigger("material-identity"));
-    const dialog = await screen.findByRole("dialog");
+    const region = await screen.findByRole("complementary", { name: /material · identity/i });
 
-    await user.click(within(dialog).getByRole("button", { name: /close details/i }));
+    await user.click(within(region).getByRole("button", { name: /close details/i }));
 
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
   });
 
-  it("deep-links straight into a cell's panel via initialCell", async () => {
+  it("deep-links straight into a cell's detail via initialCell", async () => {
     const cell = cellById("material-quantity");
     render(<CvTaxonomy initialCell={cell.id} />);
 
-    const dialog = await screen.findByRole("dialog");
-    expect(within(dialog).getByRole("heading", { level: 2 })).toHaveTextContent(cell.task);
+    const region = await screen.findByRole("complementary", { name: /material · quantity/i });
+    expect(within(region).getByRole("heading", { level: 2 })).toHaveTextContent(cell.task);
   });
 
   it("ignores an initialCell that names no cell, rather than throwing", () => {
     render(<CvTaxonomy initialCell="not-a-cell" />);
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
+  });
+});
+
+describe("detail as a sheet (mobile)", () => {
+  // Modality follows the layout, not the act: the mobile detail covers the
+  // drawing it belongs to, so unlike the desktop one it is a real modal.
+  const mobile = () => {
+    window.matchMedia = matchMediaStub((q) => q.includes("max-width"));
+  };
+
+  it("is a modal dialog, and keeps Tab inside itself", async () => {
+    mobile();
+    const user = userEvent.setup();
+    render(<CvTaxonomy initialCell="component-identity" />);
+
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveAttribute("aria-modal", "true");
+
+    for (let i = 0; i < 12; i++) await user.tab();
+    expect(dialog.contains(document.activeElement)).toBe(true);
+  });
+
+  it("pulls focus back when something outside it takes focus", async () => {
+    mobile();
+    render(<CvTaxonomy initialCell="component-identity" />);
+    const dialog = await screen.findByRole("dialog");
+
+    document.querySelector<HTMLElement>(".cvt-footer a")?.focus();
+    expect(dialog.contains(document.activeElement)).toBe(true);
   });
 });
 
@@ -193,7 +206,7 @@ describe("camera framing (desktop)", () => {
     const fan = () => container.querySelector(".cvt-fan:not(.cvt-fan-compact)") as SVGSVGElement;
 
     await user.click(trigger("component-quantity"));
-    await screen.findByRole("dialog");
+    await screen.findByRole("complementary");
     expect(fan()).toHaveAttribute("viewBox", frameToViewBox(frameOf("component-quantity")));
 
     await user.keyboard("{Escape}");
@@ -215,7 +228,7 @@ describe("body scroll lock", () => {
     expect(document.body.style.overflow).toBe("");
 
     await user.click(trigger("component-identity"));
-    await screen.findByRole("dialog");
+    await screen.findByRole("complementary");
     expect(document.body.style.overflow).toBe("hidden");
 
     await user.keyboard("{Escape}");
@@ -226,7 +239,7 @@ describe("body scroll lock", () => {
 describe("panel progressive disclosure", () => {
   it("shows the failure mode up front and tucks rubric marks into a closed details", async () => {
     render(<CvTaxonomy initialCell="component-structure" />);
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole("complementary");
 
     // primary: failure mode is not inside the collapsible
     const failure = within(dialog).getByText(/where it breaks/i);
@@ -264,7 +277,7 @@ describe("withViewTransition", () => {
       const user = userEvent.setup();
       render(<CvTaxonomy />);
       await user.click(trigger("component-identity"));
-      expect(await screen.findByRole("dialog")).toBeInTheDocument();
+      expect(await screen.findByRole("complementary")).toBeInTheDocument();
       expect(calls.length).toBeGreaterThan(0);
     } finally {
       (document as unknown as { startViewTransition?: unknown }).startViewTransition = undefined;
@@ -283,7 +296,7 @@ describe("per-cell share", () => {
     Object.assign(navigator, { share: undefined });
 
     render(<CvTaxonomy initialCell="material-condition" />);
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole("complementary");
     await user.click(within(dialog).getByRole("button", { name: /copy link/i }));
 
     expect(writeText).toHaveBeenCalledWith(expect.stringContaining("?cell=material-condition"));

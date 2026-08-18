@@ -1,4 +1,5 @@
 import {
+  type CSSProperties,
   memo,
   type ReactNode,
   type RefObject,
@@ -301,6 +302,7 @@ export function CvTaxonomy({
           returnFocusTo={lastFocused.current}
           onClose={closeCell}
           compact
+          modal
         />
       )}
       {isMobile ? (
@@ -336,7 +338,7 @@ export function CvTaxonomy({
           {/* The stage + chapters share one wrapper, placed directly by the grid. */}
           <div className="cvt-pinwrap">
             {/* ---- sticky stage: the fan IS the interface ---- */}
-            <div className="cvt-stagecol" inert={selected ? true : undefined}>
+            <div className="cvt-stagecol">
               <div className="cvt-sticky">
                 <Fan
                   p={p}
@@ -398,14 +400,12 @@ export function CvTaxonomy({
                   onClose={closeCell}
                 />
               )}
-              <div inert={selected ? true : undefined}>
-                <Rail chapter={chapter} activeInfo={activeInfo} onOpen={openCell} />
-              </div>
+              <Rail chapter={chapter} activeInfo={activeInfo} onOpen={openCell} />
             </div>
           </div>
           {/* full-width row: the stage's sticky column ends here, and the matrix
               gets the whole canvas as a captioned paper figure */}
-          <Outro inert={selected ? true : undefined} />
+          <Outro />
         </div>
       )}
 
@@ -699,9 +699,9 @@ function ThemeToggle({ theme, onToggle }: { theme: Theme; onToggle: () => void }
 // ---- outro: the matrix, live — select a cell to fill the detail inline
 // (memoized: nothing here depends on scroll progress, so the per-scroll-frame
 // render skips it entirely) -----
-export const Outro = memo(function Outro({ inert }: { inert?: boolean }) {
+export const Outro = memo(function Outro() {
   return (
-    <section className="cvt-outro" id="cvt-matrix" aria-label="Full taxonomy matrix" inert={inert}>
+    <section className="cvt-outro" id="cvt-matrix" aria-label="Full taxonomy matrix">
       <h2>
         The honest map is mostly gaps: by the paper's own rubric, none of the twelve tasks earns a
         Strong on worn, real-world products.
@@ -880,24 +880,33 @@ function DetailRegion({
   onClose,
   returnFocusTo,
   compact = false,
+  modal = false,
 }: {
   cell: Cell;
   onClose: () => void;
   returnFocusTo: string | null;
   compact?: boolean;
+  /** only the mobile sheet, which covers the drawing it belongs to */
+  modal?: boolean;
 }) {
-  const ref = useDialogRegion({ open: true, onClose, returnFocusTo });
-  return (
-    <aside
-      ref={ref as RefObject<HTMLElement>}
-      className={compact ? "cvt-detail cvt-detail-sheet" : "cvt-detail"}
-      role="dialog"
-      aria-modal="true"
-      aria-label={`${cell.scale} · ${cell.informationType}`}
-      style={{ "--hue": SCALE_VAR[cell.scale] }}
-      tabIndex={-1}
-    >
-      <DetailPanel cell={cell} onClose={onClose} />
+  const ref = useDialogRegion({ open: true, onClose, returnFocusTo, modal });
+  const shared = {
+    className: compact ? "cvt-detail cvt-detail-sheet" : "cvt-detail",
+    "aria-label": `${cell.scale} · ${cell.informationType}`,
+    style: { "--hue": SCALE_VAR[cell.scale] } as CSSProperties,
+    tabIndex: -1,
+  };
+  const body = <DetailPanel cell={cell} onClose={onClose} />;
+
+  // Two elements rather than one with a computed role: aria-modal is only valid
+  // alongside an explicit dialog role, and <aside> already means complementary.
+  return modal ? (
+    <div {...shared} ref={ref as RefObject<HTMLDivElement>} role="dialog" aria-modal="true">
+      {body}
+    </div>
+  ) : (
+    <aside {...shared} ref={ref as RefObject<HTMLElement>}>
+      {body}
     </aside>
   );
 }
