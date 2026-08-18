@@ -1,5 +1,5 @@
 import { type ReactNode, useState } from "react";
-import { CAVEAT, CellList, Hero, Outro } from "./CvTaxonomy";
+import { CellList, Hero, Outro } from "./CvTaxonomy";
 import { CHAPTER_COPY } from "./chapters";
 import { SCALES } from "./data/taxonomy";
 import type { Cell, Scale } from "./data/types";
@@ -61,11 +61,7 @@ export function MobileStepper({
 
   return (
     <div className="cvt-stepper">
-      <div className="cvt-stepper-top">
-        {/* the matrix step draws no read-outs, so it carries no caveat */}
-        {!isMatrix && <span className="cvt-hud-tag">{CAVEAT}</span>}
-        {themeToggle}
-      </div>
+      <div className="cvt-stepper-top">{themeToggle}</div>
       <div className="cvt-step" data-step={labels[step]} data-collapsed={sheetCollapsed}>
         {/* the fan is the full-screen backdrop on every step but the matrix,
             walking apart as you advance; the sheet floats over its lower third.

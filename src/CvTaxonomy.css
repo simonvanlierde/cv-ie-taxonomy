@@ -233,8 +233,8 @@
   position: sticky;
   top: 0;
   height: 100vh;
-  /* clear of the coordinate ruler and the caveat banner, which were cropping the
-     top of the drawing on tall viewports */
+  /* clear of the coordinate ruler, which was cropping the top of the drawing on
+     tall viewports */
   padding-top: 56px;
   display: flex;
   align-items: center;
@@ -516,8 +516,8 @@
   gap: 1rem;
   flex-wrap: wrap;
 }
-/* the caveat stamp and the theme toggle: the stage's bottom-right corner, where
-   no chip lands and nothing scrolls */
+/* the theme toggle: the stage's bottom-right corner, where no chip lands and
+   nothing scrolls */
 .cvt-hud-actions {
   position: absolute;
   right: 0;
@@ -563,19 +563,6 @@
   width: 15px;
   height: 15px;
 }
-.cvt-hud-tag {
-  font-family: var(--cvt-mono);
-  font-size: var(--cvt-t-1);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--cvt-ink-dim);
-  border: 1px dashed var(--cvt-line);
-  border-radius: 5px;
-  padding: 0.25rem 0.5rem;
-  /* the sheet's ground: chapter prose scrolls under this fixed stamp, and text
-     over text is unreadable both ways */
-  background: var(--cvt-bg);
-}
 .cvt-ind {
   list-style: none;
   margin: 0;
@@ -598,7 +585,7 @@
   font-size: var(--cvt-t-1);
   letter-spacing: 0.2em;
   /* a stop that wraps stops being a stop: "THE MAP" broke over two lines and
-     pushed the rail under the caveat banner */
+     pushed the rail out of alignment */
   white-space: nowrap;
   text-transform: uppercase;
   color: var(--cvt-ink-dim);
@@ -640,9 +627,9 @@
 .cvt-ind-end {
   --hue: var(--cvt-ink);
 }
-/* Below the wide sheet the rail and the caveat banner cannot share a line, so
-   the rail tightens and drops beneath it. Declared here rather than beside the
-   other narrow-sheet rules because it has to come after .cvt-ind's own margin. */
+/* Below the wide sheet the rail tightens and drops beneath the instrument line.
+   Declared here rather than beside the other narrow-sheet rules because it has
+   to come after .cvt-ind's own margin. */
 @container cvt (width < 1180px) {
   .cvt-ind {
     gap: 0.6rem;
@@ -848,8 +835,8 @@
 }
 .cvt-inline-region {
   outline: none;
-  /* focus-in scrolls the region into view; keep it below the fixed ruler and
-     the caveat tag rather than flush under them */
+  /* focus-in scrolls the region into view; keep it below the fixed ruler rather
+     than flush under it */
   scroll-margin-top: 5rem;
 }
 .cvt-inline-region:focus-visible {
@@ -1710,16 +1697,8 @@
 
 /* ---- mobile --------------------------------------------------------------------------------- */
 /* Below the breakpoint the stepper is on stage, not the sheet; only what the
-   stepper renders (its caveat tag, the outro and its cell lists) needs rules. */
+   stepper renders (the outro and its cell lists) needs rules. */
 @container cvt (width < 881px) {
-  /* The caveat shrinks; it never disappears: the compact fan still paints every
-     mock read-out, so hiding its label would leave invented confidences and
-     dimensions on the product uncaveated. */
-  .cvt-hud-tag {
-    letter-spacing: 0.04em;
-    padding: 0.2rem 0.35rem;
-    min-width: 0;
-  }
   .cvt-outro {
     min-height: auto;
     padding: 3rem 0 6rem;
@@ -2111,7 +2090,7 @@
 
 /* The detail takes the narrative column's place, so nothing has to clear it —
    the sheet reconfigures instead of being covered; the furniture in the left
-   margin stays, caveat included. */
+   margin stays in place. */
 
 /* ---- detail: an enlargement drawn on the sheet -------------------------------
    Ruled like a detail view, with a leader running out of its edge toward the

@@ -25,11 +25,11 @@ import {
 import type { Cell, Scale, Verdict } from "./data/types";
 import { Explorable } from "./Explorable";
 import { chipFrame, Fan } from "./Fan";
-import { clampFrame, type Frame, FRAMES, HOME_FRAME, unionFrame, VIEW } from "./frames";
+import { clampFrame, FRAMES, type Frame, HOME_FRAME, unionFrame, VIEW } from "./frames";
 import { MobileStepper } from "./MobileStepper";
 import { Cite, CitedProse } from "./References";
 import { RubricCircuit } from "./RubricCircuit";
-import { BREAKPOINT_PX, SCALE_VAR, SURFACE, type Theme, THEME_VARS, VERDICT_VAR } from "./theme";
+import { BREAKPOINT_PX, SCALE_VAR, SURFACE, THEME_VARS, type Theme, VERDICT_VAR } from "./theme";
 import { plateauCentre, TIMELINE } from "./timeline";
 import { useCamera } from "./useCamera";
 import { useDialogRegion } from "./useDialogRegion";
@@ -71,11 +71,6 @@ function useMediaQuery(query: string): boolean {
     () => false, // server render: assume no match
   );
 }
-
-/** The caveat over the fan's read-outs. Every number they draw is a mock, and
- *  this stamp is what says so; it must show at every viewport (see
- *  overlayLabel.test.ts), so both the sheet's HUD and the stepper draw it. */
-export const CAVEAT = "mock read-outs · no model ran";
 
 /** I is skipped, as on a real drawing: it reads as a 1 against the row numbers. */
 // biome-ignore lint/security/noSecrets: the drawing sheet's column references
@@ -420,7 +415,6 @@ export function CvTaxonomy({
                       the narrow one the instrument strip holds the bottom, so
                       it takes the top-right and the chapter rail drops under it. */}
                   <div className="cvt-hud-actions">
-                    <span className="cvt-hud-tag">{CAVEAT}</span>
                     <ThemeToggle
                       theme={effectiveTheme}
                       onToggle={() =>

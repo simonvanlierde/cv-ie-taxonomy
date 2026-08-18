@@ -246,15 +246,6 @@ describe("theme has a single owner", () => {
   });
 });
 
-describe("the illustrative caveat", () => {
-  // the per-layer aria-hidden sweep lives in Fan.test.tsx, next to the component
-  // that owns the layers; this is the integration-level half of that guarantee
-  it("is rendered alongside the mock overlays", () => {
-    render(<CvTaxonomy />);
-    expect(screen.getByText(/mock read-outs · no model ran/i)).toBeInTheDocument();
-  });
-});
-
 // Force reduced motion ON (so the camera cuts instantly and is deterministic),
 // everything else OFF (desktop). Restore is handled by the shared afterEach.
 function forceReducedMotion() {

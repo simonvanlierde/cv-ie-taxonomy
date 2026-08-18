@@ -172,11 +172,11 @@ type LayerTap = { cell: Cell; onSelect: (cell: Cell, focusId: string) => void };
 /**
  * One chapter's CV annotations, painted on the fan.
  *
- * Every number these draw is a mock, and the caveat that says so lives in the
- * HUD, not here — so on desktop the whole layer is hidden from the
- * accessibility tree. Fading a group to opacity 0 does not remove it, and a
- * screen reader would otherwise read all nine chapters' read-outs at once, out
- * of order, uncaveated. The chips carry the real, sourced content.
+ * Every number these draw is illustrative, not a model result. On desktop the
+ * whole layer is hidden from the accessibility tree. Fading a group to opacity
+ * 0 does not remove it, and a screen reader would otherwise read all nine
+ * chapters' read-outs at once, out of order. The chips carry the real, sourced
+ * content.
  *
  * With `tap` (the compact fan, which has no chips), the layer IS the control:
  * a labelled button opening its cell's modal, exposed only while its chapter

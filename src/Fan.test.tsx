@@ -126,7 +126,7 @@ describe("compact fan", () => {
   it("drops the floating chips but keeps painting the annotations", () => {
     const { container } = renderFan({ compact: true });
     expect(container.querySelectorAll(".cvt-co")).toHaveLength(0);
-    // …which is exactly why the illustrative caveat must survive on mobile
+    // …which is exactly why the annotations must remain painted on mobile
     expect(container.querySelectorAll(".ov-layer")).toHaveLength(9);
     expect(within(container).getByText(/desk_fan/)).toBeInTheDocument();
   });
