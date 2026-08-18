@@ -2281,6 +2281,13 @@
   .cvt-instrument .cvt-rung {
     padding: 0;
   }
+  /* the drawing sits between the dropped chapter rail (stamp + rail, ~116px
+     under the ruler) and the instrument strip: the exploded grille and base
+     ran under both otherwise */
+  .cvt-sticky {
+    padding-top: 128px;
+    padding-bottom: 84px;
+  }
   /* the detail stops short of the strip: they shared the sheet's bottom otherwise */
   .cvt-scroll[data-panel="open"] .cvt-detail {
     max-height: calc(100vh - 150px);

@@ -10,9 +10,10 @@ export type Frame = { x: number; y: number; w: number; h: number };
 // around it so the fan commands the sheet: a wider frame spends the viewport on
 // empty gutters and renders the product small, which is the opposite of what a
 // teardown sheet is for.
-// y starts at 20, not 40: the exploded front grille rises to y ≈ 26, and a
-// home frame that began below it cropped the top of the drawing at every zoom.
-export const VIEW: Frame = { x: -120, y: 20, w: 800, h: 850 };
+// y starts at -5, not 40: the drifted front grille rises to y ≈ 0 at the
+// material plateau, and a home frame that began below it cropped the top of the
+// drawing at every zoom (and, clamped into VIEW, on the phone's explode steps).
+export const VIEW: Frame = { x: -120, y: -5, w: 800, h: 875 };
 export const HOME_FRAME: Frame = VIEW;
 
 export const frameToViewBox = (f: Frame) => `${f.x} ${f.y} ${f.w} ${f.h}`;
