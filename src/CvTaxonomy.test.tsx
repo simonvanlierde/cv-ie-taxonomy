@@ -292,3 +292,35 @@ describe("container-driven layout", () => {
     }
   });
 });
+
+describe("the chapter rail is navigation, not decoration", () => {
+  // The fan's chips are gated to their chapter's plateau, so without an operable
+  // rail a desktop keyboard user cannot reach the Component or Material cells at
+  // all: only scrolling brings them on stage.
+  it("gives every scale a real control, and the closing figure a link", () => {
+    window.matchMedia = matchMediaStub(() => false); // desktop
+    render(<CvTaxonomy />);
+    const rail = screen.getByLabelText("Physical scale chapters");
+    for (const scale of ["Product", "Component", "Material"]) {
+      expect(within(rail).getByRole("button", { name: scale })).toBeInTheDocument();
+    }
+    expect(within(rail).getByRole("link", { name: /the map/i })).toHaveAttribute(
+      "href",
+      "#cvt-matrix",
+    );
+  });
+
+  it("scrolls to a scale's plateau when its stop is activated", async () => {
+    window.matchMedia = matchMediaStub(() => false);
+    const scrollTo = vi.fn();
+    vi.stubGlobal("scrollTo", scrollTo);
+    // jsdom lays everything out at zero, so give the narrative a scrollable span
+    vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockReturnValue(5000);
+    render(<CvTaxonomy />);
+    const rail = screen.getByLabelText("Physical scale chapters");
+    await userEvent.click(within(rail).getByRole("button", { name: "Material" }));
+    expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ behavior: "smooth" }));
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+});

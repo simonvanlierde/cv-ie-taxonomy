@@ -519,6 +519,12 @@
   gap: 1rem;
 }
 .cvt-ind li {
+  display: flex;
+  align-items: center;
+  pointer-events: auto;
+}
+.cvt-ind button,
+.cvt-ind a {
   font-family: var(--cvt-mono);
   font-size: var(--cvt-t-1);
   letter-spacing: 0.2em;
@@ -527,24 +533,40 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  background: none;
+  border: 0;
+  padding: 0.45rem 0.2rem;
+  cursor: pointer;
+  text-decoration: none;
   transition: color 0.3s;
 }
-.cvt-ind li::before {
+.cvt-ind button::before,
+.cvt-ind a::before {
   content: "";
   width: 18px;
   height: 3px;
   border-radius: 2px;
   background: var(--cvt-line);
+  /* width, not transform: an 18-to-30px rule on a mono row reflows nothing
+     around it, and the tick reads as a drawn rule rather than a scaled one */
   transition:
     background 0.3s,
     width 0.3s;
 }
-.cvt-ind li[data-active="true"] {
+.cvt-ind [data-active="true"] {
   color: var(--cvt-ink);
 }
-.cvt-ind li[data-active="true"]::before {
+.cvt-ind [data-active="true"]::before {
   background: var(--hue);
   width: 30px;
+}
+.cvt-ind button:hover,
+.cvt-ind a:hover {
+  color: var(--cvt-ink);
+}
+/* the closing figure has no scale hue of its own; it takes the sheet's ink */
+.cvt-ind-end {
+  --hue: var(--cvt-ink);
 }
 /* a <fieldset>, so the chips are a named group without an ARIA role */
 .cvt-filtergroup {
@@ -1845,6 +1867,15 @@
   flex: 0 0 96px;
 }
 
+.cvt-sheet-actions {
+  position: fixed;
+  z-index: 4;
+  top: 34px;
+  right: 40px;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
 .cvt-titleblock {
   right: 40px;
   bottom: 40px;
@@ -1946,7 +1977,8 @@
 @container cvt (width < 881px) {
   .cvt-sheet,
   .cvt-titleblock,
-  .cvt-instrument {
+  .cvt-instrument,
+  .cvt-sheet-actions {
     display: none;
   }
 }

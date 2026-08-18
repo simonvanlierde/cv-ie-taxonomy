@@ -217,13 +217,24 @@ export function CvTaxonomy({
   // Declared BEFORE useBodyScrollLock below: effects run in order, and the lock
   // pins the page at whatever scroll position it finds — this must set it first.
   // biome-ignore lint/correctness/useExhaustiveDependencies: mount-only by design — a later mobile↔desktop resize must not yank the reader's scroll position
-  useEffect(() => {
+  /** Scroll to where a scale's chapter is at full strength. The deep link and the
+   *  chapter rail share it: both want a fan state whose chips are operable and
+   *  whose camera frames point at real geometry. */
+  const goToScale = useCallback((scale: Scale, smooth = true) => {
     const scrollEl = scrollRef.current;
-    if (!initialCell || isMobile || !scrollEl) return;
-    const cell = cells.find((c) => c.id === initialCell);
-    if (!cell) return;
+    if (!scrollEl) return;
     const span = scrollEl.offsetHeight - window.innerHeight;
-    if (span > 0) window.scrollTo(0, scrollEl.offsetTop + plateauCentre(cell.scale) * span);
+    if (span <= 0) return;
+    window.scrollTo({
+      top: scrollEl.offsetTop + plateauCentre(scale) * span,
+      behavior: smooth ? "smooth" : "auto",
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!initialCell || isMobile) return;
+    const cell = cells.find((c) => c.id === initialCell);
+    if (cell) goToScale(cell.scale, false);
   }, []);
 
   const openCell = useCallback(
@@ -281,6 +292,15 @@ export function CvTaxonomy({
       ) : (
         <div className="cvt-scroll" ref={scrollRef} data-chapter={chapter}>
           <SheetFrame />
+          {/* sheet-level chrome, so it sits in the sheet's margin rather than
+              inside the drawing's own column, where it crowded the chapter rail */}
+          <div className="cvt-sheet-actions">
+            <span className="cvt-hud-tag">illustrative read-outs: no model ran here</span>
+            <ThemeToggle
+              theme={effectiveTheme}
+              onToggle={() => setThemeOverride(effectiveTheme === "dark" ? "light" : "dark")}
+            />
+          </div>
           <TitleBlock />
           <MaturityInstrument live={CLAIMED_VERDICTS} />
           {/* The stage + chapters share one wrapper, placed directly by the grid. */}
@@ -300,22 +320,30 @@ export function CvTaxonomy({
                 />
                 <div className="cvt-hud">
                   <div className="cvt-hud-top">
+                    {/* Operable, not just an indicator: the fan's own chips are
+                        gated to their chapter's plateau, so before this a desktop
+                        keyboard user could not reach the Component or Material
+                        cells at all — only a scroll wheel could bring them on
+                        stage. Each stop is a real button that goes there. */}
                     <ol className="cvt-ind" aria-label="Physical scale chapters">
                       {SCALES.map((s) => (
-                        <li key={s} data-active={chapter === s} style={{ "--hue": SCALE_VAR[s] }}>
-                          {s}
+                        <li key={s} style={{ "--hue": SCALE_VAR[s] }}>
+                          <button
+                            type="button"
+                            data-active={chapter === s}
+                            aria-current={chapter === s ? "true" : undefined}
+                            onClick={() => goToScale(s)}
+                          >
+                            {s}
+                          </button>
                         </li>
                       ))}
+                      <li className="cvt-ind-end">
+                        <a href="#cvt-matrix" data-active={chapter === "outro"}>
+                          the map
+                        </a>
+                      </li>
                     </ol>
-                    <div className="cvt-hud-actions">
-                      <span className="cvt-hud-tag">illustrative read-outs: no model ran here</span>
-                      <ThemeToggle
-                        theme={effectiveTheme}
-                        onToggle={() =>
-                          setThemeOverride(effectiveTheme === "dark" ? "light" : "dark")
-                        }
-                      />
-                    </div>
                   </div>
                   <div className="cvt-hud-bottom">
                     <InfoFilter active={activeInfo} onChange={setActiveInfo} />
