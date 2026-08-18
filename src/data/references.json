@@ -13,9 +13,9 @@
   },
   {
     "key": "drehwaldOneshotRecognitionAny2023",
-    "short": "Drehwald et al., 2022",
-    "apa": "Drehwald, M. S., Eppel, S., Li, J., Hao, H., & Aspuru-Guzik, A. (2022). One-shot recognition of any material anywhere using contrastive learning with physics-based rendering. *arXiv*. arXiv:2212.00648.",
-    "url": "https://doi.org/10.48550/ARXIV.2212.00648"
+    "short": "Drehwald et al., 2023",
+    "apa": "Drehwald, M. S., Eppel, S., Li, J., Hao, H., & Aspuru-Guzik, A. (2023). One-shot recognition of any material anywhere using contrastive learning with physics-based rendering. In *Proceedings of the IEEE/CVF international conference on computer vision* (pp. 23467–23476).",
+    "url": "https://doi.org/10.1109/ICCV51070.2023.02150"
   },
   {
     "key": "funkEvaluationVisionLanguage2026",
@@ -133,8 +133,8 @@
   },
   {
     "key": "zhouAnomalyCLIPObjectagnosticPrompt2026",
-    "short": "Zhou et al., 2023",
-    "apa": "Zhou, Q., Pang, G., Tian, Y., He, S., & Chen, J. (2023). AnomalyCLIP: Object-agnostic prompt learning for zero-shot anomaly detection. *arXiv*. arXiv:2310.18961.",
-    "url": "https://doi.org/10.48550/ARXIV.2310.18961"
+    "short": "Zhou et al., 2024",
+    "apa": "Zhou, Q., Pang, G., Tian, Y., He, S., & Chen, J. (2024). AnomalyCLIP: Object-agnostic prompt learning for zero-shot anomaly detection. In *12th international conference on learning representations (ICLR 2024)* (pp. 49705–49737). International Conference on Learning Representations (ICLR).",
+    "url": "https://doi.org/10.48550/arXiv.2310.18961"
   }
 ]

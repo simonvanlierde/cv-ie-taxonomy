@@ -1220,6 +1220,22 @@
 .cvt-step[data-collapsed="true"] .cvt-step-body {
   padding-bottom: 0.4rem;
 }
+/* the peek sheet scrolls inside itself; the same fog the desktop detail uses
+   says so along its bottom edge and lifts at the end (see .cvt-detail::after) */
+@supports (animation-timeline: scroll()) {
+  .cvt-step-body::after {
+    content: "";
+    position: sticky;
+    bottom: 0;
+    display: block;
+    height: 48px;
+    margin: -48px 0 0;
+    background: linear-gradient(to bottom, transparent, var(--cvt-panel));
+    pointer-events: none;
+    animation: cvt-more-below linear both;
+    animation-timeline: scroll(nearest);
+  }
+}
 .cvt-step-body > h2 {
   font-family: var(--cvt-display);
   font-size: var(--cvt-t-5);
