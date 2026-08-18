@@ -14,5 +14,8 @@ export default defineConfig(({ command }) => ({
     include: ["src/**/*.test.{ts,tsx}"],
     setupFiles: ["./src/test-setup.ts"],
     globals: false,
+    // the first render of the whole island in jsdom is heavy, and on a loaded
+    // machine it alone crossed the 5s default; that is a slow test, not a broken one
+    testTimeout: 15_000,
   },
 }));

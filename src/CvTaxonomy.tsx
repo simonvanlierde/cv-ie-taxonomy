@@ -342,15 +342,6 @@ export function CvTaxonomy({
           data-panel={selected ? "open" : undefined}
         >
           <SheetFrame columns={columns} />
-          {/* sheet-level chrome, so it sits in the sheet's margin rather than
-              inside the drawing's own column, where it crowded the chapter rail */}
-          <div className="cvt-sheet-actions">
-            <span className="cvt-hud-tag">illustrative read-outs: no model ran here</span>
-            <ThemeToggle
-              theme={effectiveTheme}
-              onToggle={() => setThemeOverride(effectiveTheme === "dark" ? "light" : "dark")}
-            />
-          </div>
           <TitleBlock />
           <MaturityInstrument live={CLAIMED_VERDICTS} />
           {/* The stage + chapters share one wrapper, placed directly by the grid. */}
@@ -369,6 +360,20 @@ export function CvTaxonomy({
                   frame={zoomFrame}
                 />
                 <div className="cvt-hud">
+                  {/* In the drawing's own column, in flow, never fixed: a stamp
+                      fixed over the narrative column sat on the prose scrolling
+                      under it. Bottom-right of the stage on the wide sheet; on
+                      the narrow one the instrument strip holds the bottom, so
+                      it takes the top-right and the chapter rail drops under it. */}
+                  <div className="cvt-hud-actions">
+                    <span className="cvt-hud-tag">illustrative read-outs: no model ran here</span>
+                    <ThemeToggle
+                      theme={effectiveTheme}
+                      onToggle={() =>
+                        setThemeOverride(effectiveTheme === "dark" ? "light" : "dark")
+                      }
+                    />
+                  </div>
                   <div className="cvt-hud-top">
                     {/* Operable, not just an indicator: the fan's own chips are
                         gated to their chapter's plateau, so before this a desktop

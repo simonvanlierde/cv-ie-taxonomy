@@ -485,6 +485,27 @@
   gap: 1rem;
   flex-wrap: wrap;
 }
+/* the caveat stamp and the theme toggle: the stage's bottom-right corner, where
+   no chip lands and nothing scrolls */
+.cvt-hud-actions {
+  position: absolute;
+  right: 0;
+  /* clear of the sheet's ruled border (22px) by the same margin the furniture keeps */
+  bottom: 40px;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  pointer-events: auto;
+}
+/* the instrument strip owns the narrow sheet's bottom, so the stamp goes up top
+   and the chapter rail drops beneath it (see .cvt-ind's narrow-sheet margin) */
+@container cvt (width < 1180px) {
+  .cvt-hud-actions {
+    /* under the coordinate ruler, above the chapter rail's dropped position */
+    top: 10px;
+    bottom: auto;
+  }
+}
 .cvt-theme-toggle {
   flex-shrink: 0;
   display: inline-flex;
@@ -970,7 +991,8 @@
   font-size: var(--cvt-t-2);
   line-height: 1.6;
   color: var(--cvt-ink-dim);
-  max-width: 92ch;
+  /* a caption is read, not scanned: 92ch ran to ~113 characters a line */
+  max-width: 72ch;
 }
 
 /* ---- table view: the figure's WCAG-clean twin ------------------------------------------- */
@@ -1866,22 +1888,23 @@
   flex: 0 0 96px;
 }
 
-.cvt-sheet-actions {
-  position: fixed;
-  z-index: 4;
-  top: 34px;
-  right: 40px;
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-}
+/* ISO 7200 puts the title block bottom-right; on this sheet bottom-right is the
+   narrative column, and every chapter's prose scrolled under the block on its way
+   up. It takes the bottom of the left margin band instead, under the instrument,
+   where nothing scrolls. Below the wide sheet there is no band and no corner the
+   prose does not pass through, so it stands down (the caption repeats its facts). */
 .cvt-titleblock {
-  right: 40px;
+  left: 40px;
   bottom: 40px;
-  width: 300px;
+  width: 268px;
   border: 1.5px solid var(--cvt-line);
   background: var(--cvt-panel);
   margin: 0;
+}
+@container cvt (width < 1180px) {
+  .cvt-titleblock {
+    display: none;
+  }
 }
 .cvt-tb-title {
   font-family: var(--cvt-display);
@@ -1965,12 +1988,8 @@
 }
 
 /* The detail takes the narrative column's place, so nothing has to clear it —
-   the sheet reconfigures instead of being covered. Only the title block stands
-   down, because the detail runs the full height of that column. */
-.cvt-scroll[data-panel="open"] .cvt-titleblock,
-.cvt-scroll[data-panel="open"] .cvt-sheet-actions {
-  display: none;
-}
+   the sheet reconfigures instead of being covered; the furniture in the left
+   margin stays, caveat included. */
 
 /* ---- detail: an enlargement drawn on the sheet -------------------------------
    Ruled like a detail view, with a leader running out of its edge toward the
@@ -2067,8 +2086,9 @@
     top: auto;
     bottom: 34px;
     left: 34px;
-    /* stops short of the title block, which holds the other bottom corner */
-    right: 356px;
+    /* stops short of the narrative column: prose arrives through that corner,
+       and a detail docks there */
+    right: 410px;
     width: auto;
     display: flex;
     flex-wrap: wrap;
@@ -2082,12 +2102,7 @@
   .cvt-instrument .cvt-rung {
     padding: 0;
   }
-  /* with a detail docked, the strip stops short of the detail's column instead
-     of the title block's corner (which has stood down), and the detail stops
-     short of the strip: they shared the bottom-left of the sheet otherwise */
-  .cvt-scroll[data-panel="open"] .cvt-instrument {
-    right: 410px;
-  }
+  /* the detail stops short of the strip: they shared the sheet's bottom otherwise */
   .cvt-scroll[data-panel="open"] .cvt-detail {
     max-height: calc(100vh - 150px);
   }
@@ -2102,8 +2117,7 @@
 @container cvt (width < 881px) {
   .cvt-sheet,
   .cvt-titleblock,
-  .cvt-instrument,
-  .cvt-sheet-actions {
+  .cvt-instrument {
     display: none;
   }
 }
