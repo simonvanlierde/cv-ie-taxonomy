@@ -10,17 +10,38 @@ const baseProps = () => ({
 });
 
 describe("MobileStepper", () => {
-  it("starts on the intro with Back disabled, and reaches the matrix via Next", async () => {
+  it("starts on the intro without Back, announces progress, and reaches the matrix", async () => {
     const user = userEvent.setup();
     const { container } = render(<MobileStepper {...baseProps()} />);
     expect(screen.getByRole("heading", { name: /what can a machine/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /back/i })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: /back/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Intro · 1/5");
 
     for (let i = 0; i < 4; i++) {
       await user.click(container.querySelector(".cvt-stepper-next") as HTMLButtonElement);
     }
     expect(screen.getByRole("heading", { name: /mostly gaps/i })).toBeInTheDocument();
-    expect(container.querySelector(".cvt-stepper-next")).toBeDisabled();
+    expect(screen.getByRole("status")).toHaveTextContent("Matrix · 5/5");
+    expect(container.querySelector(".cvt-stepper-next")).not.toBeInTheDocument();
+  });
+
+  it("keeps the evidence contract visible and expands the full introduction", async () => {
+    const user = userEvent.setup();
+    render(<MobileStepper {...baseProps()} />);
+
+    expect(screen.getAllByText(/no model run/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/every verdict comes from/i)).toBeVisible();
+    expect(screen.queryByText(/circular-economy research keeps asking/i)).not.toBeVisible();
+
+    const toggle = screen.getByRole("button", { name: /how to read this/i });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await user.click(toggle);
+
+    expect(screen.getByText(/circular-economy research keeps asking/i)).toBeVisible();
+    expect(screen.getByRole("button", { name: /show less/i })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
   });
 
   it("carries the text-table twin on the matrix step", async () => {
@@ -39,7 +60,10 @@ describe("MobileStepper", () => {
 
     await user.click(container.querySelector(".cvt-stepper-next") as HTMLButtonElement); // → Product
     const list = container.querySelector(".cvt-mgroup") as HTMLElement;
-    await user.click(within(list).getByRole("button", { name: /identity/i }));
+    const identity = within(list).getByRole("button", {
+      name: /product · identity.*maturity: partial/i,
+    });
+    await user.click(identity);
     expect(onOpen).toHaveBeenCalledTimes(1);
   });
 
@@ -50,6 +74,11 @@ describe("MobileStepper", () => {
     await user.click(container.querySelector(".cvt-stepper-next") as HTMLButtonElement);
     await user.click(container.querySelector(".cvt-stepper-next") as HTMLButtonElement);
     expect(screen.getByText("P / E")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", {
+        name: /component · structure.*partial and emerging-but-narrow/i,
+      }),
+    ).toBeInTheDocument();
   });
 
   it("folds the sheet to its handle and back, and holds the fold across steps", async () => {

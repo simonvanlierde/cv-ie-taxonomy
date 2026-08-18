@@ -409,6 +409,7 @@ export function CvTaxonomy({
                   frame={zoomFrame}
                 />
                 <div className="cvt-hud">
+                  <IllustrativeDisclosure />
                   {/* In the drawing's own column, in flow, never fixed: a stamp
                       fixed over the narrative column sat on the prose scrolling
                       under it. Bottom-right of the stage on the wide sheet; on
@@ -593,9 +594,8 @@ function SheetFooter() {
 }
 
 /** The ramp as a permanent instrument. It replaces a legend that appeared once in
- *  the hero and scrolled away, leaving every letter after it to be recalled; the
- *  unclaimed Strong rung is drawn, because the empty top of the ramp is the
- *  paper's finding and belongs on screen the whole way down. */
+ *  the hero and scrolled away, leaving every letter after it to be recalled. The
+ *  hollow Strong rung keeps the paper's finding on screen without explaining it twice. */
 const MaturityInstrument = memo(function MaturityInstrument({
   live,
   reading,
@@ -616,7 +616,7 @@ const MaturityInstrument = memo(function MaturityInstrument({
           data-verdict={level.letter}
           data-reading={reading === level.verdict}
         >
-          {/* an unclaimed rung is hollow, so it takes no fill at all rather than
+          {/* an unreached rung is hollow, so it takes no fill at all rather than
               a fill the stylesheet has to override */}
           <i
             style={
@@ -627,15 +627,13 @@ const MaturityInstrument = memo(function MaturityInstrument({
           />
           <b>{level.letter}</b>
           {level.verdict}
-          {live.has(level.verdict) ? "" : " — unclaimed"}
         </p>
       ))}
     </div>
   );
 });
 
-/** Which rungs any cell actually reaches, so "unclaimed" is read off the data
- *  rather than hard-coded to Strong — a later verdict change updates the drawing. */
+/** Which rungs any cell actually reaches, so a later verdict change updates the drawing. */
 const CLAIMED_VERDICTS = new Set<Verdict>(
   cells.flatMap((c) => [c.maturity, ...(c.subVerdicts ?? []).map((s) => s.maturity)]),
 );
@@ -683,7 +681,35 @@ const Rail = memo(function Rail({ chapter }: { chapter: Chapter }) {
 /** The hero's shared copy: eyebrow, title, sub and maturity legend. `hint` is
  *  the interaction sentence — the desktop rail points at the fan's chips, which
  *  the compact fan does not render, so the stepper omits it. */
-export function Hero({ hint }: { hint?: string }) {
+export function IllustrativeDisclosure() {
+  return <p className="cvt-illustrative-note">Simulated read-outs · no model run</p>;
+}
+
+export function MaturityKey() {
+  return (
+    <ul className="cvt-maturity-key" aria-label="Maturity letter key">
+      {taxonomy.meta.maturityLevels
+        .filter((level) => level.verdict !== "Strong")
+        .map((level) => (
+          <li key={level.verdict}>
+            <b>{level.letter}</b> {level.verdict}
+          </li>
+        ))}
+    </ul>
+  );
+}
+
+export function Hero({
+  hint,
+  expanded = true,
+  disclosureControl,
+  detailsId,
+}: {
+  hint?: string;
+  expanded?: boolean;
+  disclosureControl?: ReactNode;
+  detailsId?: string;
+}) {
   return (
     <>
       <h1 className="cvt-title">
@@ -691,14 +717,16 @@ export function Hero({ hint }: { hint?: string }) {
         <br />
         actually see?
       </h1>
-      <p className="cvt-sub">
+      <p className="cvt-hero-contract">
+        Every verdict comes from the paper&rsquo;s <span className="cvt-cite">Table&nbsp;S2</span>.
+        The heavier the square, the stronger the evidence; colour only separates physical scales.
+      </p>
+      {disclosureControl}
+      <p className="cvt-sub" id={detailsId} hidden={!expanded}>
         Circular-economy research keeps asking cameras to judge discarded products: what is this,
         what's inside, what's it worth? Here is one worn-out desk fan and the twelve ways computer
         vision could answer, each judged by how well it works today.
-        {hint ? ` ${hint} ` : " "}Every verdict is the paper's, from{" "}
-        <span className="cvt-cite">Table&nbsp;S2</span>:{" "}
-        <em>the heavier the square, the stronger the evidence</em>. Colour only tells the three
-        scales apart.
+        {hint ? ` ${hint}` : ""}
       </p>
     </>
   );
@@ -720,6 +748,7 @@ export function CellList({
         const hid = `cvt-m-${cell.id}`;
         // a compound cell shows both sub-task verdicts, as the matrix does
         const split = splitOf(cell);
+        const maturity = split ? split.join(" and ") : cell.maturity;
         return (
           <button
             key={cell.id}
@@ -727,6 +756,9 @@ export function CellList({
             type="button"
             className="cvt-mcell"
             data-ghost={!!cell.structurallyEmpty}
+            aria-label={`${scale} · ${info}: ${
+              cell.structurallyEmpty ? "answered at the component scale" : cell.task
+            }. Maturity: ${maturity}. Open details.`}
             onClick={() => onOpen(cell, hid)}
           >
             <VerdictSwatch verdict={cell.maturity} split={split} size={20} />
@@ -759,6 +791,7 @@ function ThemeToggle({ theme, onToggle }: { theme: Theme; onToggle: () => void }
       title={`Switch to ${next} theme`}
     >
       {theme === "dark" ? <SunIcon /> : <MoonIcon />}
+      <span className="cvt-theme-toggle-label">{next}</span>
     </button>
   );
 }
@@ -776,23 +809,23 @@ export const Outro = memo(function Outro() {
         The honest map is mostly gaps: by the paper's own rubric, no task earns a Strong on worn,
         real-world products.
       </h2>
+      <MaturityKey />
       {/* the caption and the table twin ride the narrative column beside the
           figure, and step aside for the detail the way act one's prose does */}
       <Explorable>
-        <p className="cvt-foot">
-          Maturity of twelve vision tasks, by physical scale and information type. Each block stands
-          as high as its verdict:{" "}
-          {taxonomy.meta.maturityLevels.map((m, i) => (
-            <span key={m.verdict}>
-              {i > 0 ? " · " : ""}
-              <b>{m.letter}</b> {m.verdict.toLowerCase()}
-            </span>
-          ))}
-          . The dashed rule over every cell is Strong; nothing reaches it. Hatched cells have no
-          task of their own: structure is a component-scale question. Two letters are two sub-tasks;
-          the block stands at the stronger and is ruled across at the weaker. Verdicts from the
-          paper&rsquo;s Table&nbsp;S2, literature as of {taxonomy.meta.scanDate}.
-        </p>
+        <div className="cvt-foot">
+          <p>
+            Maturity of twelve vision tasks, by physical scale and information type. Each block
+            stands as high as its verdict; the dashed rule is Strong, and nothing reaches it.
+            Verdicts come from the paper&rsquo;s Table&nbsp;S2, literature as of{" "}
+            {taxonomy.meta.scanDate}.
+          </p>
+          <p>
+            Hatched cells have no task of their own: structure is a component-scale question. Two
+            letters mark two sub-tasks; the block stands at the stronger verdict and is ruled across
+            at the weaker.
+          </p>
+        </div>
         <TableView />
       </Explorable>
     </section>
@@ -1015,6 +1048,7 @@ function DetailPanel({
           <CloseIcon />
         </button>
       </div>
+      <IllustrativeDisclosure />
       <DetailBody cell={cell} />
       {onBackToStart && (
         <button type="button" className="cvt-back-start" onClick={onBackToStart}>
@@ -1027,8 +1061,17 @@ function DetailPanel({
 
 export function DetailBody({ cell }: { cell: Cell }) {
   const level = maturityLevel(cell.maturity);
+  const mentionsEol = [cell.maturityNote, cell.failureMode, cell.example].some((value) =>
+    value?.includes("EoL"),
+  );
   return (
     <>
+      {mentionsEol && (
+        <p className="cvt-term-note">
+          <abbr title="End-of-life">EoL</abbr> means end-of-life capture: products photographed
+          after use, often damaged, dirty, incomplete, or poorly framed.
+        </p>
+      )}
       <div className="cvt-verdict">
         <VerdictSwatch verdict={cell.maturity} size={34} />
         <div>

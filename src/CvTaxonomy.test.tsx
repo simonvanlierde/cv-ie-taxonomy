@@ -34,6 +34,7 @@ describe("detail on the sheet (desktop)", () => {
 
     const region = await detail();
     expect(within(region).getByRole("heading", { level: 2 })).toBeInTheDocument();
+    expect(within(region).getByText(/no model run/i)).toBeInTheDocument();
   });
 
   it("moves focus into the detail when it opens", async () => {
@@ -137,6 +138,16 @@ describe("detail on the sheet (desktop)", () => {
 
     const region = await screen.findByRole("complementary", { name: /material · quantity/i });
     expect(within(region).getByRole("heading", { level: 2 })).toHaveTextContent(cell.task);
+    expect(within(region).getByText(/simulated read-outs/i)).toBeInTheDocument();
+  });
+
+  it("defines EoL before source copy uses the abbreviation", async () => {
+    render(<CvTaxonomy initialCell="product-identity" debugProgress={onStage("Product")} />);
+
+    const region = await screen.findByRole("complementary", { name: /product · identity/i });
+    expect(region.querySelector(".cvt-term-note")).toHaveTextContent(
+      /EoL means end-of-life capture/i,
+    );
   });
 
   it("offers a deep-link return to the start", async () => {

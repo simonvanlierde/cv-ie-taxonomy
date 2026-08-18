@@ -20,12 +20,8 @@ export function MiniMatrix({
 }) {
   return (
     <div className="cvt-matrix">
-      {/* the same words the margin instrument uses for the empty top rung */}
-      <span className="cvt-mx-shelf-label" aria-hidden>
-        strong &mdash; unclaimed&nbsp;&rarr;
-      </span>
-      {INFO_TYPES.map((i) => (
-        <span key={i} className="cvt-mx-h">
+      {INFO_TYPES.map((i, index) => (
+        <span key={i} className="cvt-mx-h" style={{ gridColumn: index + 2, gridRow: 1 }}>
           {i}
         </span>
       ))}
@@ -89,7 +85,7 @@ function MiniMatrixRow({
               className="cvt-mx-block"
               style={
                 cell.structurallyEmpty
-                  ? { height: "100%" }
+                  ? { top: 0 }
                   : {
                       height: `${VERDICT_HEIGHT[standsAt] * 100}%`,
                       background: VERDICT_VAR[standsAt] ?? "none",

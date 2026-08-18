@@ -516,6 +516,22 @@
   gap: 1rem;
   flex-wrap: wrap;
 }
+.cvt-illustrative-note {
+  margin: 0;
+  width: fit-content;
+  color: var(--cvt-ink-dim);
+  font-family: var(--cvt-mono);
+  font-size: var(--cvt-t-1);
+  line-height: 1.35;
+  letter-spacing: 0.04em;
+  opacity: 0.78;
+  pointer-events: none;
+}
+.cvt-hud > .cvt-illustrative-note {
+  position: absolute;
+  left: 0;
+  bottom: 40px;
+}
 /* the theme toggle: the stage's bottom-right corner, where no chip lands and
    nothing scrolls */
 .cvt-hud-actions {
@@ -542,8 +558,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 0.65rem;
   border-radius: 7px;
   border: 1px solid var(--cvt-line);
   background: var(--cvt-card);
@@ -553,6 +570,11 @@
     color 0.15s,
     background 0.15s,
     border-color 0.15s;
+}
+.cvt-theme-toggle-label {
+  margin-left: 0.4rem;
+  font-family: var(--cvt-mono);
+  font-size: var(--cvt-t-1);
 }
 .cvt-theme-toggle:hover {
   color: var(--cvt-ink);
@@ -602,22 +624,24 @@
 .cvt-ind button::before,
 .cvt-ind a::before {
   content: "";
-  width: 18px;
+  width: 30px;
   height: 3px;
   border-radius: 2px;
   background: var(--cvt-line);
-  /* width, not transform: an 18-to-30px rule on a mono row reflows nothing
-     around it, and the tick reads as a drawn rule rather than a scaled one */
+  /* the rule owns its full measure and scales from the left, so the active
+     state draws outward without animating layout */
+  transform: scaleX(0.6);
+  transform-origin: left center;
   transition:
     background 0.3s,
-    width 0.3s;
+    transform 0.3s;
 }
 .cvt-ind [data-active="true"] {
   color: var(--cvt-ink);
 }
 .cvt-ind [data-active="true"]::before {
   background: var(--hue);
-  width: 30px;
+  transform: scaleX(1);
 }
 .cvt-ind button:hover,
 .cvt-ind a:hover {
@@ -641,7 +665,7 @@
   }
   .cvt-ind button::before,
   .cvt-ind a::before {
-    width: 10px;
+    width: 18px;
   }
 }
 
@@ -683,6 +707,32 @@
   color: var(--cvt-ink);
   font-style: normal;
   font-weight: 600;
+}
+.cvt-hero-contract {
+  max-width: 46ch;
+  margin: 0.75rem 0;
+  color: var(--cvt-ink);
+  font-size: var(--cvt-t-3);
+  line-height: 1.5;
+}
+.cvt-maturity-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.8rem;
+  margin: 0.7rem 0 1rem;
+  padding: 0;
+  list-style: none;
+  color: var(--cvt-ink-dim);
+  font-family: var(--cvt-mono);
+  font-size: var(--cvt-t-1);
+}
+.cvt-maturity-key li {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+.cvt-maturity-key b {
+  color: var(--cvt-ink);
+  font-family: var(--cvt-display);
 }
 .cvt-legendline {
   list-style: none;
@@ -900,17 +950,6 @@
   margin: 0.4rem 0 0;
   min-width: 660px;
 }
-/* names the rung every bay's dashed top edge stands for */
-.cvt-mx-shelf-label {
-  font-family: var(--cvt-mono);
-  font-size: var(--cvt-t-1);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--cvt-ink-dim);
-  align-self: end;
-  justify-self: end;
-  padding: 0 0.5rem 0.3rem 0;
-}
 .cvt-mx-h {
   font-family: var(--cvt-mono);
   font-size: var(--cvt-t-1);
@@ -1018,7 +1057,7 @@
   right: 2px;
   bottom: 0;
   font-family: var(--cvt-mono);
-  font-size: var(--cvt-t-1);
+  font-size: var(--cvt-t-2);
   line-height: 1.35;
   letter-spacing: 0.02em;
   color: var(--cvt-ink-dim);
@@ -1031,6 +1070,14 @@
   color: var(--cvt-ink-dim);
   /* a caption is read, not scanned: 92ch ran to ~113 characters a line */
   max-width: 72ch;
+}
+.cvt-foot p {
+  margin: 0;
+}
+.cvt-foot p + p {
+  margin-top: 0.8rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--cvt-grid);
 }
 
 /* ---- table view: the figure's WCAG-clean twin ------------------------------------------- */
@@ -1120,18 +1167,12 @@
 /* The backdrop. Its containing block is .cvt-step (positioned), so it spans
    the space between the bars; the bottom inset stops just shy of the sheet's
    peek, letting the silhouette tuck slightly behind it. */
-/* The bottom inset reserves the sheet's space, so it has to match the sheet's own
-   max-height below (32dvh). At 26vh the drawing ran six vh under the sheet's top
-   edge and the Product step's anomaly read-out was cut in half. */
+/* The bottom inset reserves the sheet's space, so it reads the same custom
+   property as the sheet's max-height below. */
 .cvt-step-stage {
   position: absolute;
-  inset: 0 0 32vh;
+  inset: 0 0 var(--cvt-sheet-max);
   transition: inset 0.35s ease;
-}
-@supports (inset: 32dvh) {
-  .cvt-step-stage {
-    inset: 0 0 32dvh;
-  }
 }
 /* sheet folded to its handle: the fan takes the freed space */
 .cvt-step[data-collapsed="true"] .cvt-step-stage {
@@ -1152,6 +1193,8 @@
   padding: 0.6rem clamp(1rem, 4vw, 1.5rem) 0.2rem;
 }
 .cvt-step {
+  --cvt-sheet-max: 40vh;
+
   position: relative;
   z-index: 1;
   flex: 1;
@@ -1163,6 +1206,11 @@
   /* the step area is a passthrough over the fan; only the sheet is interactive */
   pointer-events: none;
 }
+@supports (height: 40dvh) {
+  .cvt-step {
+    --cvt-sheet-max: 40dvh;
+  }
+}
 /* The peek sheet. position + z-index lift it over the stage: an absolutely
    positioned sibling paints above static content whatever the DOM order. */
 .cvt-step-body {
@@ -1170,7 +1218,7 @@
   position: relative;
   z-index: 1;
   min-width: 0;
-  max-height: 32vh;
+  max-height: var(--cvt-sheet-max);
   overflow-y: auto;
   overscroll-behavior: contain;
   background: var(--cvt-panel);
@@ -1180,9 +1228,44 @@
   padding: 0.4rem 1.1rem 1.1rem;
   box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.18);
 }
-@supports (max-height: 32dvh) {
-  .cvt-step-body {
-    max-height: 32dvh;
+.cvt-step[data-step="Intro"] {
+  --cvt-sheet-max: 44vh;
+}
+@supports (height: 44dvh) {
+  .cvt-step[data-step="Intro"] {
+    --cvt-sheet-max: 44dvh;
+  }
+}
+.cvt-step[data-intro-expanded="true"] {
+  --cvt-sheet-max: min(68vh, 34rem);
+}
+@supports (height: 68dvh) {
+  .cvt-step[data-intro-expanded="true"] {
+    --cvt-sheet-max: min(68dvh, 34rem);
+  }
+}
+@media (max-height: 640px) and (orientation: portrait) {
+  .cvt-step {
+    --cvt-sheet-max: 54vh;
+  }
+  .cvt-step[data-step="Intro"] {
+    --cvt-sheet-max: 60vh;
+  }
+  .cvt-step[data-intro-expanded="true"] {
+    --cvt-sheet-max: 76vh;
+  }
+}
+@supports (height: 54dvh) {
+  @media (max-height: 640px) and (orientation: portrait) {
+    .cvt-step {
+      --cvt-sheet-max: 54dvh;
+    }
+    .cvt-step[data-step="Intro"] {
+      --cvt-sheet-max: 60dvh;
+    }
+    .cvt-step[data-intro-expanded="true"] {
+      --cvt-sheet-max: 76dvh;
+    }
   }
 }
 /* the grabber as a control: full-width tap target, bar drawn by the pseudo */
@@ -1194,6 +1277,7 @@
   background: none;
   border: 0;
   cursor: pointer;
+  min-height: 44px;
 }
 .cvt-sheet-toggle::after {
   content: "";
@@ -1207,21 +1291,33 @@
 .cvt-step[data-collapsed="true"] .cvt-step-body {
   padding-bottom: 0.4rem;
 }
-/* the peek sheet scrolls inside itself; the same fog the desktop detail uses
-   says so along its bottom edge and lifts at the end (see .cvt-detail::after) */
-@supports (animation-timeline: scroll()) {
-  .cvt-step-body::after {
-    content: "";
-    position: sticky;
-    bottom: 0;
-    display: block;
-    height: 48px;
-    margin: -48px 0 0;
-    background: linear-gradient(to bottom, transparent, var(--cvt-panel));
-    pointer-events: none;
-    animation: cvt-more-below linear both;
-    animation-timeline: scroll(nearest);
-  }
+.cvt-intro-toggle {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0.75rem 0 0;
+  padding: 0.55rem 0;
+  border: 0;
+  border-top: 1px solid var(--cvt-line);
+  border-bottom: 1px solid var(--cvt-line);
+  background: transparent;
+  color: var(--cvt-ink);
+  font-family: var(--cvt-mono);
+  font-size: var(--cvt-t-2);
+  cursor: pointer;
+}
+.cvt-intro-toggle span {
+  font-size: var(--cvt-t-4);
+}
+.cvt-step-context-cue {
+  margin: 0 0 0.65rem;
+  color: var(--cvt-ink-dim);
+  font-family: var(--cvt-mono);
+  font-size: var(--cvt-t-1);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 .cvt-step-body > h2 {
   font-family: var(--cvt-display);
@@ -1268,11 +1364,12 @@
 .cvt-stepper-nav {
   position: relative;
   z-index: 2;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(76px, 1fr) auto minmax(76px, 1fr);
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  padding: 0.7rem clamp(1rem, 4vw, 1.5rem);
+  padding: 0.7rem clamp(1rem, 4vw, 1.5rem) calc(0.7rem + env(safe-area-inset-bottom));
   background: var(--cvt-bg);
   border-top: 1px solid var(--cvt-line);
 }
@@ -1285,19 +1382,28 @@
   background: var(--cvt-card);
   color: var(--cvt-ink);
   cursor: pointer;
-}
-.cvt-stepper-btn:disabled {
-  opacity: 0.3;
-  cursor: default;
+  min-height: 44px;
 }
 .cvt-stepper-next {
+  justify-self: end;
   background: var(--cvt-ink);
   color: var(--cvt-bg);
   border-color: var(--cvt-ink);
 }
-/* holds its place so the dots do not jump; visibility also drops it from the tab ring */
-.cvt-stepper-next[data-end="true"] {
-  visibility: hidden;
+.cvt-stepper-spacer {
+  min-width: 76px;
+}
+.cvt-stepper-progress {
+  display: grid;
+  justify-items: center;
+  gap: 0.3rem;
+}
+.cvt-stepper-status {
+  margin: 0;
+  color: var(--cvt-ink-dim);
+  font-family: var(--cvt-mono);
+  font-size: var(--cvt-t-1);
+  white-space: nowrap;
 }
 .cvt-stepper-dots {
   display: flex;
@@ -1741,12 +1847,6 @@
     letter-spacing: 0.1em;
     padding: 0 0 0.3rem;
   }
-  .cvt-mx-shelf-label {
-    letter-spacing: 0.08em;
-    max-width: 8em;
-    text-align: right;
-    padding-right: 0.4rem;
-  }
   .cvt-mx-row {
     padding-right: 0.3rem;
     padding-left: 0;
@@ -1773,6 +1873,7 @@
     padding: 0.55rem 0.2rem;
     color: var(--cvt-ink);
     cursor: pointer;
+    min-height: 44px;
   }
   .cvt-mcell[data-ghost="true"] {
     border-bottom-style: dashed;
@@ -1811,6 +1912,11 @@
     border-top: 3px solid var(--hue);
     border-radius: 16px 16px 0 0;
     overscroll-behavior: contain;
+  }
+  .cvt-panel-close,
+  .cvt-back-start {
+    min-width: 44px;
+    min-height: 44px;
   }
   /* mobile is a bottom sheet: it slides up from the bottom, not in from the side */
   @starting-style {
@@ -2197,6 +2303,20 @@
 }
 .cvt-detail-sheet::before {
   content: none;
+}
+.cvt-detail .cvt-illustrative-note {
+  margin-bottom: 0.8rem;
+}
+.cvt-term-note {
+  margin: 0 0 0.9rem;
+  color: var(--cvt-ink-dim);
+  font-size: var(--cvt-t-2);
+  line-height: 1.5;
+}
+.cvt-term-note abbr {
+  color: var(--cvt-ink);
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
 }
 .cvt-back-start {
   display: block;

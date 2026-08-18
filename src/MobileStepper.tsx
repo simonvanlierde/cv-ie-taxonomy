@@ -1,5 +1,5 @@
 import { type ReactNode, useState } from "react";
-import { CellList, Hero, Outro } from "./CvTaxonomy";
+import { CellList, Hero, IllustrativeDisclosure, MaturityKey, Outro } from "./CvTaxonomy";
 import { CHAPTER_COPY } from "./chapters";
 import { SCALES } from "./data/taxonomy";
 import type { Cell, Scale } from "./data/types";
@@ -48,6 +48,7 @@ export function MobileStepper({
   themeToggle: ReactNode;
 }) {
   const [step, setStep] = useState(0);
+  const [introExpanded, setIntroExpanded] = useState(false);
   // The sheet folds down to its handle on the scale steps, leaving the fan
   // alone on stage. Sticky across steps by choice: a reader who chose the
   // fan-only view keeps it while paging. Intro and matrix always show theirs.
@@ -61,8 +62,16 @@ export function MobileStepper({
 
   return (
     <div className="cvt-stepper">
-      <div className="cvt-stepper-top">{themeToggle}</div>
-      <div className="cvt-step" data-step={labels[step]} data-collapsed={sheetCollapsed}>
+      <div className="cvt-stepper-top">
+        <IllustrativeDisclosure />
+        {themeToggle}
+      </div>
+      <div
+        className="cvt-step"
+        data-step={labels[step]}
+        data-collapsed={sheetCollapsed}
+        data-intro-expanded={step === 0 && introExpanded}
+      >
         {/* the fan is the full-screen backdrop on every step but the matrix,
             walking apart as you advance; the sheet floats over its lower third.
             Its overlay labels are the mobile tap targets for the cell modal. */}
@@ -82,7 +91,22 @@ export function MobileStepper({
 
         {step === 0 && (
           <section className="cvt-step-body cvt-step-intro" id="cvt-start" tabIndex={-1}>
-            <Hero />
+            <Hero
+              expanded={introExpanded}
+              detailsId="cvt-intro-more"
+              disclosureControl={
+                <button
+                  type="button"
+                  className="cvt-intro-toggle"
+                  aria-expanded={introExpanded}
+                  aria-controls="cvt-intro-more"
+                  onClick={() => setIntroExpanded((expanded) => !expanded)}
+                >
+                  {introExpanded ? "Show less" : "How to read this"}
+                  <span aria-hidden>{introExpanded ? "−" : "+"}</span>
+                </button>
+              }
+            />
           </section>
         )}
 
@@ -98,11 +122,15 @@ export function MobileStepper({
             {!sheetCollapsed && (
               <>
                 <h2>{CHAPTER_COPY[scale].title}</h2>
+                <MaturityKey />
                 {/* the cells before the prose: on a phone the sheet peeks a
                     third of the screen, and the four rows are the controls —
                     under the paragraph they sat below its fold with nothing
                     to say they were there */}
                 <CellList scale={scale} onOpen={onOpen} />
+                <p className="cvt-step-context-cue" aria-hidden="true">
+                  Context below ↓
+                </p>
                 <p className="cvt-body">{CHAPTER_COPY[scale].body}</p>
               </>
             )}
@@ -119,31 +147,41 @@ export function MobileStepper({
       </div>
 
       <nav className="cvt-stepper-nav" aria-label="Section navigation">
-        <button
-          type="button"
-          className="cvt-stepper-btn"
-          onClick={() => setStep((s) => Math.max(0, s - 1))}
-          disabled={step === 0}
-        >
-          <span aria-hidden>‹</span> Back
-        </button>
-        <ol className="cvt-stepper-dots" aria-hidden>
-          {labels.map((label, i) => (
-            <li key={label} data-active={i === step} />
-          ))}
-        </ol>
+        {step > 0 ? (
+          <button
+            type="button"
+            className="cvt-stepper-btn"
+            onClick={() => setStep((s) => Math.max(0, s - 1))}
+          >
+            <span aria-hidden>‹</span> Back
+          </button>
+        ) : (
+          <span className="cvt-stepper-spacer" />
+        )}
+        <div className="cvt-stepper-progress">
+          <p className="cvt-stepper-status" role="status" aria-live="polite" aria-atomic="true">
+            {labels[step]} · {step + 1}/{labels.length}
+          </p>
+          <ol className="cvt-stepper-dots" aria-hidden="true">
+            {labels.map((label, i) => (
+              <li key={label} data-active={i === step} />
+            ))}
+          </ol>
+        </div>
         {/* named for where it goes; on the last step there is nowhere to go, so
             it leaves the bar rather than sitting there disabled under the name
             of the step the reader is already on */}
-        <button
-          type="button"
-          className="cvt-stepper-btn cvt-stepper-next"
-          onClick={() => setStep((s) => Math.min(4, s + 1))}
-          disabled={step === 4}
-          data-end={step === 4}
-        >
-          {step === 0 ? "Start" : labels[step + 1]} <span aria-hidden>›</span>
-        </button>
+        {step < 4 ? (
+          <button
+            type="button"
+            className="cvt-stepper-btn cvt-stepper-next"
+            onClick={() => setStep((s) => Math.min(4, s + 1))}
+          >
+            {step === 0 ? "Start" : labels[step + 1]} <span aria-hidden>›</span>
+          </button>
+        ) : (
+          <span className="cvt-stepper-spacer" />
+        )}
       </nav>
     </div>
   );
