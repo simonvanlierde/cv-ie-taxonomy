@@ -121,7 +121,9 @@
 }
 
 /* ---- shared bits ------------------------------------------------------------- */
-.cvt-tableview-title {
+/* two classes deep: the dialog sits inside the outro, whose h2 rule (and the
+   panel's own) would otherwise set this label in display size */
+.cvt-panel .cvt-tableview-title {
   font-family: var(--cvt-mono);
   font-size: var(--cvt-t-1);
   letter-spacing: 0.2em;
@@ -2045,6 +2047,34 @@
 @supports (max-height: 100dvh) {
   .cvt-detail {
     max-height: calc(100dvh - 96px);
+  }
+}
+/* More below. The detail scrolls inside itself, and at a laptop height its foot
+   (sources, copy link) sits under the fold with nothing to say so. Its own
+   scroll timeline drives a fog of the panel ground along the bottom edge that
+   lifts as the reader reaches the end; an engine without scroll timelines, or a
+   detail short enough not to scroll, shows nothing — which is the status quo. */
+@supports (animation-timeline: scroll()) {
+  .cvt-detail::after {
+    content: "";
+    position: sticky;
+    bottom: 0;
+    display: block;
+    height: 64px;
+    /* rides over the last 64px of content rather than adding to the column */
+    margin: -64px 0 0;
+    background: linear-gradient(to bottom, transparent, var(--cvt-panel));
+    pointer-events: none;
+    animation: cvt-more-below linear both;
+    animation-timeline: scroll(nearest);
+  }
+  @keyframes cvt-more-below {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
   }
 }
 /* the leader: a rule running out of the detail's left edge toward the part */
