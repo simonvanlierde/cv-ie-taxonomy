@@ -474,30 +474,12 @@
   padding: clamp(0.8rem, 2vh, 1.4rem) 0;
   pointer-events: none;
 }
-.cvt-hud-top,
-.cvt-hud-bottom {
+.cvt-hud-top {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 1rem;
   flex-wrap: wrap;
-}
-.cvt-hud-top {
-  align-items: flex-start;
-}
-/* The instrument owns the sheet's bottom-left corner and the title block its
-   bottom-right, so the filter runs in the channel between them and the chapter
-   rail moves to the top margin, where it reads as the sheet's own position mark. */
-/* both legend boxes sit right of the stage column, so the drawing's own controls
-   need no allowance for them */
-.cvt-hud-bottom {
-  justify-content: flex-end;
-}
-.cvt-hud-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  pointer-events: auto;
 }
 .cvt-theme-toggle {
   flex-shrink: 0;
@@ -620,66 +602,18 @@
   }
 }
 
-/* a <fieldset>, so the chips are a named group without an ARIA role */
-.cvt-filtergroup {
-  border: 0;
-  margin: 0;
-  padding: 0;
-  min-inline-size: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.4rem;
-}
-/* the <legend> renders outside the fieldset's flex box, so it right-aligns itself */
-.cvt-filters-label {
-  margin-inline-start: auto;
-  padding: 0;
-  font-family: var(--cvt-mono);
-  font-size: var(--cvt-t-1);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--cvt-ink-dim);
-}
-.cvt-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  justify-content: flex-end;
-  pointer-events: auto;
-}
-.cvt-chip {
-  font-family: var(--cvt-mono);
-  font-size: var(--cvt-t-2);
-  color: var(--cvt-ink);
-  background: var(--cvt-panel);
-  border: 1px solid var(--cvt-line);
-  border-radius: 999px;
-  padding: 0.28rem 0.7rem;
-  cursor: pointer;
-  transition:
-    background 0.18s,
-    color 0.18s;
-}
-.cvt-chip:hover {
-  background: var(--cvt-card-hi);
-}
-.cvt-chip[aria-pressed="true"] {
-  background: var(--cvt-ink);
-  color: var(--cvt-bg);
-  border-color: var(--cvt-ink);
-}
-
 /* ---- rail ---------------------------------------------------------------------------- */
 .cvt-rail {
   min-width: 0;
   /* The tail: the timeline is measured over this column, so the sticky stage
      holds exactly as long as the column runs. Without a run-out after the last
      chapter, its prose is centred at p ≈ 0.97 and the drawing has left the
-     sheet before the reader gets to it. 100vh puts the three chapter centres at
-     p ≈ 0.23 / 0.49 / 0.76 — inside the plateaus in timeline.ts, which is
-     what those windows were measured for. Retune the two together. */
-  padding-bottom: 100vh;
+     sheet before the reader gets to it; a full 100vh left a dead screen of
+     degraded drawing between the last chapter and the closing figure. 50vh
+     puts the three chapter centres at p ≈ 0.25 / 0.54 / 0.84 — inside the
+     plateaus in timeline.ts, which is what those windows were measured for.
+     Retune the two together. */
+  padding-bottom: 50vh;
 }
 .cvt-hero {
   min-height: 92vh;
@@ -1681,80 +1615,16 @@
 }
 
 /* ---- mobile --------------------------------------------------------------------------------- */
+/* Below the breakpoint the stepper is on stage, not the sheet; only what the
+   stepper renders (its caveat tag, the outro and its cell lists) needs rules. */
 @container cvt (width < 881px) {
-  .cvt-scroll {
-    display: block;
-    padding: 0 1rem;
-  }
-  /* a real block now, so it is the sticky stage's containing block: the stage
-     stays pinned across the chapters, then releases at the wrapper's end — the
-     outro sits after it in flow, no paint-over needed */
-  .cvt-pinwrap {
-    display: block;
-    position: relative;
-  }
-  .cvt-stagecol {
-    position: sticky;
-    top: 0;
-    z-index: 5;
-  }
-  .cvt-sticky {
-    position: static;
-    height: 34vh;
-    background-color: var(--cvt-bg);
-    background-image:
-      linear-gradient(var(--cvt-grid) 1px, transparent 1px),
-      linear-gradient(90deg, var(--cvt-grid) 1px, transparent 1px);
-    background-size: 32px 32px;
-    border-bottom: 1px solid var(--cvt-line);
-  }
-  @supports (height: 34dvh) {
-    .cvt-sticky {
-      height: 34dvh;
-    }
-  }
-  .cvt-fan {
-    max-height: 32vh;
-  }
-  /* keep the theme toggle reachable up top; drop the wordier HUD labels.
-     The illustrative caveat is NOT one of them: the compact fan still paints
-     every mock read-out, so hiding its label would leave invented confidences
-     and dimensions on the product uncaveated. It shrinks; it never disappears. */
-  .cvt-ind,
-  .cvt-hud-top .cvt-tableview-title {
-    font-family: var(--cvt-mono);
-    font-size: var(--cvt-t-1);
-    letter-spacing: 0.26em;
-    text-transform: uppercase;
-    color: var(--cvt-ink-dim);
-    font-weight: 400;
-    margin: 0;
-  }
-  .cvt-hud-top {
-    gap: 0.5rem;
-  }
-  /* the eyebrow is gone, so the actions are the row: caveat left, toggle right */
-  .cvt-hud-actions {
-    flex: 1;
-    justify-content: space-between;
-  }
+  /* The caveat shrinks; it never disappears: the compact fan still paints every
+     mock read-out, so hiding its label would leave invented confidences and
+     dimensions on the product uncaveated. */
   .cvt-hud-tag {
     letter-spacing: 0.04em;
     padding: 0.2rem 0.35rem;
     min-width: 0;
-  }
-  .cvt-hud {
-    padding: 0.5rem;
-  }
-  /* no chip-row rules here: the stepper renders no InfoFilter — a four-row
-     list needs no filtering, and the chips only crowded the small stage */
-  .cvt-hero {
-    min-height: 46vh;
-    padding: 2rem 0;
-  }
-  .cvt-chapter {
-    min-height: auto;
-    padding: 3rem 0;
   }
   .cvt-outro {
     min-height: auto;
@@ -1808,9 +1678,6 @@
   .cvt-mcell[data-ghost="true"] {
     border-style: dashed;
     opacity: 0.65;
-  }
-  .cvt-mcell[data-dim="true"] {
-    opacity: 0.3;
   }
   .cvt-mcell-info {
     font-family: var(--cvt-mono);
@@ -2169,11 +2036,6 @@
   }
   .cvt-instrument .cvt-rung {
     padding: 0;
-  }
-  /* the filter row sits above the strip rather than under it; the strip wraps to
-     two lines at this width */
-  .cvt-hud-bottom {
-    padding-bottom: 4.6rem;
   }
 }
 

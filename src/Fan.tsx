@@ -273,7 +273,7 @@ function Callout({
   leadEdge?: "right" | "left";
   strike?: boolean;
   opacity: number;
-  /** operable: this chip's chapter is on stage and the filter has not excluded it.
+  /** operable: this chip's chapter is on stage.
    *  Deliberately NOT derived from `opacity` — a chip dimmed merely because a
    *  sibling has focus is still visible, so it must stay focusable and announced. */
   active: boolean;
@@ -347,7 +347,6 @@ function Callout({
 export function Fan({
   p,
   focus,
-  isDim,
   onSelect,
   onHover,
   reduceMotion,
@@ -359,8 +358,6 @@ export function Fan({
   p: number;
   /** hovered/selected cell: isolates its overlay annotations */
   focus: Cell | null;
-  /** info-type filter gate */
-  isDim: (cell: Cell) => boolean;
   onSelect: (cell: Cell, focusId: string) => void;
   onHover: (cell: Cell | null) => void;
   reduceMotion: boolean;
@@ -419,23 +416,23 @@ export function Fan({
   const moC = cc(C.mo, V.mo, Z.mo);
   const baC = cc(C.ba, V.ba, Z.ba);
 
-  // Operability tracks the chapter and the filter, never the focus dimming: a chip
-  // faded because a sibling is hovered is still on screen, so it stays tabbable.
-  // Deriving this from opacity made Tab skip every chip but the focused one — the
-  // chips are the controls, so that stranded keyboard users.
-  const interactive = (c: Cell) => presence[c.scale] > ON_STAGE && !isDim(c);
+  // Operability tracks the chapter, never the focus dimming: a chip faded because
+  // a sibling is hovered is still on screen, so it stays tabbable. Deriving this
+  // from opacity made Tab skip every chip but the focused one — the chips are the
+  // controls, so that stranded keyboard users.
+  const interactive = (c: Cell) => presence[c.scale] > ON_STAGE;
 
-  // chip opacity: chapter presence × filter/focus factors. Floored while the chip
-  // is operable, so "tabbable" and "visible" cannot come apart: mid-transition a
+  // chip opacity: chapter presence × focus factor. Floored while the chip is
+  // operable, so "tabbable" and "visible" cannot come apart: mid-transition a
   // chip could be focusable at 0.12–0.45, which put a keyboard user's focus ring
   // on something they could barely see.
   const chip = (c: Cell) => {
-    const o = presence[c.scale] * (isDim(c) ? 0.15 : focus && focus.id !== c.id ? 0.45 : 1);
+    const o = presence[c.scale] * (focus && focus.id !== c.id ? 0.45 : 1);
     return interactive(c) ? Math.max(o, 0.55) : o;
   };
   // annotation opacity: strong when its chapter is active, isolated on hover/focus
   const deco = (c: Cell, base = 0.85) =>
-    presence[c.scale] * (isDim(c) ? 0 : focus ? (focus.id === c.id ? 1 : 0.05) : base);
+    presence[c.scale] * (focus ? (focus.id === c.id ? 1 : 0.05) : base);
 
   const co = (id: string) => {
     const c = cell(id);

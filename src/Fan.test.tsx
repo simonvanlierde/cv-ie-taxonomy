@@ -7,8 +7,8 @@ import { TIMELINE } from "./timeline";
 
 /**
  * The floating chips ARE the controls. Their operability must track the chapter
- * and the info-type filter — never the focus dimming, which only fades siblings
- * to 0.45 while leaving them plainly on screen.
+ * — never the focus dimming, which only fades siblings to 0.45 while leaving
+ * them plainly on screen.
  *
  * Deriving `active` from opacity meant that focusing one chip stripped tabIndex
  * and set aria-hidden on every sibling, so Tab left the fan after a single chip.
@@ -25,7 +25,6 @@ const renderFan = (props: Partial<Parameters<typeof Fan>[0]> = {}) =>
       <Fan
         p={COMPONENT_PLATEAU}
         focus={null}
-        isDim={() => false}
         onSelect={noop}
         onHover={noop}
         reduceMotion={true}
@@ -65,7 +64,6 @@ describe("chip operability", () => {
         <Fan
           p={COMPONENT_PLATEAU}
           focus={selected}
-          isDim={() => false}
           onSelect={noop}
           onHover={noop}
           reduceMotion={true}
@@ -104,13 +102,6 @@ describe("chip operability", () => {
     for (const id of ["material-identity", "product-identity"]) {
       expect(chip(container, id), id).toHaveAttribute("tabindex", "-1");
     }
-  });
-
-  it("takes filtered-out chips out of the tab order", () => {
-    const { container } = renderFan({ isDim: (c) => c.informationType !== "Identity" });
-
-    expect(chip(container, "component-identity")).toHaveAttribute("tabindex", "0");
-    expect(chip(container, "component-structure")).toHaveAttribute("tabindex", "-1");
   });
 });
 

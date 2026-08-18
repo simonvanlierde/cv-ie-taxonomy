@@ -22,7 +22,7 @@ import {
   taxonomy,
   VERDICT_LETTER,
 } from "./data/taxonomy";
-import type { Cell, InfoType, Scale, Verdict } from "./data/types";
+import type { Cell, Scale, Verdict } from "./data/types";
 import { Explorable } from "./Explorable";
 import { Fan } from "./Fan";
 import { FRAMES, HOME_FRAME } from "./frames";
@@ -45,10 +45,6 @@ function chapterAt(p: number): Chapter {
   if (p < TIMELINE.materialEnd) return "Material";
   return "outro";
 }
-
-// the one dim rule, shared by the fan, the mobile list and the matrix
-const isDimmed = (activeInfo: Set<InfoType>, c: Cell) =>
-  activeInfo.size > 0 && !activeInfo.has(c.informationType);
 
 /** Reactive `matchMedia`: re-renders when the query flips (OS reduced-motion toggle,
  *  viewport crossing a breakpoint), not just on mount. */
@@ -213,7 +209,6 @@ export function CvTaxonomy({
     () => cells.find((c) => c.id === initialCell) ?? null,
   );
   const [hovered, setHovered] = useState<Cell | null>(null);
-  const [activeInfo, setActiveInfo] = useState<Set<InfoType>>(new Set());
   // the camera target derives from the selection (frames.test.ts holds FRAMES
   // to a frame per cell), so open/close paths cannot desync the two
   // The zoom holds only while the reader is in the selected cell's chapter: the
@@ -229,7 +224,6 @@ export function CvTaxonomy({
   const viewBox = useCamera(zoomFrame ?? HOME_FRAME, reduceMotion || isMobile);
 
   const focus = hovered ?? selected;
-  const isDim = (c: Cell) => isDimmed(activeInfo, c);
 
   // A ?cell= deep link lands the desktop page on that cell's chapter plateau, so
   // the zoom frame (tuned for the chapter's explode state) frames real geometry
@@ -367,7 +361,6 @@ export function CvTaxonomy({
                 <Fan
                   p={p}
                   focus={focus}
-                  isDim={isDim}
                   onSelect={openCell}
                   onHover={setHovered}
                   reduceMotion={reduceMotion}
@@ -402,9 +395,6 @@ export function CvTaxonomy({
                       </li>
                     </ol>
                   </div>
-                  <div className="cvt-hud-bottom">
-                    <InfoFilter active={activeInfo} onChange={setActiveInfo} />
-                  </div>
                 </div>
               </div>
             </div>
@@ -429,7 +419,7 @@ export function CvTaxonomy({
                   onClose={closeCell}
                 />
               )}
-              <Rail chapter={chapter} activeInfo={activeInfo} onOpen={openCell} />
+              <Rail chapter={chapter} />
             </div>
           </div>
           {/* full-width row: the stage's sticky column ends here, and the matrix
@@ -555,17 +545,9 @@ const CLAIMED_VERDICTS = new Set<Verdict>(
   cells.flatMap((c) => [c.maturity, ...(c.subVerdicts ?? []).map((s) => s.maturity)]),
 );
 
-// ---- narrative rail (memoized: only re-renders on chapter/filter change,
-// not on every scroll frame) -------------------------------------------------
-const Rail = memo(function Rail({
-  chapter,
-  activeInfo,
-  onOpen,
-}: {
-  chapter: Chapter;
-  activeInfo: Set<InfoType>;
-  onOpen: (cell: Cell, focusId?: string) => void;
-}) {
+// ---- narrative rail (memoized: only re-renders on chapter change, not on
+// every scroll frame) ---------------------------------------------------------
+const Rail = memo(function Rail({ chapter }: { chapter: Chapter }) {
   return (
     <div className="cvt-rail">
       <section className="cvt-hero">
@@ -593,8 +575,6 @@ const Rail = memo(function Rail({
               <h2>{copy.title}</h2>
               <p className="cvt-body">{copy.body}</p>
             </div>
-            {/* mobile only: this scale's cells as a plain list */}
-            <CellList scale={scale} activeInfo={activeInfo} onOpen={onOpen} />
           </section>
         );
       })}
@@ -629,15 +609,13 @@ export function Hero({ hint }: { hint?: string }) {
   );
 }
 
-/** One scale's cells as a plain list of buttons (the mobile stand-in for the
- *  fan's chips), dimmed by the information-type filter like everything else. */
+/** One scale's cells as a plain list of buttons: the mobile stand-in for the
+ *  fan's chips. */
 export function CellList({
   scale,
-  activeInfo,
   onOpen,
 }: {
   scale: Scale;
-  activeInfo: Set<InfoType>;
   onOpen: (cell: Cell, focusId?: string) => void;
 }) {
   return (
@@ -654,7 +632,6 @@ export function CellList({
             type="button"
             className="cvt-mcell"
             data-ghost={!!cell.structurallyEmpty}
-            data-dim={isDimmed(activeInfo, cell)}
             onClick={() => onOpen(cell, hid)}
           >
             <VerdictSwatch verdict={cell.maturity} split={split} size={20} />
@@ -673,39 +650,6 @@ export function CellList({
         );
       })}
     </div>
-  );
-}
-
-/** The information-type filter chips; owns the set arithmetic so both layouts
- *  just hand it their state. */
-export function InfoFilter({
-  active,
-  onChange,
-}: {
-  active: Set<InfoType>;
-  onChange: (next: Set<InfoType>) => void;
-}) {
-  return (
-    <fieldset className="cvt-filtergroup">
-      <legend className="cvt-filters-label">filter &gt; information type</legend>
-      <div className="cvt-filters">
-        {INFO_TYPES.map((info) => (
-          <button
-            key={info}
-            type="button"
-            className="cvt-chip"
-            aria-pressed={active.has(info)}
-            onClick={() => {
-              const next = new Set(active);
-              next.has(info) ? next.delete(info) : next.add(info);
-              onChange(next);
-            }}
-          >
-            {info}
-          </button>
-        ))}
-      </div>
-    </fieldset>
   );
 }
 
@@ -1023,15 +967,9 @@ export function DetailBody({ cell }: { cell: Cell }) {
             />
           )}
           {cell.hardware && <Row label="Typical hardware" value={cell.hardware} />}
-          <Row
-            label={RUBRIC_LABEL}
-            value={
-              <>
-                <span className="cvt-mono">{cell.rubricMarks}</span>
-                <RubricKey />
-              </>
-            }
-          />
+          {/* the paper's own notation, for a reader checking against Table S2; the
+              run above already glosses each mark, so the key stays with the table */}
+          <Row label={RUBRIC_LABEL} value={<span className="cvt-mono">{cell.rubricMarks}</span>} />
           <Row label="How to handle the output" value={level.handling} />
         </dl>
       </details>

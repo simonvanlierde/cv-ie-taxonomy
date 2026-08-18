@@ -52,13 +52,6 @@ describe("MobileStepper", () => {
     expect(screen.getByText("P / E")).toBeInTheDocument();
   });
 
-  it("carries no info-type filter — a four-row list needs none", async () => {
-    const user = userEvent.setup();
-    const { container } = render(<MobileStepper {...baseProps()} />);
-    await user.click(container.querySelector(".cvt-stepper-next") as HTMLButtonElement); // → Product
-    expect(container.querySelector(".cvt-filtergroup")).toBeNull();
-  });
-
   it("folds the sheet to its handle and back, and holds the fold across steps", async () => {
     const user = userEvent.setup();
     const { container } = render(<MobileStepper {...baseProps()} />);

@@ -8,28 +8,29 @@ export type PresenceWindow = readonly [number, number, number, number];
 
 // Scroll timeline (fractions of total scroll). Retune the pacing HERE only.
 //
-// The plateau of each presence window brackets the scroll position at which that
-// chapter's prose sits centred in the viewport, so the overlays are at full
-// strength while the text explaining them is being read. Those centres, measured
-// against the rendered rail, are p ≈ 0.23 / 0.51 / 0.78; they shift by at most
-// 0.04 between a 793px and a 1200px viewport, which the 0.06–0.08 fade bands
-// absorb. Re-measure before retuning: the windows are not free parameters.
+// The plateau of each presence window brackets the scroll range over which that
+// chapter's prose is pinned in the viewport, so the overlays are at full
+// strength while the text explaining them is being read. Those pinned ranges,
+// measured against the rendered rail (50vh tail), are p ≈ 0.22–0.35 /
+// 0.52–0.69 / 0.82–0.98 at 793px, and end ~0.03 later at 1200px, which the
+// fade bands absorb. Re-measure before retuning: the windows are not free
+// parameters, and the rail's tail in the stylesheet moves them.
 //
 // The two motion beats fill the gaps between plateaus, so the fan never
 // rearranges itself under an annotation that is trying to point at it.
 export const TIMELINE = {
-  heroEnd: 0.12,
-  productEnd: 0.36,
-  componentEnd: 0.64,
-  materialEnd: 0.86,
+  heroEnd: 0.14,
+  productEnd: 0.42,
+  componentEnd: 0.7,
+  materialEnd: 0.96,
   // each motion beat starts exactly where the chapter above it starts fading
   // (presence fadeOutStart) and settles before the next chapter is fully in
-  explode: [0.33, 0.43],
-  drift: [0.58, 0.67],
+  explode: [0.38, 0.47],
+  drift: [0.66, 0.75],
   presence: {
-    Product: [0.1, 0.16, 0.33, 0.4],
-    Component: [0.34, 0.43, 0.58, 0.64],
-    Material: [0.6, 0.68, 0.84, 0.9],
+    Product: [0.12, 0.18, 0.38, 0.45],
+    Component: [0.39, 0.47, 0.66, 0.73],
+    Material: [0.67, 0.75, 0.95, 1],
   },
 } as const satisfies {
   heroEnd: number;

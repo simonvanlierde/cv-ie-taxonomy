@@ -13,9 +13,10 @@ import { presence, seg, TIMELINE } from "./timeline";
  * this test exists to catch.
  */
 
-/** scroll progress at which each chapter's prose sits centred, measured against
- *  the rendered rail at viewport heights 793px and 1200px (mean, ±0.02) */
-const PROSE_CENTRE: Record<Scale, number> = { Product: 0.23, Component: 0.51, Material: 0.78 };
+/** scroll progress at which each chapter's prose sits centred (the middle of
+ *  its pinned range), measured against the rendered rail at viewport heights
+ *  793px and 1200px (mean, ±0.02) */
+const PROSE_CENTRE: Record<Scale, number> = { Product: 0.29, Component: 0.6, Material: 0.9 };
 
 describe("scroll pacing", () => {
   it.each([

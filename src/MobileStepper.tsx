@@ -2,7 +2,7 @@ import { type ReactNode, useState } from "react";
 import { CellList, Hero, Outro } from "./CvTaxonomy";
 import { CHAPTER_COPY } from "./chapters";
 import { SCALES } from "./data/taxonomy";
-import type { Cell, InfoType, Scale } from "./data/types";
+import type { Cell, Scale } from "./data/types";
 import { Fan } from "./Fan";
 import type { Frame } from "./frames";
 import { SCALE_VAR } from "./theme";
@@ -30,10 +30,6 @@ const STEP_FRAMES: Frame[] = [
   { x: 120, y: -25, w: 420, h: 920 }, // component: exploded stack
   { x: 130, y: -25, w: 400, h: 900 }, // material: drifted parts
 ];
-
-// one stable empty set: the stepper has no info-type filter, and a fresh Set
-// each render would defeat CellList's referential quiet
-const NO_FILTER: Set<InfoType> = new Set();
 
 /**
  * Mobile act one, paged instead of scrolled. Five steps — intro, the three
@@ -78,7 +74,6 @@ export function MobileStepper({
             <Fan
               p={scale ? STEP_P[scale] : 0}
               focus={null}
-              isDim={() => false}
               onSelect={onOpen}
               onHover={() => {}}
               reduceMotion={reduceMotion}
@@ -107,9 +102,7 @@ export function MobileStepper({
               <>
                 <h2>{CHAPTER_COPY[scale].title}</h2>
                 <p className="cvt-body">{CHAPTER_COPY[scale].body}</p>
-                {/* no InfoFilter here: a four-row list needs no filtering, and the
-                    chips only stole space from the fan — the desktop HUD keeps them */}
-                <CellList scale={scale} activeInfo={NO_FILTER} onOpen={onOpen} />
+                <CellList scale={scale} onOpen={onOpen} />
               </>
             )}
           </section>

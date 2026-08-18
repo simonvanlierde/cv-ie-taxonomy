@@ -15,15 +15,18 @@ import { plateauCentre } from "./timeline";
  * here rather than taken on trust.
  */
 
-/** the mobile list renders a button per cell, id `cvt-m-<cellId>`; use it as the trigger */
-const trigger = (cellId: string) => document.getElementById(`cvt-m-${cellId}`) as HTMLElement;
+/** the fan's callout chips are the desktop controls, id `cvt-co-<cellId>`; a chip is
+ *  operable only while its scale's chapter is on stage, so tests that click one
+ *  pin the scroll to that chapter's plateau via `debugProgress` */
+const trigger = (cellId: string) => document.getElementById(`cvt-co-${cellId}`) as HTMLElement;
+const onStage = (scale: "Product" | "Component" | "Material") => plateauCentre(scale);
 
 describe("detail on the sheet (desktop)", () => {
   const detail = () => screen.findByRole("complementary", { name: /component · identity/i });
 
   it("opens on a cell click, and shows that cell's verdict", async () => {
     const user = userEvent.setup();
-    render(<CvTaxonomy />);
+    render(<CvTaxonomy debugProgress={onStage("Component")} />);
 
     expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
 
@@ -35,7 +38,7 @@ describe("detail on the sheet (desktop)", () => {
 
   it("moves focus into the detail when it opens", async () => {
     const user = userEvent.setup();
-    render(<CvTaxonomy />);
+    render(<CvTaxonomy debugProgress={onStage("Component")} />);
 
     await user.click(trigger("component-identity"));
     expect(await detail()).toHaveFocus();
@@ -43,13 +46,13 @@ describe("detail on the sheet (desktop)", () => {
 
   it("does not trap focus: the sheet it is drawn on stays usable", async () => {
     const user = userEvent.setup();
-    render(<CvTaxonomy />);
+    render(<CvTaxonomy debugProgress={onStage("Component")} />);
 
     await user.click(trigger("component-identity"));
     const region = await detail();
 
     // Deliberate. An enlargement drawn ON the sheet is not modal: the drawing,
-    // the filters and the other eleven cells are still there, and the obvious
+    // the other eleven cells are still there, and the obvious
     // next thing a reader does is look at another cell. Trapping made the fan's
     // own callouts — the controls — unreachable while a detail was open.
     const outside = document.querySelector<HTMLElement>(".cvt-footer a");
@@ -60,7 +63,7 @@ describe("detail on the sheet (desktop)", () => {
 
   it("ignores Esc while focus is elsewhere on the sheet: two details can be open at once, and one keypress must not close both", async () => {
     const user = userEvent.setup();
-    render(<CvTaxonomy />);
+    render(<CvTaxonomy debugProgress={onStage("Component")} />);
 
     await user.click(trigger("component-identity"));
     await detail();
@@ -71,7 +74,7 @@ describe("detail on the sheet (desktop)", () => {
 
   it("closes on Esc, landing focus back on the cell that opened it", async () => {
     const user = userEvent.setup();
-    render(<CvTaxonomy />);
+    render(<CvTaxonomy debugProgress={onStage("Component")} />);
 
     await user.click(trigger("component-identity"));
     await detail();
@@ -87,7 +90,7 @@ describe("detail on the sheet (desktop)", () => {
 
   it("closes on the detail's own close button", async () => {
     const user = userEvent.setup();
-    render(<CvTaxonomy />);
+    render(<CvTaxonomy debugProgress={onStage("Material")} />);
 
     await user.click(trigger("material-identity"));
     const region = await screen.findByRole("complementary", { name: /material · identity/i });
@@ -257,7 +260,7 @@ describe("camera framing (desktop)", () => {
 describe("body scroll lock", () => {
   it("leaves the sheet scrollable under a desktop detail: non-modal in ARIA, non-modal in behaviour", async () => {
     const user = userEvent.setup();
-    render(<CvTaxonomy />);
+    render(<CvTaxonomy debugProgress={onStage("Component")} />);
     await user.click(trigger("component-identity"));
     await screen.findByRole("complementary");
     expect(document.body.style.overflow).toBe("");
@@ -314,7 +317,7 @@ describe("withViewTransition", () => {
     };
     try {
       const user = userEvent.setup();
-      render(<CvTaxonomy />);
+      render(<CvTaxonomy debugProgress={onStage("Component")} />);
       await user.click(trigger("component-identity"));
       expect(await screen.findByRole("complementary")).toBeInTheDocument();
       expect(calls.length).toBeGreaterThan(0);
