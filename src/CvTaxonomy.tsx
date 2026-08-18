@@ -749,7 +749,7 @@ function TableView() {
             onClick={() => ref.current?.close()}
             aria-label="Close table view"
           >
-            ✕
+            <CloseIcon />
           </button>
         </div>
         <div className="cvt-tablewrap">
@@ -869,7 +869,7 @@ function DetailPanel({ cell, onClose }: { cell: Cell; onClose: () => void }) {
           onClick={onClose}
           aria-label="Close details"
         >
-          ✕
+          <CloseIcon />
         </button>
       </div>
       <DetailBody cell={cell} />
@@ -989,6 +989,22 @@ function Row({
 }
 
 // theme-toggle glyphs: sun shows in dark (→ switch to light), moon in light
+/** Drawn, not a glyph: the sheet has an icon system (sun, moon, mark) in one
+ *  stroke weight, and a Unicode ✕ rendered in whatever the fallback face is. */
+function CloseIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      aria-hidden="true"
+    >
+      <path d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  );
+}
 function SunIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
