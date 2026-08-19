@@ -80,7 +80,7 @@ const CHIP_LAYOUT: {
   // product (assembled fan)
   { id: "product-identity", x: CHIP_LEFT_EDGE, y: 770, text: "OCR + db-match ok" },
   { id: "product-quantity", y: 430, text: "H ~ 430 · Ø ~ 300", leadEdge: "left" },
-  { id: "product-condition", x: CHIP_LEFT_EDGE, y: 580, text: "wear? (instrumented only)" },
+  { id: "product-condition", x: CHIP_LEFT_EDGE, y: 580, text: "wear? (narrow class)" },
   // clear of the HUD's scale indicator, which owns the bottom-left corner
   { id: "product-structure", x: CHIP_LEFT_EDGE, y: 676, text: "structure -> component" },
   // component (exploded fan)

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { frameFor } from "./CvTaxonomy";
 import { cells } from "./data/taxonomy";
 import { chipFrame } from "./Fan";
-import { clampFrame, FRAMES, frameToViewBox, HOME_FRAME, VIEW } from "./frames";
+import { CHAPTER_FRAMES, clampFrame, FRAMES, frameToViewBox, HOME_FRAME, VIEW } from "./frames";
 import { frameOf } from "./test-helpers";
 
 const inside = (f: { x: number; y: number; w: number; h: number }) =>
@@ -29,6 +29,19 @@ describe("frames", () => {
       expect(f.x <= chip.x && f.x + f.w >= chip.x + chip.w, `${c.id} chip x in frame`).toBe(true);
       expect(f.y <= chip.y && f.y + f.h >= chip.y + chip.h, `${c.id} chip y in frame`).toBe(true);
     }
+  });
+
+  // clampFrame would quietly shrink an out-of-bounds chapter frame, and a frame
+  // that had drifted to VIEW's own size would make the whole feature a no-op
+  // without anything failing — hence both halves of this check.
+  it("crops the view for every chapter, and stays inside it", () => {
+    for (const [chapter, f] of Object.entries(CHAPTER_FRAMES)) {
+      expect(inside(f), `chapter frame ${chapter} inside VIEW`).toBe(true);
+      expect(f.h, `chapter frame ${chapter} crops height`).toBeLessThanOrEqual(VIEW.h);
+    }
+    expect(CHAPTER_FRAMES.hero?.h ?? VIEW.h, "the hero sits on the product").toBeLessThan(
+      VIEW.h * 0.8,
+    );
   });
 
   it("home frame is the whole view", () => {

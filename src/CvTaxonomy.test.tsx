@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { CvTaxonomy, frameFor, Outro, withViewTransition } from "./CvTaxonomy";
 import { cellById } from "./data/taxonomy";
-import { frameToViewBox, VIEW } from "./frames";
+import { CHAPTER_FRAMES, type Frame, frameToViewBox, VIEW } from "./frames";
 import { matchMediaStub } from "./test-helpers";
 import { plateauCentre } from "./timeline";
 
@@ -123,8 +123,9 @@ describe("detail on the sheet (desktop)", () => {
     await user.click(trigger("material-identity"));
     const region = await screen.findByRole("complementary", { name: /material · identity/i });
 
-    // a control outside is that control's business: the theme toggle toggles
-    await user.click(screen.getByRole("button", { name: /switch to .* theme/i }));
+    // a control outside is that control's business: a chapter stop navigates
+    const chapters = screen.getByRole("list", { name: /physical scale chapters/i });
+    await user.click(within(chapters).getByRole("button", { name: /^component$/i }));
     expect(screen.getByRole("complementary")).toBeInTheDocument();
 
     // open ground on the sheet dismisses the detail the reader is in — the press
@@ -301,14 +302,12 @@ describe("theme has a single owner", () => {
     expect(document.documentElement).not.toHaveAttribute("data-theme");
   });
 
-  it("lets the in-page toggle beat the host prop", async () => {
-    const user = userEvent.setup();
-    const { container } = render(<CvTaxonomy theme="light" />);
-
-    await user.click(screen.getByRole("button", { name: /switch to dark theme/i }));
-
-    expect(container.querySelector(".cvt")).toHaveAttribute("data-theme", "dark");
-    expect(document.documentElement).toHaveAttribute("data-theme", "dark");
+  // There is no in-page theme control: both grounds are the same cyanotype, one
+  // printed and one nearly burnt out, so there is nothing for a reader to choose
+  // between. The host's prop wins, and without one the OS decides.
+  it("offers no theme control", () => {
+    render(<CvTaxonomy theme="light" />);
+    expect(screen.queryByRole("button", { name: /theme/i })).not.toBeInTheDocument();
   });
 });
 
@@ -319,11 +318,14 @@ function forceReducedMotion() {
 }
 
 describe("camera framing (desktop)", () => {
-  it("starts framed on the whole fan", () => {
+  // The camera holds the chapter's own frame, not the envelope of every chapter:
+  // the hero's fan is assembled and unannotated, so VIEW drew it small inside a
+  // frame sized for parts that have not moved yet.
+  it("starts framed on the product itself, not on the whole envelope", () => {
     forceReducedMotion();
     const { container } = render(<CvTaxonomy />);
     const fan = container.querySelector(".cvt-fan:not(.cvt-fan-compact)") as SVGSVGElement;
-    expect(fan).toHaveAttribute("viewBox", frameToViewBox(VIEW));
+    expect(fan).toHaveAttribute("viewBox", frameToViewBox(CHAPTER_FRAMES.hero as Frame));
   });
 
   it("zooms to a cell's frame when its panel opens, and back home on close", async () => {
@@ -338,7 +340,7 @@ describe("camera framing (desktop)", () => {
     expect(fan()).toHaveAttribute("viewBox", frameToViewBox(frameFor("component-quantity")));
 
     await user.keyboard("{Escape}");
-    expect(fan()).toHaveAttribute("viewBox", frameToViewBox(VIEW));
+    expect(fan()).toHaveAttribute("viewBox", frameToViewBox(CHAPTER_FRAMES.Component as Frame));
   });
 
   it("pulls the camera home once the reader scrolls on to another chapter", async () => {
@@ -355,7 +357,7 @@ describe("camera framing (desktop)", () => {
     // the sheet is not locked: the next chapter arrives under the docked detail,
     // and its frame would point at parts that have since drifted
     rerender(<CvTaxonomy debugProgress={plateauCentre("Material")} />);
-    expect(fan()).toHaveAttribute("viewBox", frameToViewBox(VIEW));
+    expect(fan()).toHaveAttribute("viewBox", frameToViewBox(CHAPTER_FRAMES.Material as Frame));
     expect(screen.getByRole("complementary")).toBeInTheDocument();
   });
 

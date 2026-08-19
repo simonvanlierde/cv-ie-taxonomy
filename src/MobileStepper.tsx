@@ -1,4 +1,4 @@
-import type { Dispatch, ReactNode, SetStateAction } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 import { CellList, Hero, IllustrativeDisclosure, MaturityKey, Outro } from "./CvTaxonomy";
 import { CHAPTER_COPY } from "./chapters";
@@ -42,7 +42,6 @@ const STEP_FRAMES: Frame[] = [
 export function MobileStepper({
   onOpen,
   reduceMotion,
-  themeToggle,
   step,
   setStep,
   collapsed,
@@ -51,7 +50,6 @@ export function MobileStepper({
 }: {
   onOpen: (cell: Cell, focusId?: string) => void;
   reduceMotion: boolean;
-  themeToggle: ReactNode;
   /** Where the reader is, owned by the parent: the layout seam unmounts this
    *  whole component on a resize, and a reader mid-read must not restart. */
   step: number;
@@ -78,7 +76,6 @@ export function MobileStepper({
     <div className="cvt-stepper" inert={inert}>
       <div className="cvt-stepper-top">
         <IllustrativeDisclosure />
-        {themeToggle}
       </div>
       <div
         className="cvt-step"
@@ -126,13 +123,26 @@ export function MobileStepper({
 
         {scale && (
           <section className="cvt-step-body" style={{ "--hue": SCALE_VAR[scale] }}>
+            {/* Folded, the sheet still says which scale it holds — a bare
+                handle over a full-screen fan gives a reader arriving on the step
+                nothing to open, and the four cells behind it are the controls.
+                The title sits inside the control so the whole strip is the tap
+                target, and the accessible name carries it too. */}
             <button
               type="button"
               className="cvt-sheet-toggle"
               aria-expanded={!sheetCollapsed}
-              aria-label={sheetCollapsed ? "Show this scale's text" : "Hide the text, show the fan"}
+              aria-label={
+                sheetCollapsed
+                  ? `Show the text for ${CHAPTER_COPY[scale].title}`
+                  : "Hide the text, show the fan"
+              }
               onClick={() => setCollapsed((c) => !c)}
-            />
+            >
+              {sheetCollapsed && (
+                <span className="cvt-sheet-toggle-title">{CHAPTER_COPY[scale].title}</span>
+              )}
+            </button>
             {!sheetCollapsed && (
               <>
                 <h2>{CHAPTER_COPY[scale].title}</h2>

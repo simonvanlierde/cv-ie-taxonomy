@@ -16,6 +16,34 @@ export type Frame = { x: number; y: number; w: number; h: number };
 export const VIEW: Frame = { x: -120, y: -5, w: 800, h: 875 };
 export const HOME_FRAME: Frame = VIEW;
 
+/**
+ * One frame per chapter, held at that chapter's plateau state.
+ *
+ * VIEW is the envelope of the *whole* act — every part at every explode state,
+ * plus both chip gutters — so standing the camera there at every plateau draws
+ * an assembled fan inside a frame sized for a fully drifted one. On a landscape
+ * screen the field is height-bound, so that spare height is the only thing
+ * costing the drawing its size: these frames give each chapter back the vertical
+ * slack its own state does not use.
+ *
+ * Width stays VIEW's, because the chips are anchored to VIEW's two gutters — a
+ * narrower frame would crop the read-outs rather than move them. Hand-tuned by
+ * eye against the rendered plateau, like FRAMES below; re-check all three after
+ * any change to the explode or drift geometry.
+ */
+export const CHAPTER_FRAMES: Record<string, Frame> = {
+  // the opening image: the fan is assembled and no read-out has arrived yet, so
+  // the camera can sit right on the product — this is the frame VIEW cost most
+  hero: { x: 124, y: 209, w: 353, h: 583 },
+  // assembled, with read-outs down both gutters
+  Product: { x: -105, y: 184, w: 782, h: 659 },
+  // exploded: the parts spread and the topmost read-out clears them
+  Component: { x: -107, y: 21, w: 783, h: 806 },
+  // drifted: the front grille rises to y ≈ 0 and the base sinks; this chapter
+  // fills the envelope, which is the chapter's point
+  Material: { x: -120, y: -5, w: 800, h: 855 },
+};
+
 export const frameToViewBox = (f: Frame) => `${f.x} ${f.y} ${f.w} ${f.h}`;
 
 /** The smallest frame holding both, grown by `pad` on every side. */
