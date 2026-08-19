@@ -226,17 +226,12 @@
   position: relative;
   min-width: 0;
 }
-/* The instrument is fixed in the sheet's left margin, so the drawing column
-   starts clear of it — but only where there is room for both. Below this the
-   margin band costs more than the overlap it prevents, so the instrument goes
-   and the drawing takes the whole sheet. */
-@container cvt (width >= 1180px) {
-  .cvt-stagecol {
-    /* the margin holds one hairline spine (28–52px), nothing else: the panels
-       that used to claim 276px of sheet are now a scale bar at the field's foot
-       and a section index in the ruler band */
-    padding-left: 44px;
-  }
+/* The drawing column starts clear of the sheet's margin. This used to be worth a
+   breakpoint — a 268px band of panels cost more than the overlap it prevented on
+   a narrow sheet — but the margin is a 24px spine now, so every desktop sheet can
+   afford it and there is one composition instead of two. */
+.cvt-stagecol {
+  padding-left: 44px;
 }
 /* Below the wide sheet there is no room for a margin band, but the letters still
    need their key — without it P/E/U/A mean nothing. The instrument becomes a
@@ -613,63 +608,44 @@
 .cvt-ind-end {
   --hue: var(--cvt-ink);
 }
-/* Below the wide sheet the rail tightens and drops beneath the instrument line.
-   Declared here rather than beside the other narrow-sheet rules because it has
-   to come after .cvt-ind's own margin. */
-@container cvt (width < 1180px) {
-  .cvt-ind {
-    gap: 0.6rem;
-    margin-top: 34px;
-  }
-  .cvt-ind button,
-  .cvt-ind a {
-    letter-spacing: 0.1em;
-  }
-  .cvt-ind button::before,
-  .cvt-ind a::before {
-    width: 18px;
-  }
+/* The chapters are a section index down the ruler band at every desktop width:
+   a hairline spine
+   with a tick per stop and the name set along it, the way a drawing indexes its
+   views. No box and no ground — nothing scrolls through the margin, and the
+   drawing starts clear of it, so neither is needed. */
+.cvt-hud-top {
+  position: fixed;
+  left: var(--cvt-edge);
+  top: 80px;
+  width: 24px;
 }
-
-@container cvt (width >= 1180px) {
-  /* The chapters become a section index down the ruler band: a hairline spine
-     with a tick per stop and the name set along it, the way a drawing indexes
-     its views. No box and no ground — nothing scrolls through the margin, and
-     the drawing starts clear of it, so neither is needed. */
-  .cvt-hud-top {
-    position: fixed;
-    left: var(--cvt-edge);
-    top: 80px;
-    width: 24px;
-  }
-  .cvt-ind {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.9rem;
-    padding: 0;
-    background: none;
-    border: 0;
-    border-left: 1px solid var(--cvt-grid);
-  }
-  .cvt-ind button,
-  .cvt-ind a {
-    writing-mode: vertical-rl;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0 0 0 0.45rem;
-    letter-spacing: 0.14em;
-  }
-  /* the tick: the horizontal rail's dash, turned across the spine */
-  .cvt-ind button::before,
-  .cvt-ind a::before {
-    width: 3px;
-    height: 14px;
-    transform: scaleY(0.55);
-    transform-origin: center top;
-  }
-  .cvt-ind [data-active="true"]::before {
-    transform: scaleY(1);
-  }
+.cvt-ind {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.9rem;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-left: 1px solid var(--cvt-grid);
+}
+.cvt-ind button,
+.cvt-ind a {
+  writing-mode: vertical-rl;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0 0 0.45rem;
+  letter-spacing: 0.14em;
+}
+/* the tick: the horizontal rail's dash, turned across the spine */
+.cvt-ind button::before,
+.cvt-ind a::before {
+  width: 3px;
+  height: 14px;
+  transform: scaleY(0.55);
+  transform-origin: center top;
+}
+.cvt-ind [data-active="true"]::before {
+  transform: scaleY(1);
 }
 
 /* The scale bar belongs to the drawing: once the stage unpins, its foot would
@@ -834,13 +810,10 @@
 .cvt-outro:focus {
   outline: none;
 }
-/* The closing figure takes the whole sheet, but the band's one control stays
-   where it has been all the way down the page: clear its strip, and nothing
-   else of the margin. */
-@container cvt (width >= 1180px) {
-  .cvt-outro {
-    padding-left: 44px;
-  }
+/* The closing figure takes the whole sheet, but the section index stays where it
+   has been all the way down the page: clear its strip, and nothing else. */
+.cvt-outro {
+  padding-left: 44px;
 }
 .cvt-outro h2 {
   max-width: 56ch;
@@ -873,6 +846,7 @@
   /* the detail stays put beside the grid while the reader scans cells */
   position: sticky;
   top: 8vh;
+  /* the leader hangs off its left edge, so it needs a positioned box to hang from */
   /* fixed height, scrolling inside: this column sits in .cvt-scroll, the element
      the scroll timeline is measured over. Selecting the first cell grows the
      outer height once, by design; from then on the height is pinned, so moving
@@ -882,11 +856,31 @@
   height: 70vh;
   overflow-y: auto;
 }
+/* Act two's enlargement is the same object act one's is, drawn the same way: a
+   detail view ruled on four sides, on the sheet's ground, with a leader running
+   out toward what it enlarges. It sat as bare prose in the column before, so the
+   two acts showed the reader two different things for the same act. It stays
+   beside the matrix rather than moving to the margin, because an enlargement
+   belongs next to the thing it enlarges — in act one that is a part in the
+   drawing, here it is the bay the reader just pressed. */
 .cvt-inline-region {
   outline: none;
+  padding: 1.3rem 1.2rem 1.6rem;
+  border: 1.5px solid var(--cvt-line);
+  background: var(--cvt-panel);
   /* focus-in scrolls the region into view; keep it below the fixed ruler rather
      than flush under it */
   scroll-margin-top: 5rem;
+}
+/* the leader, drawn by the scroll container: the region scrolls inside itself,
+   and a scroll container clips its own overflow (see the docked detail) */
+.cvt-explorable[data-open="true"] .cvt-inline-detail::before {
+  content: "";
+  position: absolute;
+  top: 2.4rem;
+  right: 100%;
+  width: clamp(1rem, 3vw, 3rem);
+  border-top: 2px solid var(--cvt-ink-dim);
 }
 .cvt-inline-region:focus-visible {
   outline: 2px solid var(--cvt-ink);
@@ -926,6 +920,9 @@
     order: -1;
     margin: 0;
   }
+  .cvt-explorable[data-open="true"] .cvt-inline-detail::before {
+    content: none;
+  }
   .cvt-explorable[data-open="true"] .cvt-inline-detail {
     position: static;
     height: auto;
@@ -933,8 +930,8 @@
     max-width: 720px;
     overflow-y: visible;
     margin-top: 1.4rem;
-    padding-top: 1.4rem;
-    border-top: 1px solid var(--cvt-line);
+    /* the region carries its own rule now, so the separator it used to need here
+       would draw a second line above it */
   }
 }
 
@@ -2427,20 +2424,6 @@
   .cvt-detail-sheet {
     opacity: 1;
     translate: 0 40px;
-  }
-}
-
-/* The scale bar rides the field's foot at every width now, so the narrow sheet
-   needs no strip of its own — only room for the chapter rail, which still drops
-   under the ruler here. */
-@container cvt (width < 1180px) {
-  .cvt-sticky {
-    padding-top: 128px;
-    padding-bottom: 56px;
-  }
-  /* the detail stops short of the strip: they shared the sheet's bottom otherwise */
-  .cvt-scroll[data-panel="open"] .cvt-detail {
-    max-height: calc(100dvh - 150px);
   }
 }
 
