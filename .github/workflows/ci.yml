@@ -11,14 +11,17 @@ permissions:
   pages: write
   id-token: write
 
-# One deploy at a time; don't cancel an in-flight release.
+# Cancel superseded PR runs; never cancel a push run, which carries the deploy.
+# The `pages` group lives on the deploy job instead, so PR builds no longer queue
+# behind a release.
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/setup@v2
@@ -55,7 +58,12 @@ jobs:
     # Only publish from main; PRs run build for CI but don't deploy.
     if: github.ref == 'refs/heads/main'
     needs: build
+    # One deploy at a time; don't cancel an in-flight release.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
