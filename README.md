@@ -12,7 +12,7 @@ and how much to trust the result.
 A self-contained React and TypeScript island that can run standalone or embed in
 an Astro or Next portfolio.
 
-![Exploded fan with interactive CV read-outs](public/screenshot.png)
+![A desk fan drawn as a cyanotype teardown, ringed by computer-vision read-outs](public/screenshot.png)
 
 **[▶ Open the live demo](https://simonvanlierde.github.io/cv-ie-taxonomy/)**
 
