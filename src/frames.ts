@@ -1,3 +1,5 @@
+import type { Scale } from "./data/types";
+
 // Camera frames in Fan viewBox coordinates. VIEW is the whole desktop canvas and
 // the home frame; each cell frame zooms toward the part its read-out points at.
 // These are hand-tuned rects, like the callout positions in Fan.tsx: retune them
@@ -5,6 +7,10 @@
 // plateau, so a plateau-state frame tracks the part closely enough.
 
 export type Frame = { x: number; y: number; w: number; h: number };
+
+/** Where the reader is on the scroll: the hero, one of the three scales, or the
+ *  closing figure. Lives here because the camera is what the chapters drive. */
+export type Chapter = "hero" | Scale | "outro";
 
 // The drawing occupies roughly x 120..520, y 100..800. The frame is kept close
 // around it so the fan commands the sheet: a wider frame spends the viewport on
@@ -15,6 +21,37 @@ export type Frame = { x: number; y: number; w: number; h: number };
 // drawing at every zoom (and, clamped into VIEW, on the phone's explode steps).
 export const VIEW: Frame = { x: -120, y: -5, w: 800, h: 875 };
 export const HOME_FRAME: Frame = VIEW;
+
+/**
+ * One frame per chapter, held at that chapter's plateau state.
+ *
+ * VIEW is the envelope of the *whole* act — every part at every explode state,
+ * plus both chip gutters — so standing the camera there at every plateau draws
+ * an assembled fan inside a frame sized for a fully drifted one. On a landscape
+ * screen the field is height-bound, so that spare height is the only thing
+ * costing the drawing its size: these frames give each chapter back the vertical
+ * slack its own state does not use.
+ *
+ * Width stays VIEW's, because the chips are anchored to VIEW's two gutters — a
+ * narrower frame would crop the read-outs rather than move them. Hand-tuned by
+ * eye against the rendered plateau, like FRAMES below; re-check the three
+ * plateau frames after any change to the explode or drift geometry.
+ */
+export const CHAPTER_FRAMES: Record<Chapter, Frame> = {
+  // the opening image: the fan is assembled and no read-out has arrived yet, so
+  // the camera can sit right on the product — this is the frame VIEW cost most
+  hero: { x: 124, y: 209, w: 353, h: 583 },
+  // assembled, with read-outs down both gutters
+  Product: { x: -105, y: 184, w: 782, h: 659 },
+  // exploded: the parts spread and the topmost read-out clears them
+  Component: { x: -107, y: 21, w: 783, h: 806 },
+  // drifted: the front grille rises to y ≈ 0 and the base sinks; this chapter
+  // fills the envelope, which is the chapter's point
+  Material: { x: -120, y: -5, w: 800, h: 855 },
+  // the stage unpins and fades under the closing figure; the camera goes home
+  // so that a reader scrolling back up meets the drawing whole
+  outro: HOME_FRAME,
+};
 
 export const frameToViewBox = (f: Frame) => `${f.x} ${f.y} ${f.w} ${f.h}`;
 

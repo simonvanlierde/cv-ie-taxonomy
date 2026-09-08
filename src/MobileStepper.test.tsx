@@ -9,12 +9,13 @@ import { MobileStepper } from "./MobileStepper";
  *  the layout seam cannot unmount it — so the tests drive it the same way. */
 function Stepper({ onOpen = () => {} }: { onOpen?: (cell: Cell, focusId?: string) => void }) {
   const [step, setStep] = useState(0);
-  const [collapsed, setCollapsed] = useState(false);
+  // production starts folded (CvTaxonomy owns this): the scale steps arrive with
+  // the drawing on the whole screen and the sheet at its title
+  const [collapsed, setCollapsed] = useState(true);
   return (
     <MobileStepper
       onOpen={onOpen}
       reduceMotion
-      themeToggle={null}
       step={step}
       setStep={setStep}
       collapsed={collapsed}
@@ -73,6 +74,7 @@ describe("MobileStepper", () => {
     const { container } = render(<Stepper onOpen={onOpen} />);
 
     await user.click(container.querySelector(".cvt-stepper-next") as HTMLButtonElement); // → Product
+    await user.click(container.querySelector(".cvt-sheet-toggle") as HTMLButtonElement);
     const list = container.querySelector(".cvt-mgroup") as HTMLElement;
     const identity = within(list).getByRole("button", {
       name: /product · identity.*maturity: partial/i,
@@ -87,6 +89,7 @@ describe("MobileStepper", () => {
     // → Product → Component, whose Structure cell is the paper's split verdict
     await user.click(container.querySelector(".cvt-stepper-next") as HTMLButtonElement);
     await user.click(container.querySelector(".cvt-stepper-next") as HTMLButtonElement);
+    await user.click(container.querySelector(".cvt-sheet-toggle") as HTMLButtonElement);
     expect(screen.getByText("P / E")).toBeInTheDocument();
     expect(
       screen.getByRole("button", {
@@ -95,22 +98,23 @@ describe("MobileStepper", () => {
     ).toBeInTheDocument();
   });
 
-  it("folds the sheet to its handle and back, and holds the fold across steps", async () => {
+  it("arrives folded to its title, opens, and holds the reader's choice across steps", async () => {
     const user = userEvent.setup();
     const { container } = render(<Stepper />);
     await user.click(container.querySelector(".cvt-stepper-next") as HTMLButtonElement); // → Product
 
     const toggle = () => container.querySelector(".cvt-sheet-toggle") as HTMLButtonElement;
-    expect(toggle()).toHaveAttribute("aria-expanded", "true");
+    // folded, but never a bare handle: the strip names the scale it holds, so
+    // there is something to open and something saying what is behind it
+    expect(toggle()).toHaveAttribute("aria-expanded", "false");
+    expect(toggle()).toHaveTextContent(/one product, seen whole/i);
+    expect(container.querySelector(".cvt-mgroup")).toBeNull(); // text away, fan alone
 
     await user.click(toggle());
-    expect(toggle()).toHaveAttribute("aria-expanded", "false");
-    expect(container.querySelector(".cvt-mgroup")).toBeNull(); // text gone, fan alone
+    expect(toggle()).toHaveAttribute("aria-expanded", "true");
+    expect(container.querySelector(".cvt-mgroup")).not.toBeNull();
 
     await user.click(container.querySelector(".cvt-stepper-next") as HTMLButtonElement); // → Component
-    expect(toggle()).toHaveAttribute("aria-expanded", "false"); // fan-only view sticks
-
-    await user.click(toggle());
-    expect(container.querySelector(".cvt-mgroup")).not.toBeNull();
+    expect(toggle()).toHaveAttribute("aria-expanded", "true"); // the reader's choice sticks
   });
 });

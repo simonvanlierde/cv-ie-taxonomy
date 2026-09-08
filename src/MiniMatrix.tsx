@@ -20,8 +20,13 @@ export function MiniMatrix({
 }) {
   return (
     <div className="cvt-matrix">
-      {INFO_TYPES.map((i, index) => (
-        <span key={i} className="cvt-mx-h" style={{ gridColumn: index + 2, gridRow: 1 }}>
+      {/* the corner of the header row: the row heads and cells auto-flow five to
+          a row after it, so no item needs explicit placement — placing only the
+          column heads left the first row head to fill this slot and pushed every
+          row label a row down and a column right */}
+      <span aria-hidden />
+      {INFO_TYPES.map((i) => (
+        <span key={i} className="cvt-mx-h">
           {i}
         </span>
       ))}

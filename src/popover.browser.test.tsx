@@ -29,6 +29,8 @@ describe("a citation inside a detail, in a real engine", () => {
     await vi.waitFor(() => expect(document.querySelector(".cvt-stepper")).not.toBeNull());
 
     await userEvent.click(screen.getByRole("button", { name: /^Start/ }));
+    // the scale steps arrive folded to their title, so open the sheet for its cells
+    await userEvent.click(document.querySelector(".cvt-sheet-toggle") as HTMLElement);
     await vi.waitFor(() => expect(document.querySelector(".cvt-mcell")).not.toBeNull());
     await userEvent.click(document.querySelector(".cvt-mcell") as HTMLElement);
 

@@ -25,7 +25,16 @@ import {
 import type { Cell, Scale, Verdict } from "./data/types";
 import { Explorable } from "./Explorable";
 import { chipFrame, Fan } from "./Fan";
-import { clampFrame, FRAMES, type Frame, HOME_FRAME, unionFrame, VIEW } from "./frames";
+import {
+  CHAPTER_FRAMES,
+  type Chapter,
+  clampFrame,
+  FRAMES,
+  type Frame,
+  HOME_FRAME,
+  unionFrame,
+  VIEW,
+} from "./frames";
 import { MobileStepper } from "./MobileStepper";
 import { Cite, CitedProse } from "./References";
 import { RubricCircuit } from "./RubricCircuit";
@@ -35,8 +44,6 @@ import { useCamera } from "./useCamera";
 import { useDialogRegion } from "./useDialogRegion";
 import { useScrollProgress } from "./useScrollProgress";
 import { VerdictSwatch } from "./VerdictSwatch";
-
-type Chapter = "hero" | Scale | "outro";
 
 function chapterAt(p: number): Chapter {
   if (p < TIMELINE.heroEnd) return "hero";
@@ -165,12 +172,14 @@ export function CvTaxonomy({
   const { narrow: containerNarrow, columns } = useContainerSize(rootRef);
   const isMobile = containerNarrow ?? viewportIsMobile;
 
-  // Theme has one owner, resolved here: the user's toggle beats the host's prop,
-  // which beats the OS. Seeding state from `theme` instead would freeze the prop
-  // at mount, so a host that switches its own theme could never move the island.
+  // Theme has one owner, resolved here: the host's prop beats the OS, and there
+  // is nothing else in the chain. There is no in-page switch, because there is
+  // nothing to choose between: both grounds are the same cyanotype, one printed
+  // and one nearly burnt out, and the OS already says which one the reader wants.
+  // Reading `theme` as a prop rather than seeding state from it means a host that
+  // switches its own theme still moves the island.
   const systemDark = useMediaQuery("(prefers-color-scheme: dark)");
-  const [themeOverride, setThemeOverride] = useState<Theme | null>(null);
-  const effectiveTheme: Theme = themeOverride ?? theme ?? (systemDark ? "dark" : "light");
+  const effectiveTheme: Theme = theme ?? (systemDark ? "dark" : "light");
 
   // The island styles its own surface via [data-theme], but the page behind it
   // (rubber-band over-scroll) is not ours to paint. Stamp the resolved theme on
@@ -180,9 +189,9 @@ export function CvTaxonomy({
   //
   // Both the attribute and color-scheme: the attribute because build targets that
   // predate light-dark() get it lowered to a prefers-color-scheme shim, which
-  // would follow the OS and ignore this toggle; color-scheme because it is what
-  // form controls and scrollbars read.
-  const forcedTheme = themeOverride ?? theme;
+  // would follow the OS and ignore the host's prop; color-scheme because it is
+  // what form controls and scrollbars read.
+  const forcedTheme = theme;
   useEffect(() => {
     if (!forcedTheme) return;
     const root = document.documentElement;
@@ -223,7 +232,10 @@ export function CvTaxonomy({
   // unmounts the stepper: an ordinary window resize, or a tablet turned
   // portrait→landscape mid-read, would otherwise drop the reader back on step 0.
   const [step, setStep] = useState(0);
-  const [sheetCollapsed, setSheetCollapsed] = useState(false);
+  // Folded by default on the scale steps: the phone's whole budget is one
+  // screen, and an open sheet leaves the drawing 45% of it. The reader pulls the
+  // sheet up when they want the text, and it stays up from then on.
+  const [sheetCollapsed, setSheetCollapsed] = useState(true);
   // the camera target derives from the selection (frames.test.ts holds FRAMES
   // to a frame per cell), so open/close paths cannot desync the two
   // The zoom holds only while the reader is in the selected cell's chapter: the
@@ -239,7 +251,11 @@ export function CvTaxonomy({
   // burn a per-frame spring re-rendering the whole tree for output nobody sees.
   // Always mounted at home: a ?cell= deep link then dives from the whole
   // drawing to the part, instead of opening on a close-up of one corner.
-  const viewBox = useCamera(zoomFrame ?? HOME_FRAME, reduceMotion || isMobile, HOME_FRAME);
+  // Standing at HOME_FRAME through every chapter drew each state inside the
+  // envelope of all of them; the camera holds the chapter's own frame instead,
+  // and still springs home for the hero and the closing figure.
+  const chapterFrame = CHAPTER_FRAMES[chapter];
+  const viewBox = useCamera(zoomFrame ?? chapterFrame, reduceMotion || isMobile, HOME_FRAME);
 
   const focus = hovered ?? selected;
 
@@ -340,6 +356,14 @@ export function CvTaxonomy({
     withViewTransition(() => setSelected(null), !reduceMotion);
   }, [reduceMotion]);
 
+  // The docked detail belongs to the drawing, and on the wide sheet it is fixed
+  // in the margin band — so once the closing figure arrives it would sit over
+  // the matrix instead of leaving with the stage. Act two has its own selection;
+  // reaching the map closes act one's.
+  useEffect(() => {
+    if (selected && !isMobile && chapter === "outro") closeCell();
+  }, [selected, isMobile, chapter, closeCell]);
+
   const backToStart = useCallback(() => {
     // A deep link has no opener to restore focus to. Return to the named hero
     // instead, and focus that landmark after the detail unmounts.
@@ -389,12 +413,6 @@ export function CvTaxonomy({
           // the sheet covers the stepper, so the stepper's controls must leave
           // the accessibility tree with it: a browse cursor walks past a trap
           inert={selected !== null}
-          themeToggle={
-            <ThemeToggle
-              theme={effectiveTheme}
-              onToggle={() => setThemeOverride(effectiveTheme === "dark" ? "light" : "dark")}
-            />
-          }
         />
       ) : (
         <div
@@ -403,8 +421,6 @@ export function CvTaxonomy({
           data-panel={selected ? "open" : undefined}
         >
           <SheetFrame columns={columns} />
-          <TitleBlock />
-          <MaturityInstrument live={CLAIMED_VERDICTS} reading={focus?.maturity ?? null} />
           {/* The stage + chapters share one wrapper, placed directly by the grid. */}
           <div className="cvt-pinwrap">
             {/* ---- sticky stage: the fan IS the interface ---- */}
@@ -421,20 +437,6 @@ export function CvTaxonomy({
                   frame={zoomFrame}
                 />
                 <div className="cvt-hud">
-                  <IllustrativeDisclosure />
-                  {/* In the drawing's own column, in flow, never fixed: a stamp
-                      fixed over the narrative column sat on the prose scrolling
-                      under it. Bottom-right of the stage on the wide sheet; on
-                      the narrow one the instrument strip holds the bottom, so
-                      it takes the top-right and the chapter rail drops under it. */}
-                  <div className="cvt-hud-actions">
-                    <ThemeToggle
-                      theme={effectiveTheme}
-                      onToggle={() =>
-                        setThemeOverride(effectiveTheme === "dark" ? "light" : "dark")
-                      }
-                    />
-                  </div>
                   <div className="cvt-hud-top">
                     {/* Operable, not just an indicator: the fan's own chips are
                         gated to their chapter's plateau, so before this a desktop
@@ -460,6 +462,10 @@ export function CvTaxonomy({
                         </a>
                       </li>
                     </ol>
+                  </div>
+                  <div className="cvt-hud-foot">
+                    <MaturityInstrument live={CLAIMED_VERDICTS} reading={focus?.maturity ?? null} />
+                    <IllustrativeDisclosure />
                   </div>
                 </div>
               </div>
@@ -561,17 +567,6 @@ function TitleRows() {
   );
 }
 
-/** ISO 7200 block in the sheet's margin: decoration over the document, hidden
- *  from AT — the footer states the same fields for real. */
-const TitleBlock = memo(function TitleBlock() {
-  return (
-    <dl className="cvt-titleblock" aria-hidden>
-      <div className="cvt-tb-title">{taxonomy.meta.title}</div>
-      <TitleRows />
-    </dl>
-  );
-});
-
 /** The sheet's end: the title block again, laid along the bottom edge as one
  *  strip, with the page's own two fields (©, code) added. The fixed block fades
  *  as the closing figure rises, and this is where its content lands. */
@@ -638,7 +633,7 @@ const MaturityInstrument = memo(function MaturityInstrument({
             }
           />
           <b>{level.letter}</b>
-          {level.verdict}
+          <span className="cvt-rung-name">{level.verdict}</span>
         </p>
       ))}
     </div>
@@ -789,22 +784,6 @@ export function CellList({
         );
       })}
     </div>
-  );
-}
-
-function ThemeToggle({ theme, onToggle }: { theme: Theme; onToggle: () => void }) {
-  const next = theme === "dark" ? "light" : "dark";
-  return (
-    <button
-      type="button"
-      className="cvt-theme-toggle"
-      onClick={onToggle}
-      aria-label={`Switch to ${next} theme`}
-      title={`Switch to ${next} theme`}
-    >
-      {theme === "dark" ? <SunIcon /> : <MoonIcon />}
-      <span className="cvt-theme-toggle-label">{next}</span>
-    </button>
   );
 }
 
@@ -1185,7 +1164,6 @@ function Row({
   );
 }
 
-// theme-toggle glyphs: sun shows in dark (→ switch to light), moon in light
 /** Drawn, not a glyph: the sheet has an icon system (sun, moon, mark) in one
  *  stroke weight, and a Unicode ✕ rendered in whatever the fallback face is. */
 function CloseIcon() {
@@ -1199,28 +1177,6 @@ function CloseIcon() {
       aria-hidden="true"
     >
       <path d="M6 6l12 12M18 6L6 18" />
-    </svg>
-  );
-}
-function SunIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-      <circle cx="12" cy="12" r="4" />
-      <path
-        strokeLinecap="round"
-        d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
-      />
-    </svg>
-  );
-}
-function MoonIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"
-      />
     </svg>
   );
 }
