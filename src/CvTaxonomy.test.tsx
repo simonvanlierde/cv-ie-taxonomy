@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { CvTaxonomy, frameFor, Outro, withViewTransition } from "./CvTaxonomy";
 import { cellById } from "./data/taxonomy";
-import { CHAPTER_FRAMES, type Frame, frameToViewBox, VIEW } from "./frames";
+import { CHAPTER_FRAMES, frameToViewBox, VIEW } from "./frames";
 import { matchMediaStub } from "./test-helpers";
 import { plateauCentre } from "./timeline";
 
@@ -325,7 +325,7 @@ describe("camera framing (desktop)", () => {
     forceReducedMotion();
     const { container } = render(<CvTaxonomy />);
     const fan = container.querySelector(".cvt-fan:not(.cvt-fan-compact)") as SVGSVGElement;
-    expect(fan).toHaveAttribute("viewBox", frameToViewBox(CHAPTER_FRAMES.hero as Frame));
+    expect(fan).toHaveAttribute("viewBox", frameToViewBox(CHAPTER_FRAMES.hero));
   });
 
   it("zooms to a cell's frame when its panel opens, and back home on close", async () => {
@@ -340,7 +340,7 @@ describe("camera framing (desktop)", () => {
     expect(fan()).toHaveAttribute("viewBox", frameToViewBox(frameFor("component-quantity")));
 
     await user.keyboard("{Escape}");
-    expect(fan()).toHaveAttribute("viewBox", frameToViewBox(CHAPTER_FRAMES.Component as Frame));
+    expect(fan()).toHaveAttribute("viewBox", frameToViewBox(CHAPTER_FRAMES.Component));
   });
 
   it("pulls the camera home once the reader scrolls on to another chapter", async () => {
@@ -357,7 +357,7 @@ describe("camera framing (desktop)", () => {
     // the sheet is not locked: the next chapter arrives under the docked detail,
     // and its frame would point at parts that have since drifted
     rerender(<CvTaxonomy debugProgress={plateauCentre("Material")} />);
-    expect(fan()).toHaveAttribute("viewBox", frameToViewBox(CHAPTER_FRAMES.Material as Frame));
+    expect(fan()).toHaveAttribute("viewBox", frameToViewBox(CHAPTER_FRAMES.Material));
     expect(screen.getByRole("complementary")).toBeInTheDocument();
   });
 

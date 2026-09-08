@@ -108,7 +108,7 @@ export function useDialogRegion({
 
     // A press on the sheet outside the region closes it, as a light dismiss does.
     // A press on a control is that control's business — a sibling callout swaps
-    // the detail, the theme toggle toggles — so those are left alone; a popover
+    // the detail, a chapter stop navigates — so those are left alone; a popover
     // inside the region (a citation) is in the top layer and takes its own press.
     // Scoped like Esc, and for the same reason: two details can be open at once
     // on the sheet, and one press must close only the one the reader is in.

@@ -542,16 +542,19 @@
   margin-top: auto;
   padding-bottom: 14px;
 }
+/* The chapters are a section index down the ruler band at every desktop width:
+   a hairline spine with a tick per stop and the name set along it, the way a
+   drawing indexes its views. No box and no ground — nothing scrolls through the
+   margin, and the drawing starts clear of it, so neither is needed. */
 .cvt-ind {
   list-style: none;
   margin: 0;
-  padding: 0 0.4rem;
+  padding: 0;
   display: flex;
-  gap: 0.55rem;
-  /* the zoomed fan can run right under this band, and white linework on white
-     linework is unreadable; the rail keeps its own ground */
-  background: var(--cvt-bg);
-  border: 1px solid var(--cvt-line);
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.9rem;
+  border-left: 1px solid var(--cvt-grid);
 }
 .cvt-ind li {
   display: flex;
@@ -562,7 +565,9 @@
 .cvt-ind a {
   font-family: var(--cvt-mono);
   font-size: var(--cvt-t-1);
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
+  /* set along the spine, reading up the sheet */
+  writing-mode: vertical-rl;
   /* a stop that wraps stops being a stop: "THE MAP" broke over two lines and
      pushed the rail out of alignment */
   white-space: nowrap;
@@ -570,25 +575,25 @@
   color: var(--cvt-ink-dim);
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.5rem;
   background: none;
   border: 0;
-  padding: 0.4rem 0.2rem;
+  padding: 0 0 0 0.45rem;
   cursor: pointer;
   text-decoration: none;
   transition: color 0.3s;
 }
+/* the tick across the spine: it owns its full measure and scales from the spine,
+   so the active state draws outward without animating layout */
 .cvt-ind button::before,
 .cvt-ind a::before {
   content: "";
-  width: 20px;
-  height: 3px;
+  width: 3px;
+  height: 14px;
   border-radius: 2px;
   background: var(--cvt-line);
-  /* the rule owns its full measure and scales from the left, so the active
-     state draws outward without animating layout */
-  transform: scaleX(0.6);
-  transform-origin: left center;
+  transform: scaleY(0.55);
+  transform-origin: center top;
   transition:
     background 0.3s,
     transform 0.3s;
@@ -598,7 +603,7 @@
 }
 .cvt-ind [data-active="true"]::before {
   background: var(--hue);
-  transform: scaleX(1);
+  transform: scaleY(1);
 }
 .cvt-ind button:hover,
 .cvt-ind a:hover {
@@ -608,44 +613,12 @@
 .cvt-ind-end {
   --hue: var(--cvt-ink);
 }
-/* The chapters are a section index down the ruler band at every desktop width:
-   a hairline spine
-   with a tick per stop and the name set along it, the way a drawing indexes its
-   views. No box and no ground — nothing scrolls through the margin, and the
-   drawing starts clear of it, so neither is needed. */
+/* the spine stands in the sheet's left margin band, under the coordinate ruler */
 .cvt-hud-top {
   position: fixed;
   left: var(--cvt-edge);
   top: 80px;
   width: 24px;
-}
-.cvt-ind {
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0.9rem;
-  padding: 0;
-  background: none;
-  border: 0;
-  border-left: 1px solid var(--cvt-grid);
-}
-.cvt-ind button,
-.cvt-ind a {
-  writing-mode: vertical-rl;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0 0 0 0.45rem;
-  letter-spacing: 0.14em;
-}
-/* the tick: the horizontal rail's dash, turned across the spine */
-.cvt-ind button::before,
-.cvt-ind a::before {
-  width: 3px;
-  height: 14px;
-  transform: scaleY(0.55);
-  transform-origin: center top;
-}
-.cvt-ind [data-active="true"]::before {
-  transform: scaleY(1);
 }
 
 /* The scale bar belongs to the drawing: once the stage unpins, its foot would
@@ -2064,16 +2037,6 @@
    up. The sheet no longer carries a fixed block at all: the hero names the drawing
    and the footer strip states every field for real, so a third copy in the margin
    was the heaviest box on the sheet earning the least. The strip keeps these rows. */
-.cvt-tb-title {
-  font-family: var(--cvt-display);
-  font-size: var(--cvt-t-2);
-  font-weight: 700;
-  letter-spacing: 0;
-  line-height: 1.3;
-  color: var(--cvt-ink);
-  padding: 0.5rem 0.55rem;
-  border-bottom: 1.5px solid var(--cvt-line);
-}
 .cvt-tb-row {
   display: grid;
   grid-template-columns: 68px 1fr;
@@ -2309,15 +2272,8 @@
    narrow to read, and taking the column is the better trade. The stage's own
    left padding is widened to the detail's width in this band, so the field
    never reflows when one opens — a drawing resizing under a camera spring is
-   two motions fighting. The title block stands down while a detail is docked:
-   its facts repeat in the footer, and the band cannot hold both. */
+   two motions fighting. */
 @container cvt (width >= 1700px) {
-  /* the enlargement's own width plus its leader: on a tall window the drawing
-     is width-limited and has no letterbox to lend, so the field clears the
-     docked panel by its own padding rather than by luck of the aspect ratio */
-  .cvt-stagecol {
-    padding-left: 44px;
-  }
   /* The enlargement claims its strip only while it is docked, beside the spine.
      Reserving it permanently spent the sheet on empty margin; the field re-fits
      once, at the same moment the camera springs to the part, so the two moves

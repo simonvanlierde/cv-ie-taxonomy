@@ -39,9 +39,7 @@ describe("frames", () => {
       expect(inside(f), `chapter frame ${chapter} inside VIEW`).toBe(true);
       expect(f.h, `chapter frame ${chapter} crops height`).toBeLessThanOrEqual(VIEW.h);
     }
-    expect(CHAPTER_FRAMES.hero?.h ?? VIEW.h, "the hero sits on the product").toBeLessThan(
-      VIEW.h * 0.8,
-    );
+    expect(CHAPTER_FRAMES.hero.h, "the hero sits on the product").toBeLessThan(VIEW.h * 0.8);
   });
 
   it("home frame is the whole view", () => {

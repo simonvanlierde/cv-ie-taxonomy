@@ -27,6 +27,7 @@ import { Explorable } from "./Explorable";
 import { chipFrame, Fan } from "./Fan";
 import {
   CHAPTER_FRAMES,
+  type Chapter,
   clampFrame,
   FRAMES,
   type Frame,
@@ -43,8 +44,6 @@ import { useCamera } from "./useCamera";
 import { useDialogRegion } from "./useDialogRegion";
 import { useScrollProgress } from "./useScrollProgress";
 import { VerdictSwatch } from "./VerdictSwatch";
-
-type Chapter = "hero" | Scale | "outro";
 
 function chapterAt(p: number): Chapter {
   if (p < TIMELINE.heroEnd) return "hero";
@@ -255,7 +254,7 @@ export function CvTaxonomy({
   // Standing at HOME_FRAME through every chapter drew each state inside the
   // envelope of all of them; the camera holds the chapter's own frame instead,
   // and still springs home for the hero and the closing figure.
-  const chapterFrame = CHAPTER_FRAMES[chapter] ?? HOME_FRAME;
+  const chapterFrame = CHAPTER_FRAMES[chapter];
   const viewBox = useCamera(zoomFrame ?? chapterFrame, reduceMotion || isMobile, HOME_FRAME);
 
   const focus = hovered ?? selected;
