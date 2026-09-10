@@ -19,13 +19,12 @@ import { presence, seg, TIMELINE } from "./timeline";
 const PROSE_CENTRE: Record<Scale, number> = { Product: 0.29, Component: 0.6, Material: 0.9 };
 
 describe("scroll pacing", () => {
-  it.each([
-    "Product",
-    "Component",
-    "Material",
-  ] as const)("%s overlays are at full strength while its prose is centred", (scale) => {
-    expect(presence(TIMELINE.presence[scale], PROSE_CENTRE[scale])).toBeGreaterThan(0.95);
-  });
+  it.each(["Product", "Component", "Material"] as const)(
+    "%s overlays are at full strength while its prose is centred",
+    (scale) => {
+      expect(presence(TIMELINE.presence[scale], PROSE_CENTRE[scale])).toBeGreaterThan(0.95);
+    },
+  );
 
   it("never leaves the stage unannotated between the first and last plateau", () => {
     const total = (p: number) =>
