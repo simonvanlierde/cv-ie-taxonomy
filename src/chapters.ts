@@ -16,7 +16,7 @@ export const CHAPTER_COPY: Record<Scale, { title: string; body: string }> = {
   },
   Component: {
     title: "Pulled apart",
-    body: "Opened up, the fan can be searched: vision finds and counts parts like blades and motors, once tuned on similar products. What it can't yet do is say how parts connect: that map holds ~82% on familiar products and drops to ~39% on unseen ones.",
+    body: "Opened up, the fan can be searched: vision finds and counts parts like blades and motors, once tuned on similar products. What it can't yet do is say how parts connect: the methods that try cover only jointed household objects and toy vehicles, and their map of connections falls from ~82% to ~39% on a new dataset of the same kinds.",
   },
   Material: {
     title: "Down to matter",

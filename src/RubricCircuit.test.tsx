@@ -47,7 +47,7 @@ describe("RubricCircuit", () => {
   });
 
   it("renders one run line per sub-verdict on a compound cell", () => {
-    // component-structure: "detect/seg B · ✗ᵃ · ✗; relations N · ✗ᵃ · ✗"
+    // component-structure: "detect/seg B · ✗ᵃ · ✗; relations N · ✗ᵘ · ✗"
     const cell = cellById("component-structure");
     const { container } = render(<RubricCircuit cell={cell} />);
     const lines = container.querySelectorAll(".cvt-circuit-run");

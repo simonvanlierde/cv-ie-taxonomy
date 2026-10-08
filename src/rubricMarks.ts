@@ -20,7 +20,7 @@ export interface Run {
   label: string | null;
   evidence: Evidence;
   /** the ✗ superscript's evidentiary basis, if the printed mark carries one */
-  basis: "measured" | "adjacent" | "untested" | null;
+  basis: "measured" | "inferred" | "untested" | null;
   capture: Gate;
   deployed: Gate;
   /** the run reaches the far electrode only at B · ✓ · ✓, which is Strong */
@@ -36,7 +36,7 @@ const EVIDENCE_TEXT: Record<Evidence, string> = {
 
 const BASIS_TEXT = {
   measured: "measured drop under end-of-life capture",
-  adjacent: "inferred from an adjacent domain",
+  inferred: "inferred from adjacent-domain or zero-shot evidence",
   untested: "untested under end-of-life capture",
 } as const;
 
@@ -45,7 +45,7 @@ export const basisText = (b: Run["basis"]) => (b ? BASIS_TEXT[b] : null);
 
 const BASIS_BY_GLYPH: Record<string, Run["basis"]> = {
   ᵐ: "measured",
-  ᵃ: "adjacent",
+  ᵃ: "inferred",
   ᵘ: "untested",
 };
 

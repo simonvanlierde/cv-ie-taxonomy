@@ -25,7 +25,7 @@ describe("rubric marks", () => {
   it("ignores the prose some rows carry after the marks", () => {
     const [run] = runsOf(byId("material-identity"));
     expect(run?.evidence).toBe("B");
-    expect(run?.basis).toBe("adjacent");
+    expect(run?.basis).toBe("inferred");
     expect(run?.label).toBeNull();
   });
 

@@ -87,7 +87,7 @@ const CHIP_LAYOUT: {
   { id: "component-identity", x: CHIP_LEFT_EDGE, y: 140, text: "detect > 6 parts" },
   { id: "component-structure", y: 300, text: "segment · attached-to? E", leadEdge: "left" },
   { id: "component-quantity", x: CHIP_LEFT_EDGE, y: 560, text: "dims > motor ~ 135 mm" },
-  { id: "component-condition", x: CHIP_LEFT_EDGE, y: 690, text: "brush wear? (unvalidated)" },
+  { id: "component-condition", x: CHIP_LEFT_EDGE, y: 690, text: "bearing wear? (unvalidated)" },
   // material (drifted parts)
   { id: "material-identity", y: 170, text: "steel · ABS · Cu · PCB", leadEdge: "left" },
   { id: "material-quantity", x: CHIP_LEFT_EDGE, y: 140, text: "mass (derived only)", strike: true },

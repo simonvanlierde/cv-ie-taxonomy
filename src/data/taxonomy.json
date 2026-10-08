@@ -1,8 +1,8 @@
 {
   "meta": {
-    "title": "Computer Vision for Product Data Collection in Industrial Ecology",
+    "title": "Benchmarked, Rarely Field-Tested: Computer Vision for End-of-Life Product Data in Industrial Ecology",
     "subtitle": "A taxonomy of CV applications, mapped to physical scale and information type",
-    "source": "Paper 2 (JIE Review), Table S2 (per-task descriptors). Verdicts are the paper's; do not alter without changing the draft.",
+    "source": "van Lierde et al., \"Benchmarked, Rarely Field-Tested: Computer Vision for End-of-Life Product Data in Industrial Ecology\" (review article) [citation: forthcoming], Table S2 (per-task descriptors). Verdicts are the article's; do not alter without changing the article.",
     "scanDate": "2026-06",
     "axes": {
       "scale": ["Product", "Component", "Material"],
@@ -30,13 +30,13 @@
       {
         "verdict": "Plausible-but-unvalidated",
         "letter": "U",
-        "gloss": "In principle possible, no validation under realistic capture.",
+        "gloss": "No method benchmarked for this output on the products of interest; shown only in principle or in an adjacent domain, so field performance is unknown.",
         "handling": "Do not populate an inventory field; retain as human-authored, redundancy-checked (k-of-n)."
       },
       {
         "verdict": "Absent",
         "letter": "A",
-        "gloss": "No method maps to the cell; out of scope for direct capture.",
+        "gloss": "No method maps to the cell, or the cell is derived from other cells rather than directly sensed.",
         "handling": "Derive externally."
       }
     ]
@@ -61,11 +61,11 @@
       "task": "Product classification, metadata extraction",
       "methodFamily": "OCR + database matching; retrieval / one-shot recognition",
       "maturity": "Partial",
-      "maturityNote": "Validated and deployed in-domain, but degrades materially under EoL capture: label read 95.7% repair -> 90.8% reuse -> 39.7% recycle.",
+      "maturityNote": "Validated and deployed in-domain, but degrades materially under EoL capture: label read 95.7% repair -> 90.8% reuse -> 39.7% recycler intake.",
       "rubricMarks": "B · ✗ᵐ · ✓",
       "hardware": "Edge capture / server-preferred inference",
       "failureMode": "EoL label degradation (damaged, dirty, skewed, distant); database coverage; not autonomous (human-in-the-loop selection).",
-      "example": "Washing-machine label reading run by non-experts on commodity phones (Sterkens et al. 2023).",
+      "example": "Washing-machine label reading on phone and tablet cameras (Sterkens et al. 2023).",
       "citations": ["sterkensProductLabelIdentification2023"],
       "sourceStatus": "Published"
     },
@@ -76,13 +76,14 @@
       "task": "Dimensions, weight, 3D geometry",
       "methodFamily": "Monocular metric depth; feed-forward multi-view geometry; (generation-based 3D = documentation only)",
       "maturity": "Partial",
-      "maturityNote": "Geometry approximate, observed; depth/multi-view benchmarked on general scenes, not EoL products. Weight an approximate quantity, not a measurement; generation-based 3D is not measurement.",
+      "maturityNote": "Geometry approximate, observed; depth maps benchmarked on general scenes; product dimensioning itself demonstrated, not benchmarked. Weight an approximate quantity, not a measurement (about one estimate in four off by more than a factor of two); generation-based 3D is not measurement.",
       "rubricMarks": "B · ✗ᵘ · ✗",
       "hardware": "Edge-feasible (monocular depth) / server-preferred (multi-view, generative)",
       "failureMode": "Visible-surface only; residual scale sensitivity to capture metadata; weight compounds geometry x material error.",
-      "example": "Single-image mass estimation (Standley et al. 2017; Wang et al. 2026).",
+      "example": "Single-image mass estimation (Standley et al. 2017; Lee et al. 2026; Wang et al. 2026).",
       "citations": [
         "standleyImage2massEstimatingMass2017",
+        "leePhysicallyGuidedVisual2026",
         "wangImage2MassHybridConditionguided2026"
       ],
       "sourceStatus": "Mixed"
@@ -94,7 +95,7 @@
       "task": "(structurally empty)",
       "methodFamily": null,
       "maturity": "Absent",
-      "maturityNote": "Structurally empty: structure is resolved at the component scale. E = –; carries no row in Table S2.",
+      "maturityNote": "Structurally empty: structure is resolved at the component scale. Evidence mark –; carries no row in Table S2.",
       "rubricMarks": "–",
       "hardware": null,
       "failureMode": null,
@@ -135,8 +136,8 @@
       "rubricMarks": "B · ✗ᵃ · ✗ (close-adjacent benchmark)",
       "hardware": "Edge capture / server-preferred recognition",
       "failureMode": "Missing/degraded markings; out-of-domain weakness of zero-shot recognition.",
-      "example": "Open-vocabulary detection (Liu et al. 2025, Grounding DINO).",
-      "citations": ["liuGroundingDINOMarrying2025"],
+      "example": "Component-marking OCR, as at product scale (Sterkens et al. 2023); open-vocabulary naming (Liu et al. 2025, Grounding DINO).",
+      "citations": ["sterkensProductLabelIdentification2023", "liuGroundingDINOMarrying2025"],
       "sourceStatus": "Published"
     },
     {
@@ -152,7 +153,7 @@
       "failureMode": "Occlusion within assembly aggravates visible-surface limit; scale sensitivity.",
       "example": "Single-image / multi-view geometry (Hu et al. 2024, Metric3D v2; Wang et al. 2025, VGGT).",
       "citations": ["huMetric3Dv2VersatileMonocular2024", "wangVGGTVisualGeometry2025"],
-      "sourceStatus": "Mixed"
+      "sourceStatus": "Published"
     },
     {
       "id": "component-structure",
@@ -161,7 +162,7 @@
       "task": "Detection, segmentation, counting, attachment relations (Bill of Components)",
       "methodFamily": "Closed-set / open-set detection; foundation segmentation + class-assignment; (image -> articulation for relations)",
       "maturity": "Partial",
-      "maturityNote": "Detect/segment Partial (~98.8% mAP50 on a narrow benchmark, needs domain tuning). BoC relations Emerging-but-narrow (graph-topology accuracy ~82% in-domain -> ~39% out-of-distribution).",
+      "maturityNote": "Detect/segment Partial (~98.8% mAP50 on a narrow benchmark, needs domain tuning; segmentation trained at one waste-sorting facility falls from 56.0 to 45.5 mIoU at another). BoC relations Emerging-but-narrow (relations only for articulated household categories or toy vehicles; graph-topology accuracy also falls from ~82% to ~39% on an unseen dataset of the same kinds).",
       "subVerdicts": [
         {
           "label": "Detection / segmentation",
@@ -171,15 +172,16 @@
         {
           "label": "BoC attachment relations",
           "maturity": "Emerging-but-narrow",
-          "rubricMarks": "N · ✗ᵃ · ✗"
+          "rubricMarks": "N · ✗ᵘ · ✗"
         }
       ],
-      "rubricMarks": "detect/seg B · ✗ᵃ · ✗; relations N · ✗ᵃ · ✗",
+      "rubricMarks": "detect/seg B · ✗ᵃ · ✗; relations N · ✗ᵘ · ✗",
       "hardware": "Edge (closed-set detect) / server (open-vocab, foundation)",
       "failureMode": "Out-of-domain and zero-shot weakness (needs domain adaptation + class-assignment layer); no general attachment graph.",
-      "example": "E-waste / laptop teardown segmentation (Zhang et al. 2026); image -> articulation (Liu 2025 SINGAPO; Chen 2024 URDFormer; Yuan 2025 LARM).",
+      "example": "E-waste / laptop teardown segmentation (Zhang et al. 2026); cross-facility waste segmentation (Bashkirova et al. 2023); image -> articulation (Liu 2025 SINGAPO; Chen 2024 URDFormer; Yuan 2025 LARM).",
       "citations": [
         "zhangEvaluatingLargeLightweight2026",
+        "bashkirovaVisDA2022Challenge2023",
         "liuSINGAPOSingleImage2025",
         "chenURDFormerPipelineConstructing2024",
         "yuanLARMLargeArticulatedObject2025"
@@ -191,9 +193,9 @@
       "scale": "Component",
       "informationType": "Condition",
       "task": "Wear, damage, connector state; triage",
-      "methodFamily": "Supervised defect detection; connector-state (requirements only); embodied/VLA (immature)",
+      "methodFamily": "Supervised defect detection; connector-state (requirements level, per-unit only on lab-corroded screws); embodied/VLA (immature)",
       "maturity": "Plausible-but-unvalidated",
-      "maturityNote": "Plausible-but-unvalidated; connector-state absent (requirements only); centralized-cell-bound where demonstrated.",
+      "maturityNote": "Plausible-but-unvalidated; connector-state absent from products (requirements level, per-unit only on lab-corroded screws on test plates); centralized-cell-bound where demonstrated.",
       "rubricMarks": "C · ✗ᵘ · ✗",
       "hardware": "Server- and cell-bound for demonstrated capability",
       "failureMode": "No validated decentralized per-unit grading; embodied disassembly unreliable (0/20 unaided).",
@@ -202,7 +204,7 @@
         "liuRAISERobotAssistedSelective2026",
         "liuVisionLanguageActionModelsSelective2025"
       ],
-      "sourceStatus": "Preprint"
+      "sourceStatus": "Mixed"
     },
     {
       "id": "material-identity",
@@ -211,11 +213,11 @@
       "task": "Surface and subsurface material ID (Bill of Materials)",
       "methodFamily": "RGB classification (controlled); one/few-shot similarity (needs mask); few-shot VLM; dense surface segmentation",
       "maturity": "Partial",
-      "maturityNote": "Surface-region ID, controlled conditions only; no per-component quantified or occluded BoM. The one deployed image-based material-ID precedent (a shredded-WEEE sorter) characterizes a de-identified aggregate stream, not a per-unit intact product, so no per-unit deployed precedent exists (axis iii ✗).",
+      "maturityNote": "Surface-region ID, controlled conditions only; no quantified composition of what a camera cannot see (interiors, coatings, alloys). The one image-based material-ID sorter precedent (a pilot-scale shredded-WEEE trial) characterizes a de-identified aggregate stream, not a per-unit intact product, so no per-unit deployed precedent exists (deployment gate ✗).",
       "rubricMarks": "B · ✗ᵃ · ✗ (close-adjacent benchmark: in-the-wild material appearance, not EoL products)",
       "hardware": "Edge (lightweight classifiers) / server (VLM recognizers)",
-      "failureMode": "Domain shift (100% -> ~0% under lighting/angle shift); multi-material label compositeness (~90% TrashNet -> ~40% MultiWaste); clutter in realistic scenes.",
-      "example": "Controlled RGB material classification (Penumuru et al. 2020); few-shot VLM material recognition (Funk et al. 2026); 3D surface material segmentation (Li 2024 MaterialSeg3D; Drehwald 2023).",
+      "failureMode": "Multi-material label compositeness (~90% TrashNet -> ~40% MultiWaste); domain shift (historical extreme: a legacy RGB pipeline fell from 100% to ~12–28% overall under hand-held illumination shifts); clutter in realistic scenes.",
+      "example": "Zero-shot VLM material recognition (Funk et al. 2026); controlled RGB material classification (Penumuru et al. 2020); 3D surface material segmentation (Li 2024 MaterialSeg3D; Drehwald 2023).",
       "citations": [
         "penumuruIdentificationClassificationMaterials2020",
         "funkEvaluationVisionLanguage2026",
@@ -231,10 +233,10 @@
       "task": "Material mass / volume",
       "methodFamily": "Derived: component geometry x material class x density prior",
       "maturity": "Absent",
-      "maturityNote": "Absent as a standalone method; compounds geometry + identity uncertainty. Derived, so E = –.",
+      "maturityNote": "Absent as a standalone method; compounds geometry + identity uncertainty. Derived, so evidence mark –.",
       "rubricMarks": "– · ✗ · ✗",
       "hardware": "Inherited (mixed)",
-      "failureMode": "Compounds both inputs; no image -> BoM supply.",
+      "failureMode": "Compounds both inputs; image-to-mass methods tested only on off-the-shelf circuit boards, whole catalog objects, and discarded packaging and food items imaged by calibrated smart-bin cameras.",
       "example": "Derived; no direct method.",
       "citations": [],
       "sourceStatus": "n/a"
@@ -246,7 +248,7 @@
       "task": "(structurally empty)",
       "methodFamily": null,
       "maturity": "Absent",
-      "maturityNote": "Structurally empty: structure is resolved at the component scale. E = –; carries no row in Table S2.",
+      "maturityNote": "Structurally empty: structure is resolved at the component scale. Evidence mark –; carries no row in Table S2.",
       "rubricMarks": "–",
       "hardware": null,
       "failureMode": null,

@@ -45,7 +45,7 @@ function RunLine({ run }: { run: Run }) {
           text={
             run.capture === "pass"
               ? "survives end-of-life capture"
-              : (basisText(run.basis) ?? "fails end-of-life capture")
+              : (basisText(run.basis) ?? "field gate not passed")
           }
         />
         <Seg

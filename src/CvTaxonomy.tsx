@@ -949,15 +949,16 @@ const STATUS_LABEL: Record<string, string> = {
 
 // The paper records each cell as an evidence mark and two gates. The marks are
 // opaque on their own, so the key travels with them wherever they are shown.
-const RUBRIC_LABEL = "Rubric marks (E · capture · deployed)";
+// "E" stays off the evidence column: it is already the Emerging-but-narrow letter.
+const RUBRIC_LABEL = "Rubric marks (evidence · field · deployed)";
 
 function RubricKey() {
   return (
     <p className="cvt-rubric-key">
-      <b>E</b> is the evidence mark: <b>B</b> benchmarked product-general, <b>N</b> narrow class
+      The first mark is the evidence: <b>B</b> benchmarked product-general, <b>N</b> narrow class
       only, <b>C</b> concept or adjacent domain only, <b>–</b> no method, or derived. Then two
-      gates, ✓ or ✗: survives end-of-life capture; deployed on the task. A ✗ on capture says why: ✗ᵐ
-      measured drop, ✗ᵃ inferred from an adjacent domain, ✗ᵘ untested.
+      gates, ✓ or ✗: survives end-of-life field capture; deployed on the task. A ✗ on the field gate
+      says why: ✗ᵐ measured drop, ✗ᵃ inferred from adjacent evidence, ✗ᵘ untested.
     </p>
   );
 }

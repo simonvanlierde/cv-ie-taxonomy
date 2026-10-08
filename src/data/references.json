@@ -1,5 +1,11 @@
 [
   {
+    "key": "bashkirovaVisDA2022Challenge2023",
+    "short": "Bashkirova et al., 2023",
+    "apa": "Bashkirova, D., Mishra, S., Lteif, D., Teterwak, P., Kim, D., Alladkani, F., Akl, J., Calli, B., Bargal, S. A., Saenko, K., Kim, D., Seo, M., Jeon, Y., Choi, D.-G., Ettedgui, S., Giryes, R., Abu-Hussein, S., Xie, B., & Li, S. (2023). VisDA 2022 challenge: Domain adaptation for industrial waste sorting. In *Proceedings of the NeurIPS 2022 Competitions Track* (Proceedings of Machine Learning Research, Vol. 220, pp. 104–118). PMLR.",
+    "url": "https://proceedings.mlr.press/v220/bashkirova23a.html"
+  },
+  {
     "key": "bowlesKioskRecyclingElectronic2012",
     "short": "Bowles et al., 2012",
     "apa": "Bowles, M. V., Tullie, T. L., Beane, J. A., Ploetner, J., Miller, J., & Vesco, N. (2012). *Kiosk for recycling electronic devices* (U.S. Patent Application Publication No. US20120191562A1). U.S. Patent and Trademark Office.",
@@ -8,8 +14,8 @@
   {
     "key": "chenURDFormerPipelineConstructing2024",
     "short": "Chen et al., 2024",
-    "apa": "Chen, Z., Walsman, A., Memmel, M., Mo, K., Fang, A., Vemuri, K., Wu, A., Fox, D., & Gupta, A. (2024). URDFormer: A pipeline for constructing articulated simulation environments from real-world images. *arXiv*. arXiv:2405.11656.",
-    "url": "https://doi.org/10.48550/arXiv.2405.11656"
+    "apa": "Chen, Q., Walsman, A., Memmel, M., Mo, K., Fang, A., Fox, D., & Gupta, A. (2024). URDFormer: A pipeline for constructing articulated simulation environments from real-world images. In *Proceedings of Robotics: Science and Systems XX*. Robotics: Science and Systems Foundation.",
+    "url": "https://doi.org/10.15607/RSS.2024.XX.124"
   },
   {
     "key": "drehwaldOneshotRecognitionAny2023",
@@ -40,6 +46,12 @@
     "short": "Jeong et al., 2023",
     "apa": "Jeong, J., Zou, Y., Kim, T., Zhang, D., Ravichandran, A., & Dabeer, O. (2023). WinCLIP: Zero-/few-shot anomaly classification and segmentation. In *Proceedings of the IEEE/CVF conference on computer vision and pattern recognition* (pp. 19606–19616).",
     "url": "https://doi.org/10.1109/CVPR52729.2023.01878"
+  },
+  {
+    "key": "leePhysicallyGuidedVisual2026",
+    "short": "Lee et al., 2026",
+    "apa": "Lee, S., Jeong, J., Hong, Y., & Kim, K. I. (2026). Physically guided visual mass estimation from a single RGB image. In *Proceedings of the International Joint Conference on Artificial Intelligence (IJCAI 2026)* (pp. 1297–1305). International Joint Conferences on Artificial Intelligence Organization.",
+    "url": "https://doi.org/10.24963/ijcai.2026/145"
   },
   {
     "key": "liEnhancedAutomaticCosmetic2021",
