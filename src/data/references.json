@@ -74,8 +74,8 @@
   {
     "key": "liuRAISERobotAssistedSelective2026",
     "short": "Liu, Balasubramaniam, et al., 2026",
-    "apa": "Liu, C., Balasubramaniam, B., Yancey, N., Severson, M., Shine, A., Bove, P., Li, B., Liang, X., & Zheng, M. (2025). RAISE: A robot-assisted selective disassembly and sorting system for end-of-life phones. *arXiv*. arXiv:2509.23048.",
-    "url": "https://doi.org/10.48550/ARXIV.2509.23048"
+    "apa": "Liu, C., Balasubramaniam, B., Yancey, N. A., Severson, M. H., Shine, A., Bove, P., Li, B., Liang, X., & Zheng, M. (2026). RAISE: A robot-assisted selective disassembly and sorting system for end-of-life phones. *Resources, Conservation and Recycling*, *225*, 108609.",
+    "url": "https://doi.org/10.1016/j.resconrec.2025.108609"
   },
   {
     "key": "liuSINGAPOSingleImage2025",
@@ -122,8 +122,8 @@
   {
     "key": "wangVGGTVisualGeometry2025",
     "short": "Wang et al., 2025",
-    "apa": "Wang, J., Chen, M., Karaev, N., Vedaldi, A., Rupprecht, C., & Novotny, D. (2025). VGGT: Visual geometry grounded transformer. *arXiv*. arXiv:2503.11651.",
-    "url": "https://doi.org/10.48550/ARXIV.2503.11651"
+    "apa": "Wang, J., Chen, M., Karaev, N., Vedaldi, A., Rupprecht, C., & Novotny, D. (2025). VGGT: Visual geometry grounded transformer. In *2025 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)* (pp. 5294–5306). IEEE.",
+    "url": "https://doi.org/10.1109/CVPR52734.2025.00499"
   },
   {
     "key": "wuSCESSurfaceCondition2026",
@@ -134,14 +134,14 @@
   {
     "key": "yuanLARMLargeArticulatedObject2025",
     "short": "Yuan et al., 2025",
-    "apa": "Yuan, S., Shi, R., Wei, X., Zhang, X., Su, H., & Liu, M. (2025). LARM: A large articulated-object reconstruction model. *arXiv*. arXiv:2511.11563.",
-    "url": "https://doi.org/10.48550/ARXIV.2511.11563"
+    "apa": "Yuan, S., Shi, R., Wei, X., Zhang, X., Su, H., & Liu, M. (2025). LARM: A large articulated object reconstruction model. In *Proceedings of the SIGGRAPH Asia 2025 Conference Papers* (pp. 1–12). ACM.",
+    "url": "https://doi.org/10.1145/3757377.3763844"
   },
   {
     "key": "zhangEvaluatingLargeLightweight2026",
     "short": "Zhang et al., 2026",
-    "apa": "Zhang, X., Liu, C., Liang, X., Zheng, M., & Behdad, S. (2026). Evaluating large and lightweight vision models for irregular component segmentation in E-waste disassembly. *arXiv*. arXiv:2603.27441.",
-    "url": "https://doi.org/10.48550/ARXIV.2603.27441"
+    "apa": "Zhang, X., Liu, C., Liang, X., Zheng, M., & Behdad, S. (2026). Evaluating large and lightweight vision models for irregular component segmentation in e-waste disassembly. *Journal of Manufacturing Science and Engineering*, *148*, 101005.",
+    "url": "https://doi.org/10.1115/1.4072143"
   },
   {
     "key": "zhouAnomalyCLIPObjectagnosticPrompt2026",
