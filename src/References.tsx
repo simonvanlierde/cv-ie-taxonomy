@@ -90,7 +90,8 @@ const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 // prefixes another cannot shadow it.
 const MENTION_RE = new RegExp(
   [
-    /([A-ZÀ-Ž][\w'’-]+(?: et al\.| & [A-ZÀ-Ž][\w'’-]+)?),? (\d{4})\b/.source,
+    // a group author can run to two capitalised words ("CTIA Certification 2019")
+    /([A-ZÀ-Ž][\w'’-]+(?: [A-ZÀ-Ž][\w'’-]+)?(?: et al\.| & [A-ZÀ-Ž][\w'’-]+)?),? (\d{4})\b/.source,
     `(?<![\\w-])(${METHODS.map((m) => escapeRe(m.name))
       .sort((a, b) => b.length - a.length)
       .join("|")})(?![\\w-])`,

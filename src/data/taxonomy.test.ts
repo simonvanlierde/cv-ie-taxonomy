@@ -11,8 +11,8 @@ const VERDICTS: Verdict[] = [
   "Absent",
 ];
 const SOURCE_STATUSES: SourceStatus[] = ["Published", "Preprint", "Mixed", "n/a"];
-// bibtex-style key: lowercase author, CamelCase title words, 4-digit year, optional a/b suffix
-const CITE_KEY = /^[a-z][A-Za-z0-9]*\d{4}[a-z]?$/;
+// bibtex-style key: lowercase author (hyphens allowed), CamelCase title words, 4-digit year, optional a/b suffix
+const CITE_KEY = /^[a-z][A-Za-z0-9-]*\d{4}[a-z]?$/;
 
 // every verdict the JSON asserts: top-level cells *and* compound sub-verdicts
 const allMaturities = cells.flatMap((c) => [

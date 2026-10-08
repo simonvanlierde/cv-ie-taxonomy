@@ -61,12 +61,17 @@
       "task": "Product classification, metadata extraction",
       "methodFamily": "OCR + database matching; retrieval / one-shot recognition",
       "maturity": "Partial",
-      "maturityNote": "Validated and deployed in-domain, but degrades materially under EoL capture: label read 95.7% repair -> 90.8% reuse -> 39.7% recycler intake.",
+      "maturityNote": "Validated and deployed in-domain, but degrades materially under EoL capture: label read 95.7% repair -> 90.8% reuse -> 39.7% recycler intake. Two datasets from one research group (the EoL read-rate gradient and the collection-site pilot), not independent replication.",
       "rubricMarks": "B · ✗ᵐ · ✓",
       "hardware": "Edge capture / server-preferred inference",
       "failureMode": "EoL label degradation (damaged, dirty, skewed, distant); database coverage; not autonomous (human-in-the-loop selection).",
-      "example": "Washing-machine label reading on phone and tablet cameras (Sterkens et al. 2023).",
-      "citations": ["sterkensProductLabelIdentification2023"],
+      "example": "Washing-machine label reading on phone and tablet cameras (Sterkens et al. 2023); waste-device model identification in an instrumented sorting cell, 90.3% top-1 over 1,958 models of undamaged devices (Koyanaka & Kobayashi 2024); six-camera take-back-facility retrieval of degraded appliances at waste-category (not model) level, 93.6% accuracy / 88.4% mAP@5 (top-five retrieval precision), instrumented rig (C. Zhou et al. 2025); e-waste sampling-center and distribution-center pilots, model number read from 51.5% and 69.5% of legible label images, 18% of sampled devices unlabeled (Sterkens & Peeters 2024).",
+      "citations": [
+        "sterkensProductLabelIdentification2023",
+        "koyanakaIndividualModelIdentification2024",
+        "zhouMultiviewGraphTransformer2025",
+        "sterkensSelectionReuseWEEE2024"
+      ],
       "sourceStatus": "Published"
     },
     {
@@ -80,11 +85,19 @@
       "rubricMarks": "B · ✗ᵘ · ✗",
       "hardware": "Edge-feasible (monocular depth) / server-preferred (multi-view, generative)",
       "failureMode": "Visible-surface only; residual scale sensitivity to capture metadata; weight compounds geometry x material error.",
-      "example": "Single-image mass estimation (Standley et al. 2017; Lee et al. 2026; Wang et al. 2026).",
+      "example": "Single-image mass estimation (Standley et al. 2017; Lee et al. 2026; Wang et al. 2026). Geometry evidence: monocular metric depth (Hu et al. 2024, Metric3D v2; Bochkovskii et al. 2025, Depth Pro; Yang et al. 2024, Depth Anything V2; R. Wang et al. 2025, MoGe-2); multi-view geometry (J. Wang et al. 2025, VGGT; Keetha et al. 2025, MapAnything); phone depth sensing (Luetzenburg et al. 2021; Hamilton-Fletcher et al. 2024).",
       "citations": [
         "standleyImage2massEstimatingMass2017",
         "leePhysicallyGuidedVisual2026",
-        "wangImage2MassHybridConditionguided2026"
+        "wangImage2MassHybridConditionguided2026",
+        "huMetric3Dv2VersatileMonocular2024",
+        "bochkovskiiDepthProSharp2025",
+        "yangDepthAnythingV22024",
+        "wangMoGe2AccurateMonocular2025",
+        "wangVGGTVisualGeometry2025",
+        "keethaMapAnythingUniversalFeedForward2026",
+        "luetzenburgEvaluationAppleIPhone2021",
+        "hamilton-fletcherAccuracyUsabilitySmartphoneBased2024"
       ],
       "sourceStatus": "Mixed"
     },
@@ -115,13 +128,14 @@
       "rubricMarks": "N · ✗ᵘ · ✗",
       "hardware": "Edge-feasible in principle; validated capability rig-bound",
       "failureMode": "No validation under realistic capture (lighting sensitivity documented); single-class range; deployed triage remains value/material sorting.",
-      "example": "Instrumented laptop-cover A-E grading, 86.7% end-to-end (Wu et al. 2026); smartphone screen severity grading (Mohandas et al. 2025); kiosk device grading, narrow class under instrumented capture (Bowles et al. 2012; Li & Huang 2021). Exterior vehicle damage assessment (Hasan et al. 2025) stays the adjacent-domain anchor.",
+      "example": "Instrumented laptop-cover A-E grading, 86.7% end-to-end (Wu et al. 2026); smartphone screen severity grading (Mohandas et al. 2025); kiosk device grading, narrow class under instrumented capture (Bowles et al. 2012; Li & Huang 2021). Exterior vehicle damage assessment (Hasan et al. 2025) stays the adjacent-domain anchor; industry grading vocabulary for phones and tablets, defect levels in millimeters (CTIA Certification 2019).",
       "citations": [
         "wuSCESSurfaceCondition2026",
         "mohandasDeepLearningEnabled2025",
         "hasanVehicleDamageDetection2025",
         "bowlesKioskRecyclingElectronic2012",
-        "liEnhancedAutomaticCosmetic2021"
+        "liEnhancedAutomaticCosmetic2021",
+        "ctiacertificationWirelessDeviceGrading2019"
       ],
       "sourceStatus": "Published"
     },
@@ -136,8 +150,13 @@
       "rubricMarks": "B · ✗ᵃ · ✗ (close-adjacent benchmark)",
       "hardware": "Edge capture / server-preferred recognition",
       "failureMode": "Missing/degraded markings; out-of-domain weakness of zero-shot recognition.",
-      "example": "Component-marking OCR, as at product scale (Sterkens et al. 2023); open-vocabulary naming (Liu et al. 2025, Grounding DINO).",
-      "citations": ["sterkensProductLabelIdentification2023", "liuGroundingDINOMarrying2025"],
+      "example": "Component-marking OCR, as at product scale (Sterkens et al. 2023); open-vocabulary naming (Liu et al. 2025, Grounding DINO); multi-domain zero-shot weakness, 15.7 mAP (Popov et al. 2025); battery-type classification from markings in battery-sorting-facility photographs, precision 0.98 and recall 0.67 for packs of 300 g or more (0.88 and 0.54 below), context only: a type group, not part identity, with no clean-capture arm (Sterkens et al. 2022).",
+      "citations": [
+        "sterkensProductLabelIdentification2023",
+        "liuGroundingDINOMarrying2025",
+        "popovRoboflow100VLMultiDomainObject2025",
+        "sterkensComputerVisionOptical2022"
+      ],
       "sourceStatus": "Published"
     },
     {
@@ -162,7 +181,7 @@
       "task": "Detection, segmentation, counting, attachment relations (Bill of Components)",
       "methodFamily": "Closed-set / open-set detection; foundation segmentation + class-assignment; (image -> articulation for relations)",
       "maturity": "Partial",
-      "maturityNote": "Detect/segment Partial (~98.8% mAP50 on a narrow benchmark, needs domain tuning; segmentation trained at one waste-sorting facility falls from 56.0 to 45.5 mIoU at another). BoC relations Emerging-but-narrow (relations only for articulated household categories or toy vehicles; graph-topology accuracy also falls from ~82% to ~39% on an unseen dataset of the same kinds).",
+      "maturityNote": "Detect/segment Partial (~98.8% mAP50 on a narrow benchmark, needs domain tuning; segmentation trained at one waste-sorting facility falls from 56.0 to 45.5 mIoU at another). BoC relations Emerging-but-narrow (relations only for articulated household categories or toy vehicles; graph-topology accuracy also falls from ~82% to ~39% on an unseen dataset of the same kinds). The detect/segment sub-verdict rests on a single source: one lab-captured teardown benchmark.",
       "subVerdicts": [
         {
           "label": "Detection / segmentation",
@@ -178,10 +197,11 @@
       "rubricMarks": "detect/seg B · ✗ᵃ · ✗; relations N · ✗ᵘ · ✗",
       "hardware": "Edge (closed-set detect) / server (open-vocab, foundation)",
       "failureMode": "Out-of-domain and zero-shot weakness (needs domain adaptation + class-assignment layer); no general attachment graph.",
-      "example": "E-waste / laptop teardown segmentation (Zhang et al. 2026); cross-facility waste segmentation (Bashkirova et al. 2023); image -> articulation (Liu 2025 SINGAPO; Chen 2024 URDFormer; Yuan 2025 LARM).",
+      "example": "E-waste / laptop teardown segmentation (Zhang et al. 2026); cross-facility waste segmentation (Bashkirova et al. 2023); class-assigning foundation segmentation (Carion et al. 2025, SAM 3); image -> articulation (Liu 2025 SINGAPO; Chen 2024 URDFormer; Yuan 2025 LARM).",
       "citations": [
         "zhangEvaluatingLargeLightweight2026",
         "bashkirovaVisDA2022Challenge2023",
+        "carionSAM3Segment2026",
         "liuSINGAPOSingleImage2025",
         "chenURDFormerPipelineConstructing2024",
         "yuanLARMLargeArticulatedObject2025"
@@ -199,10 +219,14 @@
       "rubricMarks": "C · ✗ᵘ · ✗",
       "hardware": "Server- and cell-bound for demonstrated capability",
       "failureMode": "No validated decentralized per-unit grading; embodied disassembly unreliable (0/20 unaided).",
-      "example": "Robotic disassembly cells (Liu et al. 2026, RAISE; Liu et al. 2025, VLA selective disassembly).",
+      "example": "Robotic disassembly cells (Liu et al. 2026, RAISE; Liu et al. 2025, VLA selective disassembly). Connector-state evidence: requirements level (Saenz et al. 2024); rust grading on lab-corroded screws on test plates (Mandolini et al. 2026); vision-guided screw removal that completed disassembly on 72 of 92 in-scope air-conditioner units (Ishikura et al. 2026); fastener/screw detection for cobot disassembly (Sutradhar et al. 2025).",
       "citations": [
         "liuRAISERobotAssistedSelective2026",
-        "liuVisionLanguageActionModelsSelective2025"
+        "liuVisionLanguageActionModelsSelective2025",
+        "saenzAutomatedDisassemblyEwasterequirements2024",
+        "mandoliniAutomaticAssessmentRust2026",
+        "ishikuraIndustrialGradeRobustRobot2026",
+        "sutradharComputerComponentDisassembly2025"
       ],
       "sourceStatus": "Mixed"
     },
@@ -213,16 +237,18 @@
       "task": "Surface and subsurface material ID (Bill of Materials)",
       "methodFamily": "RGB classification (controlled); one/few-shot similarity (needs mask); few-shot VLM; dense surface segmentation",
       "maturity": "Partial",
-      "maturityNote": "Surface-region ID, controlled conditions only; no quantified composition of what a camera cannot see (interiors, coatings, alloys). The one image-based material-ID sorter precedent (a pilot-scale shredded-WEEE trial) characterizes a de-identified aggregate stream, not a per-unit intact product, so no per-unit deployed precedent exists (deployment gate ✗).",
+      "maturityNote": "Surface-region ID, controlled conditions only; no quantified composition of what a camera cannot see (interiors, coatings, alloys). The one image-based material-ID sorter precedent (a pilot-scale shredded-WEEE trial, Vogelgesang et al. 2025) characterizes a de-identified aggregate stream, not a per-unit intact product, so no per-unit deployed precedent exists (deployment gate ✗).",
       "rubricMarks": "B · ✗ᵃ · ✗ (close-adjacent benchmark: in-the-wild material appearance, not EoL products)",
       "hardware": "Edge (lightweight classifiers) / server (VLM recognizers)",
-      "failureMode": "Multi-material label compositeness (~90% TrashNet -> ~40% MultiWaste); domain shift (historical extreme: a legacy RGB pipeline fell from 100% to ~12–28% overall under hand-held illumination shifts); clutter in realistic scenes.",
-      "example": "Zero-shot VLM material recognition (Funk et al. 2026); controlled RGB material classification (Penumuru et al. 2020); 3D surface material segmentation (Li 2024 MaterialSeg3D; Drehwald 2023).",
+      "failureMode": "Multi-material label compositeness (~90% TrashNet -> ~40% MultiWaste); domain shift (historical extreme: a legacy RGB pipeline fell from 100% to ~12–28% overall at the two hand-held illumination shifts, 0% on up to 3 of 4 classes; a third, robot-arm run at 77 lx kept ~78%); clutter in realistic scenes.",
+      "example": "Zero-shot VLM material recognition (Funk et al. 2026); controlled RGB material classification (Penumuru et al. 2020); 3D surface material segmentation (Li 2024 MaterialSeg3D; Drehwald 2023); circuit-board photographs to a component-level bill of masses, four off-the-shelf boards (Chedotel et al. 2026).",
       "citations": [
         "penumuruIdentificationClassificationMaterials2020",
         "funkEvaluationVisionLanguage2026",
         "liMaterialSeg3DSegmentingDense2024",
-        "drehwaldOneshotRecognitionAny2023"
+        "drehwaldOneshotRecognitionAny2023",
+        "vogelgesangAutomatedMaterialFlow2025",
+        "chedotelAutomatingInventoryLife2026"
       ],
       "sourceStatus": "Mixed"
     },
@@ -268,8 +294,8 @@
       "rubricMarks": "C · ✗ᵘ · ✗",
       "hardware": "Edge / server (as segmentation)",
       "failureMode": "Domain shift; clutter; no validated per-region condition grading.",
-      "example": "Surface / particle segmentation (Li et al. 2024, MaterialSeg3D).",
-      "citations": ["liMaterialSeg3DSegmentingDense2024"],
+      "example": "Surface segmentation (Li et al. 2024, MaterialSeg3D); particle segmentation for size monitoring of crushed aggregates, simulated images (Y. Zhou et al. 2025, ParticleSAM).",
+      "citations": ["liMaterialSeg3DSegmentingDense2024", "zhouParticleSAMSmallParticle2025"],
       "sourceStatus": "Preprint"
     }
   ]

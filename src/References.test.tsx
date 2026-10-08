@@ -61,7 +61,9 @@ describe("CitedProse", () => {
       if (!cell.example || cell.citations.length === 0) continue;
       const { unmount } = render(<CitedProse text={cell.example} citeKeys={cell.citations} />);
       const chipped = screen.getAllByRole("button").map((b) => b.textContent);
-      const mentions = cell.example.match(/[A-Z][\w'’-]+(?: et al\.| & [A-Z][\w'’-]+)?,? \d{4}/g);
+      const mentions = cell.example.match(
+        /[A-Z][\w'’-]+(?: [A-Z][\w'’-]+)?(?: et al\.| & [A-Z][\w'’-]+)?,? \d{4}/g,
+      );
       for (const mention of mentions ?? []) expect(chipped, cell.id).toContain(mention);
       unmount();
     }
@@ -84,7 +86,7 @@ describe("CitedProse", () => {
     const cell = cellAt("Material", "Condition");
     render(<CitedProse text={cell.example ?? ""} citeKeys={cell.citations} />);
     const chips = screen.getAllByRole("button").map((b) => b.textContent);
-    expect(chips).toEqual(["Li et al. 2024"]);
+    expect(chips).toEqual(["Li et al. 2024", "Zhou et al. 2025"]);
   });
 
   it("keeps a chip on each model name when two share one paper", () => {
@@ -102,7 +104,8 @@ describe("CitedProse", () => {
     const chips = screen.getAllByRole("button");
     const popApa = (chip: HTMLElement | undefined) =>
       chip && document.getElementById(chip.getAttribute("popovertarget") as string)?.textContent;
-    expect(chips).toHaveLength(2);
+    // the two Liu papers come first, then the connector-state evidence
+    expect(chips).toHaveLength(6);
     expect(popApa(chips[0])).not.toBe(popApa(chips[1]));
     expect(popApa(chips[0])).toMatch(/RAISE/i);
   });

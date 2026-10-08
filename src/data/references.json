@@ -6,16 +6,40 @@
     "url": "https://proceedings.mlr.press/v220/bashkirova23a.html"
   },
   {
+    "key": "bochkovskiiDepthProSharp2025",
+    "short": "Bochkovskii et al., 2025",
+    "apa": "Bochkovskii, A., Delaunoy, A., Germain, H., Santos, M., Zhou, Y., Richter, S. R., & Koltun, V. (2025). Depth Pro: Sharp monocular metric depth in less than a second. In *The Thirteenth International Conference on Learning Representations*.",
+    "url": "https://openreview.net/forum?id=aueXfY0Clv"
+  },
+  {
     "key": "bowlesKioskRecyclingElectronic2012",
     "short": "Bowles et al., 2012",
     "apa": "Bowles, M. V., Tullie, T. L., Beane, J. A., Ploetner, J., Miller, J., & Vesco, N. (2012). *Kiosk for recycling electronic devices* (U.S. Patent Application Publication No. US20120191562A1). U.S. Patent and Trademark Office.",
     "url": "https://patents.google.com/patent/US20120191562A1/en"
   },
   {
+    "key": "carionSAM3Segment2026",
+    "short": "Carion et al., 2025",
+    "apa": "Carion, N., Gustafson, L., Hu, Y.-T., Debnath, S., Hu, R., Suris, D., Ryali, C., Alwala, K. V., Khedr, H., Huang, A., Lei, J., Ma, T., Guo, B., Kalla, A., Marks, M., Greer, J., Wang, M., Sun, P., Rädle, R., . . . Feichtenhofer, C. (2025). SAM 3: Segment anything with concepts. *arXiv*. arXiv:2511.16719.",
+    "url": "https://doi.org/10.48550/arXiv.2511.16719"
+  },
+  {
+    "key": "chedotelAutomatingInventoryLife2026",
+    "short": "Chedotel et al., 2026",
+    "apa": "Chedotel, B., Marty, T., Berry, F., & Pelcat, M. (2026). Automating inventory for life cycle assessment of computing systems through machine vision (pp. 46–56). IEEE.",
+    "url": "https://doi.org/10.23919/ict4scps00102.2026.00013"
+  },
+  {
     "key": "chenURDFormerPipelineConstructing2024",
     "short": "Chen et al., 2024",
     "apa": "Chen, Q., Walsman, A., Memmel, M., Mo, K., Fang, A., Fox, D., & Gupta, A. (2024). URDFormer: A pipeline for constructing articulated simulation environments from real-world images. In *Proceedings of Robotics: Science and Systems XX*. Robotics: Science and Systems Foundation.",
     "url": "https://doi.org/10.15607/RSS.2024.XX.124"
+  },
+  {
+    "key": "ctiacertificationWirelessDeviceGrading2019",
+    "short": "CTIA Certification, 2019",
+    "apa": "CTIA Certification. (2019). *Wireless device grading scales criteria and definitions* (Version 1.1). CTIA Certification LLC.",
+    "url": "https://api.ctia.org/wp-content/uploads/2020/10/CTIA_Wireless_Device_Grading_Scales_Criteria_and_Definitions_V1.1.pdf"
   },
   {
     "key": "drehwaldOneshotRecognitionAny2023",
@@ -30,6 +54,12 @@
     "url": "https://doi.org/10.1016/j.clwas.2026.100475"
   },
   {
+    "key": "hamilton-fletcherAccuracyUsabilitySmartphoneBased2024",
+    "short": "Hamilton-Fletcher et al., 2024",
+    "apa": "Hamilton-Fletcher, G., Liu, M., Sheng, D., Feng, C., Hudson, T. E., Rizzo, J.-R., & Chan, K. C. (2024). Accuracy and usability of smartphone-based distance estimation approaches for visual assistive technology development. *IEEE Open Journal of Engineering in Medicine and Biology*, *5*, 54–58.",
+    "url": "https://doi.org/10.1109/OJEMB.2024.3358562"
+  },
+  {
     "key": "hasanVehicleDamageDetection2025",
     "short": "Hasan et al., 2025",
     "apa": "Hasan, M. J., Nguyen, C. K., Boo, Y. L., Jahani, H., & Ong, K. L. (2025). Vehicle damage detection using artificial intelligence: A systematic literature review. *WIREs Data Mining and Knowledge Discovery*, *15*(2), e70027.",
@@ -42,10 +72,28 @@
     "url": "https://doi.org/10.1109/TPAMI.2024.3444912"
   },
   {
+    "key": "ishikuraIndustrialGradeRobustRobot2026",
+    "short": "Ishikura et al., 2026",
+    "apa": "Ishikura, T., Matsuda, G., Kiyokawa, T., & Harada, K. (2026). Industrial-grade robust robot vision for screw detection and removal under uneven conditions. *arXiv*. arXiv:2603.29363.",
+    "url": "https://doi.org/10.48550/arXiv.2603.29363"
+  },
+  {
     "key": "jeongWinCLIPZeroFewShot2023",
     "short": "Jeong et al., 2023",
     "apa": "Jeong, J., Zou, Y., Kim, T., Zhang, D., Ravichandran, A., & Dabeer, O. (2023). WinCLIP: Zero-/few-shot anomaly classification and segmentation. In *Proceedings of the IEEE/CVF conference on computer vision and pattern recognition* (pp. 19606–19616).",
     "url": "https://doi.org/10.1109/CVPR52729.2023.01878"
+  },
+  {
+    "key": "keethaMapAnythingUniversalFeedForward2026",
+    "short": "Keetha et al., 2025",
+    "apa": "Keetha, N., Müller, N., Schönberger, J., Porzi, L., Zhang, Y., Fischer, T., Knapitsch, A., Zauss, D., Weber, E., Antunes, N., Luiten, J., Lopez-Antequera, M., Bulò, S. R., Richardt, C., Ramanan, D., Scherer, S., & Kontschieder, P. (2025). MapAnything: Universal feed-forward metric 3D reconstruction. *arXiv*. arXiv:2509.13414.",
+    "url": "https://doi.org/10.48550/arXiv.2509.13414"
+  },
+  {
+    "key": "koyanakaIndividualModelIdentification2024",
+    "short": "Koyanaka & Kobayashi, 2024",
+    "apa": "Koyanaka, S., & Kobayashi, K. (2024). Individual model identification of waste digital devices by the combination of CNN-based image recognition and measured values of mass and 3D shape features. *Journal of Material Cycles and Waste Management*, *26*(4), 2214–2225.",
+    "url": "https://doi.org/10.1007/s10163-024-01961-3"
   },
   {
     "key": "leePhysicallyGuidedVisual2026",
@@ -90,6 +138,18 @@
     "url": "https://doi.org/10.48550/ARXIV.2512.04446"
   },
   {
+    "key": "luetzenburgEvaluationAppleIPhone2021",
+    "short": "Luetzenburg et al., 2021",
+    "apa": "Luetzenburg, G., Kroon, A., & Bjørk, A. A. (2021). Evaluation of the Apple iPhone 12 Pro LiDAR for an application in geosciences. *Scientific Reports*, *11*(1), 22221.",
+    "url": "https://doi.org/10.1038/s41598-021-01763-9"
+  },
+  {
+    "key": "mandoliniAutomaticAssessmentRust2026",
+    "short": "Mandolini et al., 2026",
+    "apa": "Mandolini, M., Manuguerra, L., Dimanche, S., & Formentini, G. (2026). Automatic assessment of rust level on screws using convolutional neural networks. *Proceedings of the Design Society*, *6*, 2443–2452.",
+    "url": "https://doi.org/10.1017/pds.2026.10602"
+  },
+  {
     "key": "mohandasDeepLearningEnabled2025",
     "short": "Mohandas et al., 2025",
     "apa": "Mohandas, R., Southern, M., Fitzpatrick, C., & Hayes, M. (2025). Deep learning enabled computer vision in remanufacturing and refurbishment applications: Defect detection and grading for smart phones. *Journal of Remanufacturing*, *15*(1), 65–95.",
@@ -102,10 +162,28 @@
     "url": "https://doi.org/10.1007/s10845-019-01508-6"
   },
   {
+    "key": "popovRoboflow100VLMultiDomainObject2025",
+    "short": "Popov et al., 2025",
+    "apa": "Popov, M., Robicheaux, P., Madan, A., Robinson, I., Nelson, J., Ramanan, D., & Peri, N. (2025). Roboflow100-VL: A multi-domain object detection benchmark for vision-language models. In *The Thirty-ninth Annual Conference on Neural Information Processing Systems Datasets and Benchmarks Track*.",
+    "url": "https://openreview.net/forum?id=H3cqr50G7Q"
+  },
+  {
+    "key": "saenzAutomatedDisassemblyEwasterequirements2024",
+    "short": "Saenz et al., 2024",
+    "apa": "Saenz, J., Felsch, T., Walter, C., König, T., Poenicke, O., Bayrhammer, E., Vorbröcker, M., Berndt, D., Elkmann, N., & Arlinghaus, J. (2024). Automated disassembly of e-waste: Requirements on modeling of processes and product states. *Frontiers in Robotics and AI*, *11*, 1303279.",
+    "url": "https://doi.org/10.3389/frobt.2024.1303279"
+  },
+  {
     "key": "standleyImage2massEstimatingMass2017",
     "short": "Standley et al., 2017",
     "apa": "Standley, T., Sener, O., Chen, D., & Savarese, S. (2017). Image2mass: Estimating the mass of an object from its image. In *Proceedings of the 1st annual conference on robot learning* (pp. 324–333). PMLR.",
     "url": "https://proceedings.mlr.press/v78/standley17a.html"
+  },
+  {
+    "key": "sterkensComputerVisionOptical2022",
+    "short": "Sterkens et al., 2022",
+    "apa": "Sterkens, W., Diaz-Romero, D. J., Xiao, B., Wu, B., Goedemé, T., Dewulf, W., & Peeters, J. (2022). Computer vision and optical character recognition for the classification of batteries from WEEE. *Procedia CIRP*, *105*, 110–115.",
+    "url": "https://doi.org/10.1016/j.procir.2022.02.019"
   },
   {
     "key": "sterkensProductLabelIdentification2023",
@@ -114,14 +192,38 @@
     "url": "https://doi.org/10.1111/jiec.13279"
   },
   {
+    "key": "sterkensSelectionReuseWEEE2024",
+    "short": "Sterkens & Peeters, 2024",
+    "apa": "Sterkens, W., & Peeters, J. R. (2024). Selection for reuse in WEEE reverse logistics with text-based model identification. *Procedia CIRP*, *122*, 813–818.",
+    "url": "https://doi.org/10.1016/j.procir.2024.01.114"
+  },
+  {
+    "key": "sutradharComputerComponentDisassembly2025",
+    "short": "Sutradhar et al., 2025",
+    "apa": "Sutradhar, S., Llopis, A. M. P., Martín, D. G., Domínguez, G. N., Dias, W. N., Masood, J., & Landín, S. M. (2025). Computer component disassembly using AI-based object detection and collaborative industrial robot for circular management of WEEE. In M. Farmanbar, M. Tzamtzi, K. Schoeffmann, N. Kouvakas, & A. K. Verma (Eds.), *Horizons of AI: Ethical considerations and interdisciplinary engagements* (pp. 395–413). Springer Nature.",
+    "url": "https://doi.org/10.1007/978-981-96-7945-4_25"
+  },
+  {
+    "key": "vogelgesangAutomatedMaterialFlow2025",
+    "short": "Vogelgesang et al., 2025",
+    "apa": "Vogelgesang, M., Kaczmarek, V., Lopes, A. D. C. P., Li, C., Ionescu, E., & Schebek, L. (2025). Automated material flow characterization of WEEE in sorting plants using deep learning and regression models on RGB data. *Waste Management*, *204*, 114904.",
+    "url": "https://doi.org/10.1016/j.wasman.2025.114904"
+  },
+  {
     "key": "wangImage2MassHybridConditionguided2026",
     "short": "Wang et al., 2026",
     "apa": "Wang, H., Liu, H., Lu, X., & Zhang, Z. (2026). Image2Mass++: Hybrid condition-guided mass estimation from a single image. *Measurement*, *260*, 119876.",
     "url": "https://doi.org/10.1016/j.measurement.2025.119876"
   },
   {
+    "key": "wangMoGe2AccurateMonocular2025",
+    "short": "R. Wang et al., 2025",
+    "apa": "Wang, R., Xu, S., Dong, Y., Deng, Y., Xiang, J., Lv, Z., Sun, G., Tong, X., & Yang, J. (2025). MoGe-2: Accurate monocular geometry with metric scale and sharp details. *arXiv*. arXiv:2507.02546.",
+    "url": "https://doi.org/10.48550/arXiv.2507.02546"
+  },
+  {
     "key": "wangVGGTVisualGeometry2025",
-    "short": "Wang et al., 2025",
+    "short": "J. Wang et al., 2025",
     "apa": "Wang, J., Chen, M., Karaev, N., Vedaldi, A., Rupprecht, C., & Novotny, D. (2025). VGGT: Visual geometry grounded transformer. In *2025 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)* (pp. 5294–5306). IEEE.",
     "url": "https://doi.org/10.1109/CVPR52734.2025.00499"
   },
@@ -130,6 +232,12 @@
     "short": "Wu et al., 2026",
     "apa": "Wu, Y., Zhou, C., Sterkens, W., Goedemé, T., Dewulf, W., & Peeters, J. R. (2026). SCES: Surface condition evaluation system for electrical and electronic equipment reuse grading by combining defect detection and segmentation—A case study of laptops. *Resources, Conservation and Recycling*, *225*, 108608.",
     "url": "https://doi.org/10.1016/j.resconrec.2025.108608"
+  },
+  {
+    "key": "yangDepthAnythingV22024",
+    "short": "Yang et al., 2024",
+    "apa": "Yang, L., Kang, B., Huang, Z., Zhao, Z., Xu, X., Feng, J., & Zhao, H. (2024). Depth Anything V2. *arXiv*. arXiv:2406.09414.",
+    "url": "https://doi.org/10.48550/arXiv.2406.09414"
   },
   {
     "key": "yuanLARMLargeArticulatedObject2025",
@@ -148,5 +256,17 @@
     "short": "Zhou et al., 2024",
     "apa": "Zhou, Q., Pang, G., Tian, Y., He, S., & Chen, J. (2024). AnomalyCLIP: Object-agnostic prompt learning for zero-shot anomaly detection. In *12th international conference on learning representations (ICLR 2024)* (pp. 49705–49737). International Conference on Learning Representations (ICLR).",
     "url": "https://doi.org/10.48550/arXiv.2310.18961"
+  },
+  {
+    "key": "zhouMultiviewGraphTransformer2025",
+    "short": "C. Zhou et al., 2025",
+    "apa": "Zhou, C., Wu, Y., Sterkens, W., Vandewalle, P., Zhang, J., & Peeters, J. R. (2025). Multi-view graph transformer for waste of electric and electronic equipment classification and retrieval. *Resources, Conservation and Recycling*, *215*, 108112.",
+    "url": "https://doi.org/10.1016/j.resconrec.2024.108112"
+  },
+  {
+    "key": "zhouParticleSAMSmallParticle2025",
+    "short": "Y. Zhou et al., 2025",
+    "apa": "Zhou, Y., Thielmann, P., Chamoli, A., Mirbach, B., Stricker, D., & Rambach, J. (2025). ParticleSAM: Small particle segmentation for material quality monitoring in recycling processes. *arXiv*. arXiv:2508.03490.",
+    "url": "https://doi.org/10.48550/arXiv.2508.03490"
   }
 ]
