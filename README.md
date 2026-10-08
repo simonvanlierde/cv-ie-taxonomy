@@ -33,7 +33,8 @@ outputs:
 
 Use the annotation chips to inspect each taxonomy cell. Hover to isolate a cell.
 Click to open its task, verdict, failure mode, example, rubric marks, and sources.
-Use arrow keys to move between cells and filter chips to narrow the view.
+With a detail open, arrow keys step to the next cell: within the scale on the
+fan, across the whole matrix in the closing figure.
 
 On mobile, the narrative uses full-screen pages with a fold-away peek sheet.
 
@@ -88,19 +89,30 @@ restore, `inert`, the top layer, real `ResizeObserver` layout. `pnpm
 test:all` runs both; CI does.
 
 Demo deep links: `?cell=component-structure` opens a detail, `?theme=dark|light`
-forces a theme, and `?p=0.56` pins scroll progress for screenshots.
+forces a theme, and `?p=0.56` pins scroll progress for screenshots. Cell ids are
+`<scale>-<information type>` in lower case, e.g. `material-quantity`; invalid
+values are ignored.
+
+Requires Node 26 or later. `pnpm test:browser` needs Chromium once:
+`pnpm exec playwright install chromium`. CI also runs `pnpm check` (Biome) and
+`pnpm check:theme`; after editing `src/theme.ts`, run `pnpm gen:theme`.
 
 ## Embed as an island
 
+The package is not published. Copy `src/` (without the tests) into the host
+project and import the component; it imports its own stylesheet and fonts, so the
+host bundler needs to handle CSS and `.woff2` imports.
+
 ```astro
 ---
-import { CvTaxonomy } from "cv-ie-taxonomy-viz";
+import { CvTaxonomy } from "../cv-ie-taxonomy/CvTaxonomy";
 ---
 <CvTaxonomy client:visible />
 ```
 
 Optional props: `theme: "light" | "dark"` forces a theme over the media-query
-default; `initialCell: string` opens a cell's detail on load.
+default; `initialCell: string` opens a cell's detail on load. `debugProgress` is
+for development only.
 
 ## Assumptions
 

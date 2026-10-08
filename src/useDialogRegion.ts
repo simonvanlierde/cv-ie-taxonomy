@@ -4,8 +4,8 @@ import { type RefObject, useEffect, useRef } from "react";
  * The behaviour `<dialog>` used to give us, for a detail region — with modality
  * as a parameter, because it is a property of the layout rather than of the act.
  *
- * A detail drawn ON the sheet is not modal: the drawing, the filters and the
- * other cells are all still there and still usable, and trapping focus inside
+ * A detail drawn ON the sheet is not modal: the drawing and the other cells
+ * are all still there and still usable, and trapping focus inside
  * the enlargement would stop the reader doing the obvious next thing, which is
  * look at another cell. The callouts are the controls; a modal detail makes the
  * controls unreachable. A detail that *covers* the sheet — the mobile bottom

@@ -806,9 +806,9 @@ export const Outro = memo(function Outro() {
       <Explorable>
         <div className="cvt-foot">
           <p>
-            Maturity of twelve vision tasks, by physical scale and information type. Each block
-            stands as high as its verdict; the dashed rule is Strong, and nothing reaches it.
-            Verdicts come from the paper&rsquo;s Table&nbsp;S2, literature as of{" "}
+            Maturity of ten vision tasks in twelve cells, by physical scale and information type.
+            Each block stands as high as its verdict; the dashed rule is Strong, and nothing reaches
+            it. Verdicts come from the paper&rsquo;s Table&nbsp;S2, literature as of{" "}
             {taxonomy.meta.scanDate}.
           </p>
           <p>
