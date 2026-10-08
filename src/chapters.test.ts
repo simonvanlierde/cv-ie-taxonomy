@@ -47,8 +47,9 @@ describe("chapter prose is backed by taxonomy.json", () => {
 describe("the hero's field split", () => {
   it("states the article's 1 measured / 3 inferred / 4 untested split of eight field-bound rows", async () => {
     const { FIELD_SPLIT } = await import("./CvTaxonomy");
-    expect(FIELD_SPLIT).toContain("Of its eleven verdicts, eight have a method");
+    expect(FIELD_SPLIT).toContain("Eight of the eleven verdicts have a method.");
     expect(FIELD_SPLIT).toContain("fall short for one (product identity)");
-    expect(FIELD_SPLIT).toContain("zero-shot evidence for three, and untested for four.");
+    expect(FIELD_SPLIT).toContain("without task training) for three, and untested for four.");
+    expect(FIELD_SPLIT).toContain("contributor-grade capture");
   });
 });

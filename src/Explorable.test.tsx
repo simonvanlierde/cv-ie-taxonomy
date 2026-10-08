@@ -14,7 +14,7 @@ describe("Explorable", () => {
     // inline detail is present, still no modal dialog; the prompt has done its job
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(screen.queryByText(/select a cell/i)).not.toBeInTheDocument();
-    expect(screen.getByText(/where it breaks/i)).toBeInTheDocument();
+    expect(screen.getByText(/where it fails/i)).toBeInTheDocument();
   });
 
   it("names the selected cell in the inline detail (scale · info type and task)", async () => {
@@ -95,7 +95,7 @@ describe("Explorable", () => {
     expect(region).toHaveTextContent("Partial and Emerging-but-narrow");
     // the relations sub-task is Emerging-but-narrow: its handling is "do not
     // populate", which must not be flattened into Partial's "verify"
-    expect(region).toHaveTextContent(/BoC attachment relations: Treat as unavailable/);
+    expect(region).toHaveTextContent(/BoC attachment relations: Treat it as unavailable/);
   });
 
   it("closes on its own close control", async () => {
