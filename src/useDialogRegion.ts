@@ -117,7 +117,13 @@ export function useDialogRegion({
     // inside the region (a citation) is in the top layer and takes its own press.
     // Scoped like Esc, and for the same reason: two details can be open at once
     // on the sheet, and one press must close only the one the reader is in.
+    // Decided on pointerdown, acted on at click: the press must start while the
+    // reader is in the region (pressing open ground moves focus to <body> before
+    // the click arrives), but closing only on the up-event means a press that
+    // turns into a scroll or drag (pointercancel, no click) closes nothing.
+    let armed = false;
     const onPointerDown = (e: PointerEvent) => {
+      armed = false;
       const target = e.target as Element | null;
       if (!region.contains(document.activeElement)) return;
       if (!target || region.contains(target) || hasOpenPopover(region)) return;
@@ -127,15 +133,27 @@ export function useDialogRegion({
         )
       )
         return;
+      armed = true;
+    };
+    const disarm = () => {
+      armed = false;
+    };
+    const onOutsideClick = () => {
+      if (!armed) return;
+      armed = false;
       onClose();
     };
 
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("pointercancel", disarm);
+    document.addEventListener("click", onOutsideClick);
     if (modal) document.addEventListener("focusin", onFocusIn);
     return () => {
       document.removeEventListener("keydown", onKeyDown);
       document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("pointercancel", disarm);
+      document.removeEventListener("click", onOutsideClick);
       document.removeEventListener("focusin", onFocusIn);
       const opener = returnTo.current ? document.getElementById(returnTo.current) : null;
       // a callout that has since left the stage is tabindex -1 and aria-hidden;

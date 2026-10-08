@@ -25,6 +25,15 @@ function Stepper({ onOpen = () => {} }: { onOpen?: (cell: Cell, focusId?: string
 }
 
 describe("MobileStepper", () => {
+  it("keeps focus on the bar when Back leaves it on the first step", async () => {
+    const user = userEvent.setup();
+    render(<Stepper />);
+    await user.click(screen.getByRole("button", { name: /start/i }));
+    await user.click(screen.getByRole("button", { name: /back/i }));
+    // Back unmounted under the reader's finger; focus moves to Start, not <body>
+    expect(screen.getByRole("button", { name: /start/i })).toHaveFocus();
+  });
+
   it("starts on the intro without Back, announces progress, and reaches the matrix", async () => {
     const user = userEvent.setup();
     const { container } = render(<Stepper />);

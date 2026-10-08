@@ -473,7 +473,8 @@ export function Fan({
   // on something they could barely see.
   const chip = (c: Cell) => {
     const o = presence[c.scale] * (focus && focus.id !== c.id ? 0.45 : 1);
-    return interactive(c) ? Math.max(o, 0.55) : o;
+    // 0.7 keeps dimmed chip text above 4.5:1 on both grounds
+    return interactive(c) ? Math.max(o, 0.7) : o;
   };
   // annotation opacity: strong when its chapter is active, isolated on hover/focus
   const deco = (c: Cell, base = 0.85) =>
@@ -757,7 +758,7 @@ export function Fan({
         <Tag x={fgC[0] - 20} y={fgC[1] - 60} label="steel" color="#9ba7b0" s={ts} />
         <Tag x={blC[0] - 96} y={blC[1] + 26} label="ABS" color="#8b97a3" s={ts} />
         <Tag x={moC[0] + 8} y={moC[1] - 6} label="Cu" color="#b87333" s={ts} />
-        <Tag x={baC[0] - 20} y={baC[1] - 8} label="PCB" color="#2e7d4f" s={ts} />
+        <Tag x={baC[0] - 20} y={baC[1] - 8} label="PCB" color="#3a9460" s={ts} />
       </Layer>
       <Layer opacity={deco(cell("material-condition"))} tap={tapFor("material-condition")}>
         <ellipse className="ov-blob" cx={moC[0] + 42} cy={moC[1] - 24} rx="16" ry="11" />

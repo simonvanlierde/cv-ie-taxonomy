@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CellList, Hero, IllustrativeDisclosure, MaturityKey, Outro } from "./CvTaxonomy";
 import { CHAPTER_COPY } from "./chapters";
 import { SCALES } from "./data/taxonomy";
@@ -71,6 +71,14 @@ export function MobileStepper({
   const labels = ["Intro", ...SCALES, "Matrix"];
   // paging morphs the camera between step frames (reduced motion cuts)
   const viewBox = useCamera(STEP_FRAMES[Math.min(step, 3)] ?? INTRO_FRAME, reduceMotion);
+  // Back leaves the bar on the first step and Next on the last; the button the
+  // reader just pressed unmounts and focus would drop to <body>. Hand it to the
+  // button that remains.
+  const navRef = useRef<HTMLElement>(null);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: runs after each step change, reading only the DOM
+  useEffect(() => {
+    if (document.activeElement === document.body) navRef.current?.querySelector("button")?.focus();
+  }, [step]);
 
   return (
     <div className="cvt-stepper" inert={inert}>
@@ -132,11 +140,8 @@ export function MobileStepper({
               type="button"
               className="cvt-sheet-toggle"
               aria-expanded={!sheetCollapsed}
-              aria-label={
-                sheetCollapsed
-                  ? `Show the text for ${CHAPTER_COPY[scale].title}`
-                  : "Hide the text, show the fan"
-              }
+              // one stable name; aria-expanded carries the open/closed state
+              aria-label={`Text for ${CHAPTER_COPY[scale].title}`}
               onClick={() => setCollapsed((c) => !c)}
             >
               {sheetCollapsed && (
@@ -170,7 +175,7 @@ export function MobileStepper({
         )}
       </div>
 
-      <nav className="cvt-stepper-nav" aria-label="Section navigation">
+      <nav className="cvt-stepper-nav" aria-label="Section navigation" ref={navRef}>
         {step > 0 ? (
           <button
             type="button"

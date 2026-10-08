@@ -526,7 +526,6 @@
   font-size: var(--cvt-t-1);
   line-height: 1.35;
   letter-spacing: 0.04em;
-  opacity: 0.78;
   pointer-events: none;
 }
 /* the field's foot: the scale bar and the disclosure on one ruled line */
@@ -1063,7 +1062,8 @@
   overflow: hidden;
 }
 .cvt-foot {
-  font-family: var(--cvt-mono);
+  /* paragraphs, so the reading face: mono stays for labels */
+  font-family: var(--cvt-sans);
   font-size: var(--cvt-t-2);
   line-height: 1.6;
   color: var(--cvt-ink-dim);
@@ -1363,6 +1363,7 @@
   border-top: 1px solid var(--cvt-line);
 }
 .cvt-stepper-btn {
+  white-space: nowrap;
   font-family: var(--cvt-mono);
   font-size: var(--cvt-t-2);
   padding: 0.5rem 0.95rem;

@@ -452,7 +452,7 @@ export function CvTaxonomy({
                             type="button"
                             data-active={chapter === s}
                             aria-current={chapter === s ? "true" : undefined}
-                            onClick={() => goToScale(s)}
+                            onClick={() => goToScale(s, !reduceMotion)}
                           >
                             {s}
                           </button>
