@@ -49,6 +49,7 @@ export function Explorable({ children }: { children?: ReactNode }) {
     open: selected !== null,
     onClose: close,
     returnFocusTo: openerId.current,
+    contentKey: selected?.id,
   });
 
   return (

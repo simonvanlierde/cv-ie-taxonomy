@@ -74,6 +74,30 @@ describe("Explorable", () => {
     expect(cell).toHaveFocus();
   });
 
+  it("moves focus into the detail when another bay is clicked, so Esc still closes it", async () => {
+    const user = userEvent.setup();
+    render(<Explorable />);
+
+    await user.click(screen.getByRole("button", { name: /component · quantity/i }));
+    await user.click(screen.getByRole("button", { name: /material · identity/i }));
+    expect(screen.getByRole("complementary", { name: /material · identity/i })).toHaveFocus();
+
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
+  });
+
+  it("gives a compound cell both verdicts and each sub-task's own handling", async () => {
+    const user = userEvent.setup();
+    render(<Explorable />);
+
+    await user.click(screen.getByRole("button", { name: /component · structure/i }));
+    const region = screen.getByRole("complementary", { name: /component · structure/i });
+    expect(region).toHaveTextContent("Partial and Emerging-but-narrow");
+    // the relations sub-task is Emerging-but-narrow: its handling is "do not
+    // populate", which must not be flattened into Partial's "verify"
+    expect(region).toHaveTextContent(/BoC attachment relations: Treat as unavailable/);
+  });
+
   it("closes on its own close control", async () => {
     const user = userEvent.setup();
     render(<Explorable />);

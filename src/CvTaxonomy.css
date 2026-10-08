@@ -1581,6 +1581,19 @@
   color: var(--cvt-ink);
   margin-right: 0.2rem;
 }
+/* each sub-verdict's gloss, on its own line under the mono label */
+.cvt-subverdicts span {
+  display: block;
+  margin-top: 0.15rem;
+  font-family: var(--cvt-sans);
+  line-height: 1.4;
+}
+.cvt-handling {
+  display: block;
+}
+.cvt-handling + .cvt-handling {
+  margin-top: 0.4rem;
+}
 .cvt-panel-grid {
   margin: 0;
   display: grid;
@@ -2482,4 +2495,14 @@
    it to 3.25:1 on the panel, under the 4.5:1 floor for 11px type */
 .cvt-circuit-seg[data-state="dead"] b {
   color: var(--cvt-ink-dim);
+}
+
+/* visually hidden, still read by screen readers */
+.cvt-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }

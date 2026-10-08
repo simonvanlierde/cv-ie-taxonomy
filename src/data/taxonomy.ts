@@ -46,3 +46,11 @@ export function splitOf(cell: Cell): readonly [Verdict, Verdict] | undefined {
   if (!first || !second || rest.length > 0) return undefined;
   return [first.maturity, second.maturity];
 }
+
+/** The verdict as words, both sub-verdicts for a compound cell. */
+export const maturityName = (cell: Cell) => splitOf(cell)?.join(" and ") ?? cell.maturity;
+
+/** A cell's task as a heading or label; the two structurally empty cells have
+ *  no task of their own, and "(structurally empty)" is not a name. */
+export const taskName = (cell: Cell) =>
+  cell.structurallyEmpty ? "Structurally empty: answered at the component scale" : cell.task;

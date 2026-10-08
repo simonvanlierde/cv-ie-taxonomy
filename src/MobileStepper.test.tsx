@@ -91,11 +91,12 @@ describe("MobileStepper", () => {
     await user.click(container.querySelector(".cvt-stepper-next") as HTMLButtonElement);
     await user.click(container.querySelector(".cvt-sheet-toggle") as HTMLButtonElement);
     expect(screen.getByText("P / E")).toBeInTheDocument();
+    // both the cell row and the fan's tap target name the two verdicts
     expect(
-      screen.getByRole("button", {
+      screen.getAllByRole("button", {
         name: /component · structure.*partial and emerging-but-narrow/i,
       }),
-    ).toBeInTheDocument();
+    ).toHaveLength(2);
   });
 
   it("arrives folded to its title, opens, and holds the reader's choice across steps", async () => {

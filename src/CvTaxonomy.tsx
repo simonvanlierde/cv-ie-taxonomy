@@ -17,8 +17,10 @@ import {
   cells,
   INFO_TYPES,
   maturityLevel,
+  maturityName,
   SCALES,
   splitOf,
+  taskName,
   taxonomy,
   VERDICT_LETTER,
 } from "./data/taxonomy";
@@ -919,6 +921,9 @@ function ShareLink({ cellId }: { cellId: string }) {
     const url = new URL(location.href);
     url.searchParams.set("cell", cellId);
     url.searchParams.delete("p");
+    // a fragment (#cvt-matrix after the skip link) would race the deep link's
+    // own scroll on load and can close the detail it opens
+    url.hash = "";
     try {
       if (typeof navigator.share === "function") {
         await navigator.share({ url: url.href });
@@ -933,9 +938,15 @@ function ShareLink({ cellId }: { cellId: string }) {
     }
   };
   return (
-    <button type="button" className="cvt-share" onClick={share}>
-      {copied ? "Copied" : "Copy link"}
-    </button>
+    <>
+      <button type="button" className="cvt-share" onClick={share}>
+        {copied ? "Copied" : typeof navigator.share === "function" ? "Share link" : "Copy link"}
+      </button>
+      {/* the button's own text change is not announced; this is */}
+      <span className="cvt-sr" role="status">
+        {copied ? "Link copied" : ""}
+      </span>
+    </>
   );
 }
 
@@ -989,7 +1000,7 @@ function DetailRegion({
   /** only the mobile sheet, which covers the drawing it belongs to */
   modal?: boolean;
 }) {
-  const ref = useDialogRegion({ open: true, onClose, returnFocusTo, modal });
+  const ref = useDialogRegion({ open: true, onClose, returnFocusTo, modal, contentKey: cell.id });
   const shared = {
     className: compact ? "cvt-detail cvt-detail-sheet" : "cvt-detail",
     "aria-label": `${cell.scale} · ${cell.informationType}`,
@@ -1024,7 +1035,7 @@ function DetailPanel({
     <>
       <div className="cvt-panel-head">
         <div>
-          <h2>{cell.task}</h2>
+          <h2>{taskName(cell)}</h2>
           {/* under the title, not over it: the same words above a heading are a
               kicker, and this names which cell of the sheet the detail enlarges */}
           <p className="cvt-panel-scale">
@@ -1053,6 +1064,9 @@ function DetailPanel({
 
 export function DetailBody({ cell }: { cell: Cell }) {
   const level = maturityLevel(cell.maturity);
+  // a compound cell states both verdicts, and each sub-task keeps its own
+  // handling: the weaker one's "do not populate" must not read as "verify"
+  const split = splitOf(cell);
   const mentionsEol = [cell.maturityNote, cell.failureMode, cell.example].some((value) =>
     value?.includes("EoL"),
   );
@@ -1065,12 +1079,15 @@ export function DetailBody({ cell }: { cell: Cell }) {
         </p>
       )}
       <div className="cvt-verdict">
-        <VerdictSwatch verdict={cell.maturity} size={34} />
+        <VerdictSwatch verdict={cell.maturity} split={split} size={34} />
         <div>
           <strong>
-            {VERDICT_LETTER[cell.maturity]}: {cell.maturity}
+            {split
+              ? split.map((v) => VERDICT_LETTER[v]).join(" / ")
+              : VERDICT_LETTER[cell.maturity]}
+            : {maturityName(cell)}
           </strong>
-          <span>{level.gloss}</span>
+          {!split && <span>{level.gloss}</span>}
         </div>
       </div>
 
@@ -1079,6 +1096,7 @@ export function DetailBody({ cell }: { cell: Cell }) {
           {cell.subVerdicts.map((s) => (
             <li key={s.label}>
               <b>{VERDICT_LETTER[s.maturity]}</b> {s.label}: {s.maturity}
+              <span>{maturityLevel(s.maturity).gloss}</span>
             </li>
           ))}
         </ul>
@@ -1121,7 +1139,18 @@ export function DetailBody({ cell }: { cell: Cell }) {
           {/* the paper's own notation, for a reader checking against Table S2; the
               run above already glosses each mark, so the key stays with the table */}
           <Row label={RUBRIC_LABEL} value={<span className="cvt-mono">{cell.rubricMarks}</span>} />
-          <Row label="Handling the output" value={level.handling} />
+          <Row
+            label="Handling the output"
+            value={
+              cell.subVerdicts
+                ? cell.subVerdicts.map((s) => (
+                    <span className="cvt-handling" key={s.label}>
+                      {s.label}: {maturityLevel(s.maturity).handling}
+                    </span>
+                  ))
+                : level.handling
+            }
+          />
         </dl>
       </details>
 

@@ -41,6 +41,7 @@ export function useDialogRegion({
   onClose,
   returnFocusTo,
   modal = false,
+  contentKey,
 }: {
   open: boolean;
   onClose: () => void;
@@ -48,6 +49,9 @@ export function useDialogRegion({
   returnFocusTo: string | null;
   /** true only when the region covers what it belongs to (the mobile sheet) */
   modal?: boolean;
+  /** what the region shows (a cell id): swapping it in place re-runs the
+   *  open step, so focus moves into the new content and Esc reaches it */
+  contentKey?: string;
 }): RefObject<HTMLElement | null> {
   const ref = useRef<HTMLElement>(null);
   // read inside the cleanup, so a re-render between open and close cannot
@@ -55,6 +59,7 @@ export function useDialogRegion({
   const returnTo = useRef(returnFocusTo);
   returnTo.current = returnFocusTo;
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: contentKey is not read in the body; it re-runs the effect when the content swaps
   useEffect(() => {
     const region = ref.current;
     if (!open || !region) return;
@@ -150,7 +155,7 @@ export function useDialogRegion({
       // the scroll timeline — on its way back
       if (wasOurs) ((operable && opener) || document.body).focus?.({ preventScroll: true });
     };
-  }, [open, onClose, modal]);
+  }, [open, onClose, modal, contentKey]);
 
   return ref;
 }

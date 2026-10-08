@@ -1,5 +1,5 @@
 import { type ReactNode, useId } from "react";
-import { cellById as cell, VERDICT_LETTER } from "./data/taxonomy";
+import { cellById as cell, maturityName, taskName, VERDICT_LETTER } from "./data/taxonomy";
 import type { Cell } from "./data/types";
 import { type Frame, frameToViewBox, VIEW } from "./frames";
 import { SCALE_VAR, SEG_VAR as SEG } from "./theme";
@@ -210,7 +210,7 @@ function Layer({
       role="button"
       tabIndex={active ? 0 : -1}
       aria-hidden={!active}
-      aria-label={`${c.scale} · ${c.informationType}: ${c.task}. Maturity: ${c.maturity}. Open details.`}
+      aria-label={`${c.scale} · ${c.informationType}: ${taskName(c)}. Maturity: ${maturityName(c)}. Open details.`}
       style={{ opacity, pointerEvents: active ? "auto" : "none" }}
       onClick={() => onSelect(c, hid)}
       onKeyDown={(e) => {
@@ -352,7 +352,7 @@ function Callout({
       data-selected={selected}
       role="button"
       tabIndex={focusable ? 0 : -1}
-      aria-label={`${cell.scale} · ${cell.informationType}: ${cell.task}. Maturity: ${cell.maturity}. Open details.`}
+      aria-label={`${cell.scale} · ${cell.informationType}: ${taskName(cell)}. Maturity: ${maturityName(cell)}. Open details.`}
       aria-hidden={!focusable}
       transform={`translate(${X} ${y})`}
       style={{

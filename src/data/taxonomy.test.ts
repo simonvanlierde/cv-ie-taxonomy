@@ -79,6 +79,25 @@ describe("taxonomy data layer (mirrors the review article's Table S2)", () => {
     }
   });
 
+  it("every verdict follows from its rubric marks by the ladder", () => {
+    const ladder = (r: ReturnType<typeof runsOf>[number]): Verdict =>
+      r.evidence === "B"
+        ? r.capture === "pass" && r.deployed === "pass"
+          ? "Strong"
+          : "Partial"
+        : r.evidence === "N"
+          ? "Emerging-but-narrow"
+          : r.evidence === "C"
+            ? "Plausible-but-unvalidated"
+            : "Absent";
+    for (const c of cells) {
+      if (c.structurallyEmpty) continue;
+      const runs = runsOf(c);
+      const expected = c.subVerdicts?.map((s) => s.maturity) ?? [c.maturity];
+      expect(runs.map(ladder), c.id).toEqual(expected);
+    }
+  });
+
   it("exposes the five-level maturity legend", () => {
     expect(taxonomy.meta.maturityLevels.map((m) => m.verdict)).toEqual(VERDICTS);
   });
