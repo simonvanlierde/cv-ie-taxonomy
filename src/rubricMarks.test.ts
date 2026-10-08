@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cells } from "./data/taxonomy";
+import { cells, splitOf } from "./data/taxonomy";
 import { runsOf } from "./rubricMarks";
 
 const byId = (id: string) => {
@@ -49,5 +49,18 @@ describe("rubric marks", () => {
   it("finds no completed run anywhere in the taxonomy", () => {
     const completed = cells.flatMap(runsOf).filter((r) => r.completes);
     expect(completed).toEqual([]);
+  });
+});
+
+describe("edge cases", () => {
+  it("keeps a run whole when its note contains a semicolon", () => {
+    const cell = { ...byId("product-quantity"), rubricMarks: "B · ✗ᵃ · ✗ (was; N · ✓ · ✓)" };
+    expect(runsOf(cell)).toHaveLength(1);
+  });
+
+  it("orders a split stronger-first whatever the data order", () => {
+    const base = byId("component-structure");
+    const reversed = { ...base, subVerdicts: [...(base.subVerdicts ?? [])].reverse() };
+    expect(splitOf(reversed)).toEqual(["Partial", "Emerging-but-narrow"]);
   });
 });

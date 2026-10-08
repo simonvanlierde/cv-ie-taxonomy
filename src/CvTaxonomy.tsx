@@ -343,7 +343,11 @@ export function CvTaxonomy({
       if (!step || e.altKey || e.metaKey || e.ctrlKey) return;
       // scoped to the drawing and its docked detail; act two has its own
       const t = e.target as HTMLElement | null;
-      if (!t?.closest(".cvt-detail, .cvt-fan") || t.closest("input, textarea, select")) return;
+      if (
+        !t?.closest(".cvt-detail, .cvt-fan") ||
+        t.closest("input, textarea, select, dialog, [popover]")
+      )
+        return;
       const ring = cells.filter((c) => c.scale === selected.scale);
       const i = ring.findIndex((c) => c.id === selected.id);
       const next = ring[(i + step + ring.length) % ring.length];
@@ -467,7 +471,10 @@ export function CvTaxonomy({
                     </ol>
                   </div>
                   <div className="cvt-hud-foot">
-                    <MaturityInstrument live={CLAIMED_VERDICTS} reading={focus?.maturity ?? null} />
+                    <MaturityInstrument
+                      live={CLAIMED_VERDICTS}
+                      reading={focus ? (splitOf(focus) ?? [focus.maturity]).join("|") : ""}
+                    />
                     <IllustrativeDisclosure />
                   </div>
                 </div>
@@ -611,9 +618,11 @@ const MaturityInstrument = memo(function MaturityInstrument({
   reading,
 }: {
   live: Set<Verdict>;
-  /** the verdict of the cell under the pointer or focus: an instrument reads
-   *  the thing being pointed at, so its rung lights while the chip is hot */
-  reading: Verdict | null;
+  /** the verdicts of the cell under the pointer or focus, "|"-joined (a string
+   *  so the memo holds across scroll frames): an instrument reads the thing
+   *  being pointed at, so its rungs light while the chip is hot, both rungs for
+   *  a split cell */
+  reading: string;
 }) {
   return (
     <div className="cvt-instrument" aria-hidden>
@@ -624,7 +633,7 @@ const MaturityInstrument = memo(function MaturityInstrument({
           key={level.verdict}
           data-claimed={live.has(level.verdict)}
           data-verdict={level.letter}
-          data-reading={reading === level.verdict}
+          data-reading={reading.split("|").includes(level.verdict)}
         >
           {/* an unreached rung is hollow, so it takes no fill at all rather than
               a fill the stylesheet has to override */}

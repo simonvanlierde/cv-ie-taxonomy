@@ -1739,6 +1739,8 @@
   font-family: var(--cvt-sans);
   font-size: var(--cvt-t-2);
   line-height: 1.3;
+  /* a standalone chip is a 24px target (WCAG 2.5.8); inline ones in prose are exempt */
+  min-height: 24px;
 }
 .cvt-cite-chip:hover {
   color: var(--cvt-ink);

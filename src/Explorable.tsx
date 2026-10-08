@@ -35,7 +35,8 @@ export function Explorable({ children }: { children?: ReactNode }) {
       if (!step || e.altKey || e.metaKey || e.ctrlKey) return;
       // scoped to the instrument: focus in its bays or its detail
       const t = e.target as HTMLElement | null;
-      if (!t?.closest(".cvt-explorable") || t.closest("input, textarea, select")) return;
+      if (!t?.closest(".cvt-explorable") || t.closest("input, textarea, select, dialog, [popover]"))
+        return;
       const i = cells.findIndex((c) => c.id === selected.id);
       const next = cells[(i + step + cells.length) % cells.length];
       if (!next) return;

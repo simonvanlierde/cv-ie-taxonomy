@@ -83,7 +83,9 @@ function parseRun(printed: string): Run | null {
 /** Every run a cell prints: one, or two for a compound cell. Empty when the row
  *  carries no marks at all (the structurally-empty cells print only `–`). */
 export function runsOf(cell: Cell): Run[] {
+  // parentheticals go before the split, so a "; " inside a note cannot cut a run
   return cell.rubricMarks
+    .replace(/\(.*?\)/g, "")
     .split(";")
     .map((r) => parseRun(r))
     .filter((r): r is Run => r !== null);
