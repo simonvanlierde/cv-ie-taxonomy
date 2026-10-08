@@ -2545,3 +2545,9 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+/* drawn chevrons sit on the text's x-height, not its baseline */
+.cvt-chevron {
+  display: inline-block;
+  vertical-align: -0.1em;
+}

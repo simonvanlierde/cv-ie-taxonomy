@@ -1,6 +1,13 @@
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useRef, useState } from "react";
-import { CellList, Hero, IllustrativeDisclosure, MaturityKey, Outro } from "./CvTaxonomy";
+import {
+  CellList,
+  ChevronIcon,
+  Hero,
+  IllustrativeDisclosure,
+  MaturityKey,
+  Outro,
+} from "./CvTaxonomy";
 import { CHAPTER_COPY } from "./chapters";
 import { SCALES } from "./data/taxonomy";
 import type { Cell, Scale } from "./data/types";
@@ -158,7 +165,7 @@ export function MobileStepper({
                     to say they were there */}
                 <CellList scale={scale} onOpen={onOpen} />
                 <p className="cvt-step-context-cue" aria-hidden="true">
-                  Context below ↓
+                  Context below <ChevronIcon dir="down" />
                 </p>
                 <p className="cvt-body">{CHAPTER_COPY[scale].body}</p>
               </>
@@ -182,7 +189,7 @@ export function MobileStepper({
             className="cvt-stepper-btn"
             onClick={() => setStep((s) => Math.max(0, s - 1))}
           >
-            <span aria-hidden>‹</span> Back
+            <ChevronIcon dir="left" /> Back
           </button>
         ) : (
           <span className="cvt-stepper-spacer" />
@@ -206,7 +213,7 @@ export function MobileStepper({
             className="cvt-stepper-btn cvt-stepper-next"
             onClick={() => setStep((s) => Math.min(4, s + 1))}
           >
-            {step === 0 ? "Start" : labels[step + 1]} <span aria-hidden>›</span>
+            {step === 0 ? "Start" : labels[step + 1]} <ChevronIcon dir="right" />
           </button>
         ) : (
           <span className="cvt-stepper-spacer" />
