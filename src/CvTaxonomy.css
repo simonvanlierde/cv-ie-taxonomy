@@ -666,6 +666,13 @@
   font-style: normal;
   font-weight: 600;
 }
+.cvt-hero-split {
+  margin: 0 0 1rem;
+  max-width: 46ch;
+  font-size: var(--cvt-t-2);
+  line-height: 1.5;
+  color: var(--cvt-ink);
+}
 .cvt-hero-contract {
   max-width: 46ch;
   margin: 0.75rem 0;

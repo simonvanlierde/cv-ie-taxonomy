@@ -40,6 +40,7 @@ import {
 import { MobileStepper } from "./MobileStepper";
 import { Cite, CitedProse } from "./References";
 import { RubricCircuit } from "./RubricCircuit";
+import { runsOf } from "./rubricMarks";
 import { BREAKPOINT_PX, SCALE_VAR, SURFACE, THEME_VARS, type Theme, VERDICT_VAR } from "./theme";
 import { plateauCentre, TIMELINE } from "./timeline";
 import { useCamera } from "./useCamera";
@@ -653,7 +654,7 @@ const Rail = memo(function Rail({ chapter }: { chapter: Chapter }) {
   return (
     <div className="cvt-rail">
       <section className="cvt-hero" id="cvt-start" tabIndex={-1}>
-        <Hero hint="Click a read-out on the fan to see the evidence." />
+        <Hero hint="Each read-out that appears on the fan opens its evidence." />
         <p className="cvt-scrollhint" aria-hidden>
           scroll to take it apart <span className="cvt-scrollhint-arrow">↓</span>
         </p>
@@ -686,6 +687,37 @@ const Rail = memo(function Rail({ chapter }: { chapter: Chapter }) {
 
 // ---- pieces shared between the desktop rail and the mobile stepper, so the
 // claim-bearing copy and the cell buttons have exactly one source ---------------
+
+const NUMBER_WORD = [
+  "no",
+  "one",
+  "two",
+  "three",
+  "four",
+  "five",
+  "six",
+  "seven",
+  "eight",
+  "nine",
+  "ten",
+  "eleven",
+  "twelve",
+];
+
+/** The field-gate split, counted from the marks rather than typed: of the rows
+ *  where a method exists (evidence B or N), how many have their field
+ *  performance measured, inferred, or untested. */
+export const FIELD_SPLIT = (() => {
+  const runs = cells
+    .flatMap((c) => runsOf(c))
+    .filter((r) => r.evidence === "B" || r.evidence === "N");
+  const n = (basis: string) => NUMBER_WORD[runs.filter((r) => r.basis === basis).length];
+  const rows = cells.reduce(
+    (sum, c) => sum + (c.structurallyEmpty ? 0 : (c.subVerdicts?.length ?? 1)),
+    0,
+  );
+  return `Of its ${NUMBER_WORD[rows]} verdicts, ${NUMBER_WORD[runs.length]} have a method whose performance under contributor-grade capture is measured to fall short for ${n("measured")} (product identity), inferred from adjacent-domain or zero-shot evidence for ${n("inferred")}, and untested for ${n("untested")}.`;
+})();
 
 /** The hero's shared copy: eyebrow, title, sub and maturity legend. `hint` is
  *  the interaction sentence — the desktop rail points at the fan's chips, which
@@ -730,11 +762,12 @@ export function Hero({
         Every verdict comes from the paper&rsquo;s <span className="cvt-cite">Table&nbsp;S2</span>.
         The heavier the square, the stronger the evidence; colour only separates physical scales.
       </p>
+      <p className="cvt-hero-split">{FIELD_SPLIT}</p>
       {disclosureControl}
       <p className="cvt-sub" id={detailsId} hidden={!expanded}>
         Circular-economy research keeps asking cameras to judge discarded products: what is this,
-        what's inside, what's it worth? Here is one worn-out desk fan and the twelve ways computer
-        vision could answer, each judged by how well it works today.
+        what's inside, what's it worth? Here is one worn-out desk fan and the ten tasks computer
+        vision could take on, each judged by how well it works today.
         {hint ? ` ${hint}` : ""}
       </p>
     </>
