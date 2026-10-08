@@ -750,7 +750,15 @@ export function Fan({
         <Tag x={rgC[0] + 96} y={rgC[1] - 50} label="attached-to?" color={SEG.rg} s={ts} />
       </Layer>
       <Layer opacity={deco(cell("component-quantity"))} tap={tapFor("component-quantity")}>
-        <DimH y={moC[1] + 64} x1={moC[0] - 62} x2={moC[0] + 62} label="~ 135 mm" s={ts} />
+        {/* the larger compact label grows upward into the motor box; drop the
+            line by the growth so the text clears the box (bottom at moC + 42) */}
+        <DimH
+          y={moC[1] + 64 + (ts - 1) * 20}
+          x1={moC[0] - 62}
+          x2={moC[0] + 62}
+          label="~ 135 mm"
+          s={ts}
+        />
       </Layer>
       <Layer opacity={deco(cell("component-condition"))} tap={tapFor("component-condition")}>
         <ellipse className="ov-blob" cx={moC[0] - 40} cy={moC[1] + 18} rx="18" ry="12" />
