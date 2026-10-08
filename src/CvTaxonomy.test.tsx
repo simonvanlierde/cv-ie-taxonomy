@@ -116,6 +116,23 @@ describe("detail on the sheet (desktop)", () => {
     expect(screen.queryByRole("complementary", { name: /material · identity/i })).toBeNull();
   });
 
+  it("closes on the browser's Back", async () => {
+    const user = userEvent.setup();
+    render(<CvTaxonomy debugProgress={onStage("Material")} />);
+
+    await user.click(trigger("material-identity"));
+    await screen.findByRole("complementary", { name: /material · identity/i });
+    const entry = history.state?.cvtDetail;
+    expect(entry).toBeTruthy();
+
+    await act(async () => {
+      history.back();
+      await new Promise((r) => setTimeout(r, 50));
+    });
+    expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
+    expect(history.state?.cvtDetail).not.toBe(entry);
+  });
+
   it("closes on a press on the sheet outside it, but not on a press on a control", async () => {
     const user = userEvent.setup();
     const { container } = render(<CvTaxonomy debugProgress={onStage("Material")} />);
@@ -167,7 +184,7 @@ describe("detail on the sheet (desktop)", () => {
 
     const region = await screen.findByRole("complementary", { name: /product · identity/i });
     expect(region.querySelector(".cvt-term-note")).toHaveTextContent(
-      /EoL means end-of-life capture/i,
+      /End-of-life \(EoL\) capture means photos of products after use/i,
     );
   });
 
@@ -407,7 +424,7 @@ describe("panel progressive disclosure", () => {
     const dialog = await screen.findByRole("complementary");
 
     // primary: failure mode is not inside the collapsible
-    const failure = within(dialog).getByText(/where it breaks/i);
+    const failure = within(dialog).getByText(/where it fails/i);
     expect(failure.closest("details")).toBeNull();
 
     // secondary: rubric marks live inside a closed <details>

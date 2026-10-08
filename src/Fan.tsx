@@ -1,5 +1,5 @@
 import { type ReactNode, useId } from "react";
-import { cellById as cell, VERDICT_LETTER } from "./data/taxonomy";
+import { cellById as cell, maturityName, taskName, VERDICT_LETTER } from "./data/taxonomy";
 import type { Cell } from "./data/types";
 import { type Frame, frameToViewBox, VIEW } from "./frames";
 import { SCALE_VAR, SEG_VAR as SEG } from "./theme";
@@ -87,7 +87,7 @@ const CHIP_LAYOUT: {
   { id: "component-identity", x: CHIP_LEFT_EDGE, y: 140, text: "detect > 6 parts" },
   { id: "component-structure", y: 300, text: "segment · attached-to? E", leadEdge: "left" },
   { id: "component-quantity", x: CHIP_LEFT_EDGE, y: 560, text: "dims > motor ~ 135 mm" },
-  { id: "component-condition", x: CHIP_LEFT_EDGE, y: 690, text: "brush wear? (unvalidated)" },
+  { id: "component-condition", x: CHIP_LEFT_EDGE, y: 690, text: "bearing wear? (unvalidated)" },
   // material (drifted parts)
   { id: "material-identity", y: 170, text: "steel · ABS · Cu · PCB", leadEdge: "left" },
   { id: "material-quantity", x: CHIP_LEFT_EDGE, y: 140, text: "mass (derived only)", strike: true },
@@ -115,6 +115,8 @@ const OCR_W = monoWidth(OCR_TEXT, TAG_FONT) + 10;
 // where the same viewBox units render at roughly half the pixels and the tags
 // double as the tap targets for the cell modal.
 
+const tagWidth = (label: string, s = 1) => monoWidth(label, TAG_FONT * s) + 10 * s;
+
 /** YOLO-style class tag: solid colour box, dark text */
 function Tag({
   x,
@@ -129,7 +131,7 @@ function Tag({
   color: string;
   s?: number;
 }) {
-  const w = monoWidth(label, TAG_FONT * s) + 10 * s;
+  const w = tagWidth(label, s);
   return (
     <g className="ov-tag" transform={`translate(${x} ${y})`}>
       <rect width={w} height={TAG_H * s} rx="2" fill={color} />
@@ -210,7 +212,7 @@ function Layer({
       role="button"
       tabIndex={active ? 0 : -1}
       aria-hidden={!active}
-      aria-label={`${c.scale} · ${c.informationType}: ${c.task}. Maturity: ${c.maturity}. Open details.`}
+      aria-label={`${c.scale} · ${c.informationType}: ${taskName(c)}. Maturity: ${maturityName(c)}. Open details.`}
       style={{ opacity, pointerEvents: active ? "auto" : "none" }}
       onClick={() => onSelect(c, hid)}
       onKeyDown={(e) => {
@@ -352,7 +354,8 @@ function Callout({
       data-selected={selected}
       role="button"
       tabIndex={focusable ? 0 : -1}
-      aria-label={`${cell.scale} · ${cell.informationType}: ${cell.task}. Maturity: ${cell.maturity}. Open details.`}
+      // starts with what the chip shows, so a voice user can say what they see
+      aria-label={`${letter} ${text}. ${cell.scale} · ${cell.informationType}: ${taskName(cell)}. Maturity: ${maturityName(cell)}. Open details.`}
       aria-hidden={!focusable}
       transform={`translate(${X} ${y})`}
       style={{
@@ -473,7 +476,8 @@ export function Fan({
   // on something they could barely see.
   const chip = (c: Cell) => {
     const o = presence[c.scale] * (focus && focus.id !== c.id ? 0.45 : 1);
-    return interactive(c) ? Math.max(o, 0.55) : o;
+    // 0.7 keeps dimmed chip text above 4.5:1 on both grounds
+    return interactive(c) ? Math.max(o, 0.7) : o;
   };
   // annotation opacity: strong when its chapter is active, isolated on hover/focus
   const deco = (c: Cell, base = 0.85) =>
@@ -741,15 +745,33 @@ export function Fan({
           className="ov-rel"
           d={`M ${blC[0] + 30} ${blC[1] - 60} Q ${(blC[0] + fgC[0]) / 2 + 80} ${(blC[1] + fgC[1]) / 2} ${fgC[0] + 90} ${fgC[1] + 70}`}
         />
-        <Tag x={rgC[0] + 96} y={rgC[1] - 66} label="attached-to?" color={SEG.rg} s={ts} />
+        {/* below the structure chip's plate, which it sat half under; the chip's
+            leader still lands on the tag's top edge */}
+        <Tag x={rgC[0] + 96} y={rgC[1] - 50} label="attached-to?" color={SEG.rg} s={ts} />
       </Layer>
       <Layer opacity={deco(cell("component-quantity"))} tap={tapFor("component-quantity")}>
-        <DimH y={moC[1] + 64} x1={moC[0] - 62} x2={moC[0] + 62} label="~ 135 mm" s={ts} />
+        {/* the larger compact label grows upward into the motor box; drop the
+            line by the growth so the text clears the box (bottom at moC + 42) */}
+        <DimH
+          y={moC[1] + 64 + (ts - 1) * 20}
+          x1={moC[0] - 62}
+          x2={moC[0] + 62}
+          label="~ 135 mm"
+          s={ts}
+        />
       </Layer>
       <Layer opacity={deco(cell("component-condition"))} tap={tapFor("component-condition")}>
         <ellipse className="ov-blob" cx={moC[0] - 40} cy={moC[1] + 18} rx="18" ry="12" />
-        {/* clear of the motor box's left edge, which sits at moC − 62 */}
-        <Tag x={moC[0] - 190} y={moC[1] + 2} label="anomaly? · 0.6" color={SEG.warn} s={ts} />
+        {/* right edge 6 units clear of the motor box's left edge (moC − 62), at
+            either tag scale: the compact fan's larger tag ran over the box and
+            the dimension under it */}
+        <Tag
+          x={moC[0] - 68 - tagWidth("anomaly? · 0.6", ts)}
+          y={moC[1] + 2}
+          label="anomaly? · 0.6"
+          color={SEG.warn}
+          s={ts}
+        />
       </Layer>
 
       {/* material · identity: material tags on the tinted parts */}
@@ -757,7 +779,7 @@ export function Fan({
         <Tag x={fgC[0] - 20} y={fgC[1] - 60} label="steel" color="#9ba7b0" s={ts} />
         <Tag x={blC[0] - 96} y={blC[1] + 26} label="ABS" color="#8b97a3" s={ts} />
         <Tag x={moC[0] + 8} y={moC[1] - 6} label="Cu" color="#b87333" s={ts} />
-        <Tag x={baC[0] - 20} y={baC[1] - 8} label="PCB" color="#2e7d4f" s={ts} />
+        <Tag x={baC[0] - 20} y={baC[1] - 8} label="PCB" color="#3a9460" s={ts} />
       </Layer>
       <Layer opacity={deco(cell("material-condition"))} tap={tapFor("material-condition")}>
         <ellipse className="ov-blob" cx={moC[0] + 42} cy={moC[1] - 24} rx="16" ry="11" />

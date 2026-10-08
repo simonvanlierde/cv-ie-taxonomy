@@ -35,7 +35,8 @@ export function Explorable({ children }: { children?: ReactNode }) {
       if (!step || e.altKey || e.metaKey || e.ctrlKey) return;
       // scoped to the instrument: focus in its bays or its detail
       const t = e.target as HTMLElement | null;
-      if (!t?.closest(".cvt-explorable") || t.closest("input, textarea, select")) return;
+      if (!t?.closest(".cvt-explorable") || t.closest("input, textarea, select, dialog, [popover]"))
+        return;
       const i = cells.findIndex((c) => c.id === selected.id);
       const next = cells[(i + step + cells.length) % cells.length];
       if (!next) return;
@@ -49,6 +50,7 @@ export function Explorable({ children }: { children?: ReactNode }) {
     open: selected !== null,
     onClose: close,
     returnFocusTo: openerId.current,
+    contentKey: selected?.id,
   });
 
   return (
@@ -59,7 +61,9 @@ export function Explorable({ children }: { children?: ReactNode }) {
       <div className="cvt-explorable-col">
         {!selected && (
           <div className="cvt-explorable-idle">
-            <p className="cvt-inline-prompt">Select a cell to see why, and where it breaks.</p>
+            <p className="cvt-inline-prompt">
+              Select a cell to see why it got its verdict, and where it fails.
+            </p>
             {children}
           </div>
         )}

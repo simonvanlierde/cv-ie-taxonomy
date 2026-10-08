@@ -20,7 +20,7 @@ export interface Run {
   label: string | null;
   evidence: Evidence;
   /** the ✗ superscript's evidentiary basis, if the printed mark carries one */
-  basis: "measured" | "adjacent" | "untested" | null;
+  basis: "measured" | "inferred" | "untested" | null;
   capture: Gate;
   deployed: Gate;
   /** the run reaches the far electrode only at B · ✓ · ✓, which is Strong */
@@ -28,16 +28,16 @@ export interface Run {
 }
 
 const EVIDENCE_TEXT: Record<Evidence, string> = {
-  B: "benchmarked product-general",
+  B: "general method, benchmarked",
   N: "narrow class only",
-  C: "concept or adjacent domain only",
+  C: "concept or neighbouring field only",
   "–": "no method, or derived",
 };
 
 const BASIS_TEXT = {
-  measured: "measured drop under end-of-life capture",
-  adjacent: "inferred from an adjacent domain",
-  untested: "untested under end-of-life capture",
+  measured: "measured drop on end-of-life photos",
+  inferred: "inferred from neighbouring-field or zero-shot evidence",
+  untested: "untested on end-of-life photos",
 } as const;
 
 export const evidenceText = (e: Evidence) => EVIDENCE_TEXT[e];
@@ -45,7 +45,7 @@ export const basisText = (b: Run["basis"]) => (b ? BASIS_TEXT[b] : null);
 
 const BASIS_BY_GLYPH: Record<string, Run["basis"]> = {
   ᵐ: "measured",
-  ᵃ: "adjacent",
+  ᵃ: "inferred",
   ᵘ: "untested",
 };
 
@@ -83,7 +83,9 @@ function parseRun(printed: string): Run | null {
 /** Every run a cell prints: one, or two for a compound cell. Empty when the row
  *  carries no marks at all (the structurally-empty cells print only `–`). */
 export function runsOf(cell: Cell): Run[] {
+  // parentheticals go before the split, so a "; " inside a note cannot cut a run
   return cell.rubricMarks
+    .replace(/\(.*?\)/g, "")
     .split(";")
     .map((r) => parseRun(r))
     .filter((r): r is Run => r !== null);

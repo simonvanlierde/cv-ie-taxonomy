@@ -13,7 +13,7 @@ describe("references", () => {
 
   it("carries no reference nothing cites (regenerate references.json)", () => {
     // a reference earns its place by backing a cell's verdict, or by being the
-    // paper that introduced a model the prose names (Table S4)
+    // paper that introduced a model the prose names (Table S1)
     const used = new Set([...cells.flatMap((c) => c.citations), ...METHODS.map((m) => m.key)]);
     for (const r of REFERENCES) expect(used.has(r.key), r.key).toBe(true);
   });
@@ -61,7 +61,9 @@ describe("CitedProse", () => {
       if (!cell.example || cell.citations.length === 0) continue;
       const { unmount } = render(<CitedProse text={cell.example} citeKeys={cell.citations} />);
       const chipped = screen.getAllByRole("button").map((b) => b.textContent);
-      const mentions = cell.example.match(/[A-Z][\w'’-]+(?: et al\.| & [A-Z][\w'’-]+)?,? \d{4}/g);
+      const mentions = cell.example.match(
+        /[A-Z][\w'’-]+(?: [A-Z][\w'’-]+)?(?: et al\.| & [A-Z][\w'’-]+)?,? \d{4}/g,
+      );
       for (const mention of mentions ?? []) expect(chipped, cell.id).toContain(mention);
       unmount();
     }
@@ -69,7 +71,7 @@ describe("CitedProse", () => {
 
   it("links a named model whose paper the cell's own citations do not include", () => {
     // Table S2's Product · Condition row does not cite WinCLIP or AnomalyCLIP;
-    // Table S4 attributes both, so the names are still one click from their paper
+    // Table S1 attributes both, so the names are still one click from their paper
     const cell = cellAt("Product", "Condition");
     render(<CitedProse text={cell.methodFamily ?? ""} citeKeys={cell.citations} />);
     for (const name of ["WinCLIP", "AnomalyCLIP"]) {
@@ -84,7 +86,7 @@ describe("CitedProse", () => {
     const cell = cellAt("Material", "Condition");
     render(<CitedProse text={cell.example ?? ""} citeKeys={cell.citations} />);
     const chips = screen.getAllByRole("button").map((b) => b.textContent);
-    expect(chips).toEqual(["Li et al. 2024"]);
+    expect(chips).toEqual(["Li et al. 2024", "Zhou et al. 2025"]);
   });
 
   it("keeps a chip on each model name when two share one paper", () => {
@@ -102,7 +104,8 @@ describe("CitedProse", () => {
     const chips = screen.getAllByRole("button");
     const popApa = (chip: HTMLElement | undefined) =>
       chip && document.getElementById(chip.getAttribute("popovertarget") as string)?.textContent;
-    expect(chips).toHaveLength(2);
+    // the two Liu papers come first, then the connector-state evidence
+    expect(chips).toHaveLength(6);
     expect(popApa(chips[0])).not.toBe(popApa(chips[1]));
     expect(popApa(chips[0])).toMatch(/RAISE/i);
   });

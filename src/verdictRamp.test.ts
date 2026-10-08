@@ -35,6 +35,14 @@ describe.each(["light", "dark"] as const)("verdict ramp (%s)", (theme) => {
     }
   });
 
+  it("separates the three steps cells use by at least 2:1 contrast", () => {
+    // Partial → Emerging → Plausible: the steps a reader actually compares
+    for (const [i, step] of steps.slice(2).entries()) {
+      const previous = steps[i + 1] as string;
+      expect(contrast(step, previous)).toBeGreaterThanOrEqual(2);
+    }
+  });
+
   it("keeps the faintest step above a 2:1 contrast floor", () => {
     const faintest = steps.at(-1);
     if (faintest === undefined) throw new Error("the ramp has no steps");

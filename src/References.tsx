@@ -5,7 +5,7 @@
 // internal — they are a reference-manager artifact, never shown to the reader.
 //
 // references.json mirrors the paper's reference library and methods.json the
-// model attributions of its Table S4 (method-family primer): corrections land
+// model attributions of its Table S1 (method-family primer): corrections land
 // in the library and the paper first, then here.
 
 import { type ReactNode, useId } from "react";
@@ -25,7 +25,7 @@ export const REFERENCES = raw as Reference[];
 const BY_KEY = new Map(REFERENCES.map((r) => [r.key, r]));
 
 /** Named models the prose mentions, each pointing at the paper that introduced
- *  it — the paper's own Table S4 attributions. A name may appear in prose the
+ *  it — the paper's own Table S1 attributions. A name may appear in prose the
  *  cell's Table S2 row does not cite (WinCLIP under Product · Condition); that
  *  is the point, and why this map is separate from a cell's citations. */
 export const METHODS = rawMethods as { name: string; key: string }[];
@@ -90,7 +90,8 @@ const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 // prefixes another cannot shadow it.
 const MENTION_RE = new RegExp(
   [
-    /([A-ZÀ-Ž][\w'’-]+(?: et al\.| & [A-ZÀ-Ž][\w'’-]+)?),? (\d{4})\b/.source,
+    // a group author can run to two capitalised words ("CTIA Certification 2019")
+    /([A-ZÀ-Ž][\w'’-]+(?: [A-ZÀ-Ž][\w'’-]+)?(?: et al\.| & [A-ZÀ-Ž][\w'’-]+)?),? (\d{4})\b/.source,
     `(?<![\\w-])(${METHODS.map((m) => escapeRe(m.name))
       .sort((a, b) => b.length - a.length)
       .join("|")})(?![\\w-])`,
@@ -99,7 +100,7 @@ const MENTION_RE = new RegExp(
 );
 
 /** Prose with its citations made clickable: author–year mentions, and the named
- *  models of the paper's Table S4.
+ *  models of the paper's Table S1.
  *
  *  An author–year mention is matched to one of the cell's own citations by
  *  first-author surname and year, consuming them in citation order so two

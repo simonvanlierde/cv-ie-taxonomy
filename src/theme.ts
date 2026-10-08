@@ -41,22 +41,26 @@ export const SURFACE: Record<Theme, string> = {
 
 // Maturity is ordinal, so it rides ink coverage: one ink, monotone in lightness,
 // stepped away from each exposure's own ground. `Absent` is not a step — it is the
-// hollow no-data cell, marked by its dashed stroke. Order here is the encoding;
+// hollow no-data cell, marked by its dashed stroke. Partial, Emerging and
+// Plausible are spaced evenly in contrast (about 2:1 apart on the paper, 2.6:1 on
+// the dark sheet): with the faintest held at 2:1 off the ground there is not
+// room for 3:1 between every neighbour. Strong sits just above Partial, since no
+// cell reaches it. Order here is the encoding;
 // `verdictRamp.test.ts` holds it to that.
 
 export const VERDICT_RAMP: Record<Theme, Record<Verdict, string | null>> = {
   light: {
-    Strong: "#e9f4ff",
-    Partial: "#b5cfe2",
-    "Emerging-but-narrow": "#85a8c3",
-    "Plausible-but-unvalidated": "#6b93b1",
+    Strong: "#f4f9ff",
+    Partial: "#d5e1ec",
+    "Emerging-but-narrow": "#889fb2",
+    "Plausible-but-unvalidated": "#596976",
     Absent: null,
   },
   dark: {
-    Strong: "#cfe3f2",
-    Partial: "#9ab5cb",
-    "Emerging-but-narrow": "#6d8ba5",
-    "Plausible-but-unvalidated": "#4e6c86",
+    Strong: "#f4f9ff",
+    Partial: "#d3dee9",
+    "Emerging-but-narrow": "#758a9b",
+    "Plausible-but-unvalidated": "#3c4851",
     Absent: null,
   },
 };

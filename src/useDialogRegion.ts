@@ -4,8 +4,8 @@ import { type RefObject, useEffect, useRef } from "react";
  * The behaviour `<dialog>` used to give us, for a detail region — with modality
  * as a parameter, because it is a property of the layout rather than of the act.
  *
- * A detail drawn ON the sheet is not modal: the drawing, the filters and the
- * other cells are all still there and still usable, and trapping focus inside
+ * A detail drawn ON the sheet is not modal: the drawing and the other cells
+ * are all still there and still usable, and trapping focus inside
  * the enlargement would stop the reader doing the obvious next thing, which is
  * look at another cell. The callouts are the controls; a modal detail makes the
  * controls unreachable. A detail that *covers* the sheet — the mobile bottom
@@ -41,6 +41,7 @@ export function useDialogRegion({
   onClose,
   returnFocusTo,
   modal = false,
+  contentKey,
 }: {
   open: boolean;
   onClose: () => void;
@@ -48,6 +49,9 @@ export function useDialogRegion({
   returnFocusTo: string | null;
   /** true only when the region covers what it belongs to (the mobile sheet) */
   modal?: boolean;
+  /** what the region shows (a cell id): swapping it in place re-runs the
+   *  open step, so focus moves into the new content and Esc reaches it */
+  contentKey?: string;
 }): RefObject<HTMLElement | null> {
   const ref = useRef<HTMLElement>(null);
   // read inside the cleanup, so a re-render between open and close cannot
@@ -55,6 +59,7 @@ export function useDialogRegion({
   const returnTo = useRef(returnFocusTo);
   returnTo.current = returnFocusTo;
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: contentKey is not read in the body; it re-runs the effect when the content swaps
   useEffect(() => {
     const region = ref.current;
     if (!open || !region) return;
@@ -112,7 +117,13 @@ export function useDialogRegion({
     // inside the region (a citation) is in the top layer and takes its own press.
     // Scoped like Esc, and for the same reason: two details can be open at once
     // on the sheet, and one press must close only the one the reader is in.
+    // Decided on pointerdown, acted on at click: the press must start while the
+    // reader is in the region (pressing open ground moves focus to <body> before
+    // the click arrives), but closing only on the up-event means a press that
+    // turns into a scroll or drag (pointercancel, no click) closes nothing.
+    let armed = false;
     const onPointerDown = (e: PointerEvent) => {
+      armed = false;
       const target = e.target as Element | null;
       if (!region.contains(document.activeElement)) return;
       if (!target || region.contains(target) || hasOpenPopover(region)) return;
@@ -122,15 +133,27 @@ export function useDialogRegion({
         )
       )
         return;
+      armed = true;
+    };
+    const disarm = () => {
+      armed = false;
+    };
+    const onOutsideClick = () => {
+      if (!armed) return;
+      armed = false;
       onClose();
     };
 
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("pointercancel", disarm);
+    document.addEventListener("click", onOutsideClick);
     if (modal) document.addEventListener("focusin", onFocusIn);
     return () => {
       document.removeEventListener("keydown", onKeyDown);
       document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("pointercancel", disarm);
+      document.removeEventListener("click", onOutsideClick);
       document.removeEventListener("focusin", onFocusIn);
       const opener = returnTo.current ? document.getElementById(returnTo.current) : null;
       // a callout that has since left the stage is tabindex -1 and aria-hidden;
@@ -150,7 +173,7 @@ export function useDialogRegion({
       // the scroll timeline — on its way back
       if (wasOurs) ((operable && opener) || document.body).focus?.({ preventScroll: true });
     };
-  }, [open, onClose, modal]);
+  }, [open, onClose, modal, contentKey]);
 
   return ref;
 }

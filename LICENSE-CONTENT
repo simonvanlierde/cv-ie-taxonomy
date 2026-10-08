@@ -1,5 +1,5 @@
 The taxonomy data (src/data/taxonomy.json, mirroring the paper's Table S2),
-the figures in docs/, and the textual/visual content of this project are
+the figures (public/screenshot.png), and the textual/visual content of this project are
 licensed under the Creative Commons Attribution 4.0 International License.
 The full, unmodified license text follows. Source code is licensed
 separately under the MIT License (see LICENSE).

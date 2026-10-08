@@ -44,5 +44,17 @@ export function maturityLevel(verdict: Verdict) {
 export function splitOf(cell: Cell): readonly [Verdict, Verdict] | undefined {
   const [first, second, ...rest] = cell.subVerdicts ?? [];
   if (!first || !second || rest.length > 0) return undefined;
-  return [first.maturity, second.maturity];
+  // stronger first: the matrix stands the block at [0] and rules [1] across it
+  const rank = (v: Verdict) => taxonomy.meta.maturityLevels.findIndex((m) => m.verdict === v);
+  return rank(first.maturity) <= rank(second.maturity)
+    ? [first.maturity, second.maturity]
+    : [second.maturity, first.maturity];
 }
+
+/** The verdict as words, both sub-verdicts for a compound cell. */
+export const maturityName = (cell: Cell) => splitOf(cell)?.join(" and ") ?? cell.maturity;
+
+/** A cell's task as a heading or label; the two structurally empty cells have
+ *  no task of their own, and "(structurally empty)" is not a name. */
+export const taskName = (cell: Cell) =>
+  cell.structurallyEmpty ? "Structurally empty: answered at the component scale" : cell.task;

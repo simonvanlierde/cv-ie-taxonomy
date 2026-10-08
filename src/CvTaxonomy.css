@@ -354,11 +354,18 @@
   outline: 2px solid var(--cvt-ink);
   outline-offset: 3px;
 }
-/* YOLO-style detection boxes + class tags */
+/* YOLO-style detection boxes + class tags. The read-outs are mock values, so
+   they sit a step below the verdict chips that carry the claims: thinner boxes,
+   and hues pulled toward grey. saturate() keeps each hue's lightness, so the
+   dark tag text holds its contrast. */
 .ov-bbox-r {
   fill: none;
   stroke: var(--c, var(--cvt-ink));
-  stroke-width: 2.5;
+  stroke-width: 1.6;
+  filter: saturate(0.5);
+}
+.ov-tag rect {
+  filter: saturate(0.45);
 }
 /* font-size comes from TAG_FONT in Fan.tsx, which also sizes the plate */
 .ov-tag text {
@@ -405,10 +412,11 @@
 /* instance-segmentation mask fills (ride the parts) */
 .ov-segfill {
   fill: var(--c);
-  fill-opacity: 0.36;
+  fill-opacity: 0.22;
   stroke: var(--c);
-  stroke-width: 2.5;
-  stroke-opacity: 0.9;
+  stroke-width: 1.8;
+  stroke-opacity: 0.75;
+  filter: saturate(0.6);
   pointer-events: none;
   transition: opacity 0.25s ease;
 }
@@ -456,12 +464,12 @@
 .cvt-co-bg {
   fill: var(--cvt-panel);
   stroke: var(--hue);
-  stroke-width: 1.2;
+  stroke-width: 2;
   transition: stroke-width 0.15s;
 }
 .cvt-co:hover .cvt-co-bg,
 .cvt-co[data-selected="true"] .cvt-co-bg {
-  stroke-width: 2.4;
+  stroke-width: 3;
 }
 .cvt-co-letter {
   font-family: var(--cvt-display);
@@ -526,7 +534,6 @@
   font-size: var(--cvt-t-1);
   line-height: 1.35;
   letter-spacing: 0.04em;
-  opacity: 0.78;
   pointer-events: none;
 }
 /* the field's foot: the scale bar and the disclosure on one ruled line */
@@ -666,6 +673,13 @@
   color: var(--cvt-ink);
   font-style: normal;
   font-weight: 600;
+}
+.cvt-hero-split {
+  margin: 0 0 1rem;
+  max-width: 46ch;
+  font-size: var(--cvt-t-2);
+  line-height: 1.5;
+  color: var(--cvt-ink);
 }
 .cvt-hero-contract {
   max-width: 46ch;
@@ -956,7 +970,8 @@
   height: 144px;
   /* three lines of clearance under the floor: the split cell's label is the
      longest, and a label that climbs into its own block is unreadable */
-  padding: 0 0 3.4rem;
+  --cvt-mx-floor: 3.4rem;
+  padding: 0 0 var(--cvt-mx-floor);
   background: none;
   border: 0;
   border-left: 0.5px solid var(--cvt-grid);
@@ -972,12 +987,16 @@
 .cvt-mx-cell:last-child {
   border-right: 0.5px solid var(--cvt-grid);
 }
-/* the block stands on the bay floor; its height is the verdict */
+/* the block stands on the bay floor; its height is the verdict, as a share of
+   the floor-to-shelf distance. A bare percentage would resolve against the whole
+   bay, label band included, and draw every block taller than its verdict. */
 .cvt-mx-block {
   position: absolute;
   left: 7px;
   right: 7px;
-  bottom: 3.4rem;
+  bottom: var(--cvt-mx-floor);
+  height: calc(var(--h, 0) * (100% - var(--cvt-mx-floor)));
+  background: var(--fill, none);
   display: block;
 }
 /* a split cell stands at its stronger sub-verdict and rules the weaker one across */
@@ -1006,6 +1025,23 @@
   border-color: var(--cvt-ink);
 }
 /* absence is drawn as open ground with a dashed floor, never as a faint card */
+/* Forced colors drop background fills, and with them the block heights that
+   carry each verdict. Paint the blocks in the system text colour instead: one
+   ink for all, so the height alone ranks them, as it does on screen. */
+@media (forced-colors: active) {
+  .cvt-mx-cell:not([data-ghost="true"]) .cvt-mx-block {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+  .cvt-mx-cell[data-ghost="true"] .cvt-mx-block {
+    forced-color-adjust: none;
+    background: repeating-linear-gradient(-45deg, GrayText 0 1px, transparent 1px 10px);
+  }
+  .cvt-mx-cell[aria-pressed="true"] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+}
 /* Absent carries no ramp step, so its block arrives with no fill; all it needs
    is the dashed floor that says the bay is empty rather than short. */
 .cvt-mx-cell[data-verdict="A"] .cvt-mx-block {
@@ -1041,7 +1077,8 @@
   overflow: hidden;
 }
 .cvt-foot {
-  font-family: var(--cvt-mono);
+  /* paragraphs, so the reading face: mono stays for labels */
+  font-family: var(--cvt-sans);
   font-size: var(--cvt-t-2);
   line-height: 1.6;
   color: var(--cvt-ink-dim);
@@ -1341,6 +1378,7 @@
   border-top: 1px solid var(--cvt-line);
 }
 .cvt-stepper-btn {
+  white-space: nowrap;
   font-family: var(--cvt-mono);
   font-size: var(--cvt-t-2);
   padding: 0.5rem 0.95rem;
@@ -1581,6 +1619,19 @@
   color: var(--cvt-ink);
   margin-right: 0.2rem;
 }
+/* each sub-verdict's gloss, on its own line under the mono label */
+.cvt-subverdicts span {
+  display: block;
+  margin-top: 0.15rem;
+  font-family: var(--cvt-sans);
+  line-height: 1.4;
+}
+.cvt-handling {
+  display: block;
+}
+.cvt-handling + .cvt-handling {
+  margin-top: 0.4rem;
+}
 .cvt-panel-grid {
   margin: 0;
   display: grid;
@@ -1688,6 +1739,8 @@
   font-family: var(--cvt-sans);
   font-size: var(--cvt-t-2);
   line-height: 1.3;
+  /* a standalone chip is a 24px target (WCAG 2.5.8); inline ones in prose are exempt */
+  min-height: 24px;
 }
 .cvt-cite-chip:hover {
   color: var(--cvt-ink);
@@ -1794,10 +1847,9 @@
   /* the name is gone, so the bay needs only a line of clearance under its floor */
   .cvt-mx-cell {
     height: 150px;
-    padding-bottom: 0.4rem;
+    --cvt-mx-floor: 0.4rem;
   }
   .cvt-mx-block {
-    bottom: 0.4rem;
     left: 4px;
     right: 4px;
   }
@@ -1876,7 +1928,7 @@
     width: 100%;
     height: 82vh;
     border-left: none;
-    border-top: 3px solid var(--hue);
+    border-top: 1px solid var(--hue);
     border-radius: 16px 16px 0 0;
     overscroll-behavior: contain;
   }
@@ -2011,6 +2063,8 @@
 .cvt-ruler {
   position: absolute;
   display: flex;
+  /* a reference past the sheet's frame is not on the sheet */
+  overflow: hidden;
 }
 .cvt-ruler-x {
   top: 19px;
@@ -2324,7 +2378,7 @@
   border-left: 0;
   border-right: 0;
   border-bottom: 0;
-  border-top: 3px solid var(--hue);
+  border-top: 1px solid var(--hue);
   /* the phone's own idiom for a surface sliding up over a page — the same
      radius the peek sheet under it carries; the exception stops at the breakpoint */
   border-radius: 16px 16px 0 0;
@@ -2482,4 +2536,20 @@
    it to 3.25:1 on the panel, under the 4.5:1 floor for 11px type */
 .cvt-circuit-seg[data-state="dead"] b {
   color: var(--cvt-ink-dim);
+}
+
+/* visually hidden, still read by screen readers */
+.cvt-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* drawn chevrons sit on the text's x-height, not its baseline */
+.cvt-chevron {
+  display: inline-block;
+  vertical-align: -0.1em;
 }

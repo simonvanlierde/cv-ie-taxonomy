@@ -25,6 +25,15 @@ function Stepper({ onOpen = () => {} }: { onOpen?: (cell: Cell, focusId?: string
 }
 
 describe("MobileStepper", () => {
+  it("keeps focus on the bar when Back leaves it on the first step", async () => {
+    const user = userEvent.setup();
+    render(<Stepper />);
+    await user.click(screen.getByRole("button", { name: /start/i }));
+    await user.click(screen.getByRole("button", { name: /back/i }));
+    // Back unmounted under the reader's finger; focus moves to Start, not <body>
+    expect(screen.getByRole("button", { name: /start/i })).toHaveFocus();
+  });
+
   it("starts on the intro without Back, announces progress, and reaches the matrix", async () => {
     const user = userEvent.setup();
     const { container } = render(<Stepper />);
@@ -46,13 +55,13 @@ describe("MobileStepper", () => {
 
     expect(screen.getAllByText(/no model run/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/every verdict comes from/i)).toBeVisible();
-    expect(screen.queryByText(/circular-economy research keeps asking/i)).not.toBeVisible();
+    expect(screen.queryByText(/research on reuse and recycling/i)).not.toBeVisible();
 
     const toggle = screen.getByRole("button", { name: /how to read this/i });
     expect(toggle).toHaveAttribute("aria-expanded", "false");
     await user.click(toggle);
 
-    expect(screen.getByText(/circular-economy research keeps asking/i)).toBeVisible();
+    expect(screen.getByText(/research on reuse and recycling/i)).toBeVisible();
     expect(screen.getByRole("button", { name: /show less/i })).toHaveAttribute(
       "aria-expanded",
       "true",
@@ -91,11 +100,12 @@ describe("MobileStepper", () => {
     await user.click(container.querySelector(".cvt-stepper-next") as HTMLButtonElement);
     await user.click(container.querySelector(".cvt-sheet-toggle") as HTMLButtonElement);
     expect(screen.getByText("P / E")).toBeInTheDocument();
+    // both the cell row and the fan's tap target name the two verdicts
     expect(
-      screen.getByRole("button", {
+      screen.getAllByRole("button", {
         name: /component · structure.*partial and emerging-but-narrow/i,
       }),
-    ).toBeInTheDocument();
+    ).toHaveLength(2);
   });
 
   it("arrives folded to its title, opens, and holds the reader's choice across steps", async () => {

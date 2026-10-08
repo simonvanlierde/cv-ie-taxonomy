@@ -17,8 +17,10 @@ import {
   cells,
   INFO_TYPES,
   maturityLevel,
+  maturityName,
   SCALES,
   splitOf,
+  taskName,
   taxonomy,
   VERDICT_LETTER,
 } from "./data/taxonomy";
@@ -38,6 +40,7 @@ import {
 import { MobileStepper } from "./MobileStepper";
 import { Cite, CitedProse } from "./References";
 import { RubricCircuit } from "./RubricCircuit";
+import { runsOf } from "./rubricMarks";
 import { BREAKPOINT_PX, SCALE_VAR, SURFACE, THEME_VARS, type Theme, VERDICT_VAR } from "./theme";
 import { plateauCentre, TIMELINE } from "./timeline";
 import { useCamera } from "./useCamera";
@@ -340,7 +343,11 @@ export function CvTaxonomy({
       if (!step || e.altKey || e.metaKey || e.ctrlKey) return;
       // scoped to the drawing and its docked detail; act two has its own
       const t = e.target as HTMLElement | null;
-      if (!t?.closest(".cvt-detail, .cvt-fan") || t.closest("input, textarea, select")) return;
+      if (
+        !t?.closest(".cvt-detail, .cvt-fan") ||
+        t.closest("input, textarea, select, dialog, [popover]")
+      )
+        return;
       const ring = cells.filter((c) => c.scale === selected.scale);
       const i = ring.findIndex((c) => c.id === selected.id);
       const next = ring[(i + step + ring.length) % ring.length];
@@ -355,6 +362,34 @@ export function CvTaxonomy({
   const closeCell = useCallback(() => {
     withViewTransition(() => setSelected(null), !reduceMotion);
   }, [reduceMotion]);
+
+  // An open detail is a place the reader went, so the browser's Back closes it
+  // rather than leaving the page. One history entry per open detail, however
+  // many cells the reader steps through.
+  // NOTE: closing the detail any other way leaves its entry behind, so the next
+  // Back is a no-op. Taking it off with history.back() would restore the scroll
+  // position from when the detail opened, and the detail also closes itself
+  // when the reader scrolls to the matrix, so that would yank the page back.
+  // The entry carries a token of its own, so an entry left by another island
+  // (or an earlier mount) is never mistaken for this one.
+  const historyEntry = useRef<string | null>(null);
+  useEffect(() => {
+    if (selected && !historyEntry.current) {
+      historyEntry.current = `${Date.now()}-${Math.random()}`;
+      history.pushState({ ...history.state, cvtDetail: historyEntry.current }, "");
+    } else if (!selected) {
+      historyEntry.current = null;
+    }
+  }, [selected]);
+  useEffect(() => {
+    const onPop = () => {
+      if (!historyEntry.current || history.state?.cvtDetail === historyEntry.current) return;
+      historyEntry.current = null;
+      closeCell();
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [closeCell]);
 
   // The docked detail belongs to the drawing, and on the wide sheet it is fixed
   // in the margin band — so once the closing figure arrives it would sit over
@@ -450,7 +485,7 @@ export function CvTaxonomy({
                             type="button"
                             data-active={chapter === s}
                             aria-current={chapter === s ? "true" : undefined}
-                            onClick={() => goToScale(s)}
+                            onClick={() => goToScale(s, !reduceMotion)}
                           >
                             {s}
                           </button>
@@ -464,7 +499,10 @@ export function CvTaxonomy({
                     </ol>
                   </div>
                   <div className="cvt-hud-foot">
-                    <MaturityInstrument live={CLAIMED_VERDICTS} reading={focus?.maturity ?? null} />
+                    <MaturityInstrument
+                      live={CLAIMED_VERDICTS}
+                      reading={focus ? (splitOf(focus) ?? [focus.maturity]).join("|") : ""}
+                    />
                     <IllustrativeDisclosure />
                   </div>
                 </div>
@@ -608,9 +646,11 @@ const MaturityInstrument = memo(function MaturityInstrument({
   reading,
 }: {
   live: Set<Verdict>;
-  /** the verdict of the cell under the pointer or focus: an instrument reads
-   *  the thing being pointed at, so its rung lights while the chip is hot */
-  reading: Verdict | null;
+  /** the verdicts of the cell under the pointer or focus, "|"-joined (a string
+   *  so the memo holds across scroll frames): an instrument reads the thing
+   *  being pointed at, so its rungs light while the chip is hot, both rungs for
+   *  a split cell */
+  reading: string;
 }) {
   return (
     <div className="cvt-instrument" aria-hidden>
@@ -621,7 +661,7 @@ const MaturityInstrument = memo(function MaturityInstrument({
           key={level.verdict}
           data-claimed={live.has(level.verdict)}
           data-verdict={level.letter}
-          data-reading={reading === level.verdict}
+          data-reading={reading.split("|").includes(level.verdict)}
         >
           {/* an unreached rung is hollow, so it takes no fill at all rather than
               a fill the stylesheet has to override */}
@@ -651,12 +691,15 @@ const Rail = memo(function Rail({ chapter }: { chapter: Chapter }) {
   return (
     <div className="cvt-rail">
       <section className="cvt-hero" id="cvt-start" tabIndex={-1}>
-        <Hero hint="Click a read-out on the fan to see the evidence." />
+        <Hero hint="Once labels appear on the fan, click one to see its evidence." />
         <p className="cvt-scrollhint" aria-hidden>
-          scroll to take it apart <span className="cvt-scrollhint-arrow">↓</span>
+          scroll to take it apart{" "}
+          <span className="cvt-scrollhint-arrow">
+            <ChevronIcon dir="down" />
+          </span>
         </p>
         <a className="cvt-skip" href="#cvt-matrix">
-          or skip to the matrix
+          or skip to the map
         </a>
       </section>
 
@@ -684,6 +727,41 @@ const Rail = memo(function Rail({ chapter }: { chapter: Chapter }) {
 
 // ---- pieces shared between the desktop rail and the mobile stepper, so the
 // claim-bearing copy and the cell buttons have exactly one source ---------------
+
+const cap = (s = "") => s.charAt(0).toUpperCase() + s.slice(1);
+const NUMBER_WORD = [
+  "no",
+  "one",
+  "two",
+  "three",
+  "four",
+  "five",
+  "six",
+  "seven",
+  "eight",
+  "nine",
+  "ten",
+  "eleven",
+  "twelve",
+];
+
+/** The field-gate split, counted from the marks rather than typed: of the rows
+ *  where a method exists (evidence B or N), how many have their field
+ *  performance measured, inferred, or untested. */
+export const FIELD_SPLIT = (() => {
+  const runs = cells
+    .flatMap((c) => runsOf(c))
+    .filter((r) => r.evidence === "B" || r.evidence === "N");
+  const n = (basis: string) => NUMBER_WORD[runs.filter((r) => r.basis === basis).length];
+  const rows = cells.reduce(
+    (sum, c) => sum + (c.structurallyEmpty ? 0 : (c.subVerdicts?.length ?? 1)),
+    0,
+  );
+  const have = `${cap(NUMBER_WORD[runs.length])} of the ${NUMBER_WORD[rows]} verdicts have a method.`;
+  const capture =
+    "The open question is how it performs under contributor-grade capture: ordinary photos taken by the people who repair, reuse or recycle products.";
+  return `${have} ${capture} That performance is measured to fall short for ${n("measured")} (product identity). It is inferred from neighbouring fields or from zero-shot tests (models used without task training) for ${n("inferred")}, and untested for ${n("untested")}.`;
+})();
 
 /** The hero's shared copy: eyebrow, title, sub and maturity legend. `hint` is
  *  the interaction sentence — the desktop rail points at the fan's chips, which
@@ -726,15 +804,17 @@ export function Hero({
       </h1>
       <p className="cvt-hero-contract">
         Every verdict comes from the paper&rsquo;s <span className="cvt-cite">Table&nbsp;S2</span>.
-        The heavier the square, the stronger the evidence; colour only separates physical scales.
+        The more solid the square, the stronger the evidence. Colour only marks the physical scale.
       </p>
       {disclosureControl}
       <p className="cvt-sub" id={detailsId} hidden={!expanded}>
-        Circular-economy research keeps asking cameras to judge discarded products: what is this,
-        what's inside, what's it worth? Here is one worn-out desk fan and the twelve ways computer
-        vision could answer, each judged by how well it works today.
+        Research on reuse and recycling (the circular economy) keeps asking cameras to judge
+        discarded products. What is this? What&rsquo;s inside? What is it worth? Here is one
+        worn-out desk fan, and ten tasks that computer vision (software that reads images) could
+        take on. Each is judged by how well it works today.
         {hint ? ` ${hint}` : ""}
       </p>
+      <p className="cvt-hero-split">{FIELD_SPLIT}</p>
     </>
   );
 }
@@ -795,10 +875,15 @@ export const Outro = memo(function Outro() {
     // tabIndex -1: the skip link and the rail's "the map" target this id, and a
     // focusable target is where the browser puts focus after the jump — without
     // it a keyboard reader's next Tab started from wherever it was before
-    <section className="cvt-outro" id="cvt-matrix" aria-label="Full taxonomy matrix" tabIndex={-1}>
+    <section
+      className="cvt-outro"
+      id="cvt-matrix"
+      aria-label="The full map of twelve cells"
+      tabIndex={-1}
+    >
       <h2>
-        The honest map is mostly gaps: by the paper's own rubric, no task earns a Strong on worn,
-        real-world products.
+        The honest map is mostly gaps. By the paper&rsquo;s own scoring rules (its rubric), no task
+        earns a Strong on worn, real-world products.
       </h2>
       <MaturityKey />
       {/* the caption and the table twin ride the narrative column beside the
@@ -806,15 +891,15 @@ export const Outro = memo(function Outro() {
       <Explorable>
         <div className="cvt-foot">
           <p>
-            Maturity of twelve vision tasks, by physical scale and information type. Each block
-            stands as high as its verdict; the dashed rule is Strong, and nothing reaches it.
-            Verdicts come from the paper&rsquo;s Table&nbsp;S2, literature as of{" "}
-            {taxonomy.meta.scanDate}.
+            How mature ten vision tasks are, across twelve cells: physical scale by type of
+            information. Each block is as tall as its verdict. The dashed line is Strong, and
+            nothing reaches it. Verdicts come from the paper&rsquo;s Table&nbsp;S2 and cover the
+            literature as of {taxonomy.meta.scanDate}.
           </p>
           <p>
-            Hatched cells have no task of their own: structure is a component-scale question. Two
-            letters mark two sub-tasks; the block stands at the stronger verdict and is ruled across
-            at the weaker.
+            Hatched cells have no task of their own, because structure is a question for the
+            Component scale. Two letters mean two sub-tasks. The block stands at the stronger
+            verdict, with a line across at the weaker one.
           </p>
         </div>
         <TableView />
@@ -919,6 +1004,9 @@ function ShareLink({ cellId }: { cellId: string }) {
     const url = new URL(location.href);
     url.searchParams.set("cell", cellId);
     url.searchParams.delete("p");
+    // a fragment (#cvt-matrix after the skip link) would race the deep link's
+    // own scroll on load and can close the detail it opens
+    url.hash = "";
     try {
       if (typeof navigator.share === "function") {
         await navigator.share({ url: url.href });
@@ -933,9 +1021,15 @@ function ShareLink({ cellId }: { cellId: string }) {
     }
   };
   return (
-    <button type="button" className="cvt-share" onClick={share}>
-      {copied ? "Copied" : "Copy link"}
-    </button>
+    <>
+      <button type="button" className="cvt-share" onClick={share}>
+        {copied ? "Copied" : typeof navigator.share === "function" ? "Share link" : "Copy link"}
+      </button>
+      {/* the button's own text change is not announced; this is */}
+      <span className="cvt-sr" role="status">
+        {copied ? "Link copied" : ""}
+      </span>
+    </>
   );
 }
 
@@ -949,15 +1043,18 @@ const STATUS_LABEL: Record<string, string> = {
 
 // The paper records each cell as an evidence mark and two gates. The marks are
 // opaque on their own, so the key travels with them wherever they are shown.
-const RUBRIC_LABEL = "Rubric marks (E · capture · deployed)";
+// "E" stays off the evidence column: it is already the Emerging-but-narrow letter.
+const RUBRIC_LABEL = "Rubric marks (evidence · field · deployed)";
 
 function RubricKey() {
   return (
     <p className="cvt-rubric-key">
-      <b>E</b> is the evidence mark: <b>B</b> benchmarked product-general, <b>N</b> narrow class
-      only, <b>C</b> concept or adjacent domain only, <b>–</b> no method, or derived. Then two
-      gates, ✓ or ✗: survives end-of-life capture; deployed on the task. A ✗ on capture says why: ✗ᵐ
-      measured drop, ✗ᵃ inferred from an adjacent domain, ✗ᵘ untested.
+      The first mark is the evidence. <b>B</b>: a general method, benchmarked on these or similar
+      products (benchmarked product-general). <b>N</b>: one narrow class only. <b>C</b>: a concept,
+      or shown only in a neighbouring field. <b>–</b>: no method, or worked out from other cells.
+      Then come two gates, each ✓ or ✗. The field gate asks whether it survives end-of-life photos.
+      The deployment gate asks whether it is in use on this task. A ✗ on the field gate says why: ✗ᵐ
+      measured drop, ✗ᵃ inferred from adjacent evidence, ✗ᵘ untested.
     </p>
   );
 }
@@ -988,7 +1085,7 @@ function DetailRegion({
   /** only the mobile sheet, which covers the drawing it belongs to */
   modal?: boolean;
 }) {
-  const ref = useDialogRegion({ open: true, onClose, returnFocusTo, modal });
+  const ref = useDialogRegion({ open: true, onClose, returnFocusTo, modal, contentKey: cell.id });
   const shared = {
     className: compact ? "cvt-detail cvt-detail-sheet" : "cvt-detail",
     "aria-label": `${cell.scale} · ${cell.informationType}`,
@@ -1023,7 +1120,7 @@ function DetailPanel({
     <>
       <div className="cvt-panel-head">
         <div>
-          <h2>{cell.task}</h2>
+          <h2>{taskName(cell)}</h2>
           {/* under the title, not over it: the same words above a heading are a
               kicker, and this names which cell of the sheet the detail enlarges */}
           <p className="cvt-panel-scale">
@@ -1052,24 +1149,30 @@ function DetailPanel({
 
 export function DetailBody({ cell }: { cell: Cell }) {
   const level = maturityLevel(cell.maturity);
+  // a compound cell states both verdicts, and each sub-task keeps its own
+  // handling: the weaker one's "do not populate" must not read as "verify"
+  const split = splitOf(cell);
   const mentionsEol = [cell.maturityNote, cell.failureMode, cell.example].some((value) =>
-    value?.includes("EoL"),
+    /EoL|end-of-life|end of life/i.test(value ?? ""),
   );
   return (
     <>
       {mentionsEol && (
         <p className="cvt-term-note">
-          <abbr title="End-of-life">EoL</abbr> means end-of-life capture: products photographed
-          after use, often damaged, dirty, incomplete, or poorly framed.
+          End-of-life (<abbr title="End-of-life">EoL</abbr>) capture means photos of products after
+          use. They are often damaged, dirty, incomplete or poorly framed.
         </p>
       )}
       <div className="cvt-verdict">
-        <VerdictSwatch verdict={cell.maturity} size={34} />
+        <VerdictSwatch verdict={cell.maturity} split={split} size={34} />
         <div>
           <strong>
-            {VERDICT_LETTER[cell.maturity]}: {cell.maturity}
+            {split
+              ? split.map((v) => VERDICT_LETTER[v]).join(" / ")
+              : VERDICT_LETTER[cell.maturity]}
+            : {maturityName(cell)}
           </strong>
-          <span>{level.gloss}</span>
+          {!split && <span>{level.gloss}</span>}
         </div>
       </div>
 
@@ -1078,6 +1181,7 @@ export function DetailBody({ cell }: { cell: Cell }) {
           {cell.subVerdicts.map((s) => (
             <li key={s.label}>
               <b>{VERDICT_LETTER[s.maturity]}</b> {s.label}: {s.maturity}
+              <span>{maturityLevel(s.maturity).gloss}</span>
             </li>
           ))}
         </ul>
@@ -1090,7 +1194,7 @@ export function DetailBody({ cell }: { cell: Cell }) {
         />
         {cell.failureMode && (
           <Row
-            label="Where it breaks"
+            label="Where it fails"
             value={<CitedProse text={cell.failureMode} citeKeys={cell.citations} />}
             mode="warn"
           />
@@ -1112,15 +1216,26 @@ export function DetailBody({ cell }: { cell: Cell }) {
           )}
           {cell.example && (
             <Row
-              label="Proven nearby"
+              label="Nearby examples"
               value={<CitedProse text={cell.example} citeKeys={cell.citations} />}
             />
           )}
-          {cell.hardware && <Row label="Typical hardware" value={cell.hardware} />}
+          {cell.hardware && <Row label="Where it runs" value={cell.hardware} />}
           {/* the paper's own notation, for a reader checking against Table S2; the
               run above already glosses each mark, so the key stays with the table */}
           <Row label={RUBRIC_LABEL} value={<span className="cvt-mono">{cell.rubricMarks}</span>} />
-          <Row label="Handling the output" value={level.handling} />
+          <Row
+            label="How to use the result"
+            value={
+              cell.subVerdicts
+                ? cell.subVerdicts.map((s) => (
+                    <span className="cvt-handling" key={s.label}>
+                      {s.label}: {maturityLevel(s.maturity).handling}
+                    </span>
+                  ))
+                : level.handling
+            }
+          />
         </dl>
       </details>
 
@@ -1177,6 +1292,28 @@ function CloseIcon() {
       aria-hidden="true"
     >
       <path d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  );
+}
+
+/** A drawn chevron in the close icon's stroke, for the stepper's Back and Next
+ *  and the scroll cues; always beside words that name the action. */
+export function ChevronIcon({ dir }: { dir: "left" | "right" | "down" }) {
+  const d = { left: "M15 5l-7 7 7 7", right: "M9 5l7 7-7 7", down: "M5 9l7 7 7-7" }[dir];
+  return (
+    <svg
+      className="cvt-chevron"
+      viewBox="0 0 24 24"
+      width="12"
+      height="12"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d={d} />
     </svg>
   );
 }

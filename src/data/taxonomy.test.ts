@@ -11,8 +11,8 @@ const VERDICTS: Verdict[] = [
   "Absent",
 ];
 const SOURCE_STATUSES: SourceStatus[] = ["Published", "Preprint", "Mixed", "n/a"];
-// bibtex-style key: lowercase author, CamelCase title words, 4-digit year, optional a/b suffix
-const CITE_KEY = /^[a-z][A-Za-z0-9]*\d{4}[a-z]?$/;
+// bibtex-style key: lowercase author (hyphens allowed), CamelCase title words, 4-digit year, optional a/b suffix
+const CITE_KEY = /^[a-z][A-Za-z0-9-]*\d{4}[a-z]?$/;
 
 // every verdict the JSON asserts: top-level cells *and* compound sub-verdicts
 const allMaturities = cells.flatMap((c) => [
@@ -20,7 +20,7 @@ const allMaturities = cells.flatMap((c) => [
   ...(c.subVerdicts?.map((s) => s.maturity) ?? []),
 ]);
 
-describe("taxonomy data layer (mirrors Paper 2 Table S2)", () => {
+describe("taxonomy data layer (mirrors the review article's Table S2)", () => {
   it("covers the full 3x4 grid exactly once", () => {
     expect(SCALES.length * INFO_TYPES.length).toBe(12);
     expect(cells).toHaveLength(12);
@@ -76,6 +76,25 @@ describe("taxonomy data layer (mirrors Paper 2 Table S2)", () => {
     for (const c of cells) {
       if (c.structurallyEmpty) continue;
       expect(runsOf(c).length, `${c.id}: "${c.rubricMarks}"`).toBeGreaterThan(0);
+    }
+  });
+
+  it("every verdict follows from its rubric marks by the ladder", () => {
+    const ladder = (r: ReturnType<typeof runsOf>[number]): Verdict =>
+      r.evidence === "B"
+        ? r.capture === "pass" && r.deployed === "pass"
+          ? "Strong"
+          : "Partial"
+        : r.evidence === "N"
+          ? "Emerging-but-narrow"
+          : r.evidence === "C"
+            ? "Plausible-but-unvalidated"
+            : "Absent";
+    for (const c of cells) {
+      if (c.structurallyEmpty) continue;
+      const runs = runsOf(c);
+      const expected = c.subVerdicts?.map((s) => s.maturity) ?? [c.maturity];
+      expect(runs.map(ladder), c.id).toEqual(expected);
     }
   });
 

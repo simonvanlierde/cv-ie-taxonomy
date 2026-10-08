@@ -44,14 +44,14 @@ function RunLine({ run }: { run: Run }) {
           mark={run.capture === "pass" ? "✓" : "✗"}
           text={
             run.capture === "pass"
-              ? "survives end-of-life capture"
-              : (basisText(run.basis) ?? "fails end-of-life capture")
+              ? "survives end-of-life photos"
+              : (basisText(run.basis) ?? "field gate not passed")
           }
         />
         <Seg
           state={!captureCarries ? "dead" : deployedCarries ? "carries" : "breaks"}
           mark={run.deployed === "pass" ? "✓" : "✗"}
-          text={run.deployed === "pass" ? "deployed on the task" : "no deployed precedent"}
+          text={run.deployed === "pass" ? "in use on this task" : "not yet in use on this task"}
         />
         <span className="cvt-circuit-node" data-live={run.completes} aria-hidden />
       </div>
