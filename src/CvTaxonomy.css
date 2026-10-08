@@ -956,7 +956,8 @@
   height: 144px;
   /* three lines of clearance under the floor: the split cell's label is the
      longest, and a label that climbs into its own block is unreadable */
-  padding: 0 0 3.4rem;
+  --cvt-mx-floor: 3.4rem;
+  padding: 0 0 var(--cvt-mx-floor);
   background: none;
   border: 0;
   border-left: 0.5px solid var(--cvt-grid);
@@ -972,12 +973,16 @@
 .cvt-mx-cell:last-child {
   border-right: 0.5px solid var(--cvt-grid);
 }
-/* the block stands on the bay floor; its height is the verdict */
+/* the block stands on the bay floor; its height is the verdict, as a share of
+   the floor-to-shelf distance. A bare percentage would resolve against the whole
+   bay, label band included, and draw every block taller than its verdict. */
 .cvt-mx-block {
   position: absolute;
   left: 7px;
   right: 7px;
-  bottom: 3.4rem;
+  bottom: var(--cvt-mx-floor);
+  height: calc(var(--h, 0) * (100% - var(--cvt-mx-floor)));
+  background: var(--fill, none);
   display: block;
 }
 /* a split cell stands at its stronger sub-verdict and rules the weaker one across */
@@ -1006,6 +1011,23 @@
   border-color: var(--cvt-ink);
 }
 /* absence is drawn as open ground with a dashed floor, never as a faint card */
+/* Forced colors drop background fills, and with them the block heights that
+   carry each verdict. Paint the blocks in the system text colour instead: one
+   ink for all, so the height alone ranks them, as it does on screen. */
+@media (forced-colors: active) {
+  .cvt-mx-cell:not([data-ghost="true"]) .cvt-mx-block {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+  .cvt-mx-cell[data-ghost="true"] .cvt-mx-block {
+    forced-color-adjust: none;
+    background: repeating-linear-gradient(-45deg, GrayText 0 1px, transparent 1px 10px);
+  }
+  .cvt-mx-cell[aria-pressed="true"] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+}
 /* Absent carries no ramp step, so its block arrives with no fill; all it needs
    is the dashed floor that says the bay is empty rather than short. */
 .cvt-mx-cell[data-verdict="A"] .cvt-mx-block {
@@ -1807,10 +1829,9 @@
   /* the name is gone, so the bay needs only a line of clearance under its floor */
   .cvt-mx-cell {
     height: 150px;
-    padding-bottom: 0.4rem;
+    --cvt-mx-floor: 0.4rem;
   }
   .cvt-mx-block {
-    bottom: 0.4rem;
     left: 4px;
     right: 4px;
   }

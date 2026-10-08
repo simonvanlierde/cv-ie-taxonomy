@@ -90,10 +90,10 @@ function MiniMatrixRow({
               className="cvt-mx-block"
               style={
                 cell.structurallyEmpty
-                  ? { top: 0 }
+                  ? { top: 0, height: "auto" }
                   : {
-                      height: `${VERDICT_HEIGHT[standsAt] * 100}%`,
-                      background: VERDICT_VAR[standsAt] ?? "none",
+                      "--h": VERDICT_HEIGHT[standsAt],
+                      "--fill": VERDICT_VAR[standsAt] ?? "none",
                     }
               }
               aria-hidden

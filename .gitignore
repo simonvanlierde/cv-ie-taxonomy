@@ -10,3 +10,4 @@ package-lock.json
 # Vitest browser mode's failure screenshots.
 src/__screenshots__
 .vitest-attachments
+.vitest
