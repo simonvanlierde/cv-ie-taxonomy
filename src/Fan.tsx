@@ -115,6 +115,8 @@ const OCR_W = monoWidth(OCR_TEXT, TAG_FONT) + 10;
 // where the same viewBox units render at roughly half the pixels and the tags
 // double as the tap targets for the cell modal.
 
+const tagWidth = (label: string, s = 1) => monoWidth(label, TAG_FONT * s) + 10 * s;
+
 /** YOLO-style class tag: solid colour box, dark text */
 function Tag({
   x,
@@ -129,7 +131,7 @@ function Tag({
   color: string;
   s?: number;
 }) {
-  const w = monoWidth(label, TAG_FONT * s) + 10 * s;
+  const w = tagWidth(label, s);
   return (
     <g className="ov-tag" transform={`translate(${x} ${y})`}>
       <rect width={w} height={TAG_H * s} rx="2" fill={color} />
@@ -352,7 +354,8 @@ function Callout({
       data-selected={selected}
       role="button"
       tabIndex={focusable ? 0 : -1}
-      aria-label={`${cell.scale} · ${cell.informationType}: ${taskName(cell)}. Maturity: ${maturityName(cell)}. Open details.`}
+      // starts with what the chip shows, so a voice user can say what they see
+      aria-label={`${letter} ${text}. ${cell.scale} · ${cell.informationType}: ${taskName(cell)}. Maturity: ${maturityName(cell)}. Open details.`}
       aria-hidden={!focusable}
       transform={`translate(${X} ${y})`}
       style={{
@@ -742,15 +745,25 @@ export function Fan({
           className="ov-rel"
           d={`M ${blC[0] + 30} ${blC[1] - 60} Q ${(blC[0] + fgC[0]) / 2 + 80} ${(blC[1] + fgC[1]) / 2} ${fgC[0] + 90} ${fgC[1] + 70}`}
         />
-        <Tag x={rgC[0] + 96} y={rgC[1] - 66} label="attached-to?" color={SEG.rg} s={ts} />
+        {/* below the structure chip's plate, which it sat half under; the chip's
+            leader still lands on the tag's top edge */}
+        <Tag x={rgC[0] + 96} y={rgC[1] - 50} label="attached-to?" color={SEG.rg} s={ts} />
       </Layer>
       <Layer opacity={deco(cell("component-quantity"))} tap={tapFor("component-quantity")}>
         <DimH y={moC[1] + 64} x1={moC[0] - 62} x2={moC[0] + 62} label="~ 135 mm" s={ts} />
       </Layer>
       <Layer opacity={deco(cell("component-condition"))} tap={tapFor("component-condition")}>
         <ellipse className="ov-blob" cx={moC[0] - 40} cy={moC[1] + 18} rx="18" ry="12" />
-        {/* clear of the motor box's left edge, which sits at moC − 62 */}
-        <Tag x={moC[0] - 190} y={moC[1] + 2} label="anomaly? · 0.6" color={SEG.warn} s={ts} />
+        {/* right edge 6 units clear of the motor box's left edge (moC − 62), at
+            either tag scale: the compact fan's larger tag ran over the box and
+            the dimension under it */}
+        <Tag
+          x={moC[0] - 68 - tagWidth("anomaly? · 0.6", ts)}
+          y={moC[1] + 2}
+          label="anomaly? · 0.6"
+          color={SEG.warn}
+          s={ts}
+        />
       </Layer>
 
       {/* material · identity: material tags on the tinted parts */}

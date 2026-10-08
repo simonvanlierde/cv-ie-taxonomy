@@ -182,3 +182,16 @@ describe("compact fan", () => {
     expect(offStage).toHaveAttribute("aria-hidden", "true");
   });
 });
+
+describe("chip names", () => {
+  it("start with the chip's visible text, so a voice user can say what they see", () => {
+    const { container } = renderFan();
+    const label = chip(container, "component-structure").getAttribute("aria-label") ?? "";
+    const texts = [...chip(container, "component-structure").querySelectorAll("text")].map(
+      (t) => t.textContent,
+    );
+    // the letter and the read-out text, in the order they are drawn
+    expect(texts.join(" ")).toBe("P segment · attached-to? E");
+    expect(label.startsWith("P segment · attached-to? E.")).toBe(true);
+  });
+});

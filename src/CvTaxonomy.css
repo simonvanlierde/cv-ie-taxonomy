@@ -354,11 +354,18 @@
   outline: 2px solid var(--cvt-ink);
   outline-offset: 3px;
 }
-/* YOLO-style detection boxes + class tags */
+/* YOLO-style detection boxes + class tags. The read-outs are mock values, so
+   they sit a step below the verdict chips that carry the claims: thinner boxes,
+   and hues pulled toward grey. saturate() keeps each hue's lightness, so the
+   dark tag text holds its contrast. */
 .ov-bbox-r {
   fill: none;
   stroke: var(--c, var(--cvt-ink));
-  stroke-width: 2.5;
+  stroke-width: 1.6;
+  filter: saturate(0.5);
+}
+.ov-tag rect {
+  filter: saturate(0.45);
 }
 /* font-size comes from TAG_FONT in Fan.tsx, which also sizes the plate */
 .ov-tag text {
@@ -405,10 +412,11 @@
 /* instance-segmentation mask fills (ride the parts) */
 .ov-segfill {
   fill: var(--c);
-  fill-opacity: 0.36;
+  fill-opacity: 0.22;
   stroke: var(--c);
-  stroke-width: 2.5;
-  stroke-opacity: 0.9;
+  stroke-width: 1.8;
+  stroke-opacity: 0.75;
+  filter: saturate(0.6);
   pointer-events: none;
   transition: opacity 0.25s ease;
 }
@@ -456,12 +464,12 @@
 .cvt-co-bg {
   fill: var(--cvt-panel);
   stroke: var(--hue);
-  stroke-width: 1.2;
+  stroke-width: 2;
   transition: stroke-width 0.15s;
 }
 .cvt-co:hover .cvt-co-bg,
 .cvt-co[data-selected="true"] .cvt-co-bg {
-  stroke-width: 2.4;
+  stroke-width: 3;
 }
 .cvt-co-letter {
   font-family: var(--cvt-display);
