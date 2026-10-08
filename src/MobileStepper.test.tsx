@@ -55,13 +55,13 @@ describe("MobileStepper", () => {
 
     expect(screen.getAllByText(/no model run/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/every verdict comes from/i)).toBeVisible();
-    expect(screen.queryByText(/circular-economy research keeps asking/i)).not.toBeVisible();
+    expect(screen.queryByText(/research on reuse and recycling/i)).not.toBeVisible();
 
     const toggle = screen.getByRole("button", { name: /how to read this/i });
     expect(toggle).toHaveAttribute("aria-expanded", "false");
     await user.click(toggle);
 
-    expect(screen.getByText(/circular-economy research keeps asking/i)).toBeVisible();
+    expect(screen.getByText(/research on reuse and recycling/i)).toBeVisible();
     expect(screen.getByRole("button", { name: /show less/i })).toHaveAttribute(
       "aria-expanded",
       "true",

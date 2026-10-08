@@ -165,7 +165,7 @@ export function MobileStepper({
                     to say they were there */}
                 <CellList scale={scale} onOpen={onOpen} />
                 <p className="cvt-step-context-cue" aria-hidden="true">
-                  Context below <ChevronIcon dir="down" />
+                  Read more below <ChevronIcon dir="down" />
                 </p>
                 <p className="cvt-body">{CHAPTER_COPY[scale].body}</p>
               </>

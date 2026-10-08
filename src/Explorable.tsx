@@ -61,7 +61,9 @@ export function Explorable({ children }: { children?: ReactNode }) {
       <div className="cvt-explorable-col">
         {!selected && (
           <div className="cvt-explorable-idle">
-            <p className="cvt-inline-prompt">Select a cell to see why, and where it breaks.</p>
+            <p className="cvt-inline-prompt">
+              Select a cell to see why it got its verdict, and where it fails.
+            </p>
             {children}
           </div>
         )}

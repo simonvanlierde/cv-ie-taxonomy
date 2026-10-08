@@ -691,7 +691,7 @@ const Rail = memo(function Rail({ chapter }: { chapter: Chapter }) {
   return (
     <div className="cvt-rail">
       <section className="cvt-hero" id="cvt-start" tabIndex={-1}>
-        <Hero hint="Each read-out that appears on the fan opens its evidence." />
+        <Hero hint="Once labels appear on the fan, click one to see its evidence." />
         <p className="cvt-scrollhint" aria-hidden>
           scroll to take it apart{" "}
           <span className="cvt-scrollhint-arrow">
@@ -699,7 +699,7 @@ const Rail = memo(function Rail({ chapter }: { chapter: Chapter }) {
           </span>
         </p>
         <a className="cvt-skip" href="#cvt-matrix">
-          or skip to the matrix
+          or skip to the map
         </a>
       </section>
 
@@ -728,6 +728,7 @@ const Rail = memo(function Rail({ chapter }: { chapter: Chapter }) {
 // ---- pieces shared between the desktop rail and the mobile stepper, so the
 // claim-bearing copy and the cell buttons have exactly one source ---------------
 
+const cap = (s = "") => s.charAt(0).toUpperCase() + s.slice(1);
 const NUMBER_WORD = [
   "no",
   "one",
@@ -756,7 +757,10 @@ export const FIELD_SPLIT = (() => {
     (sum, c) => sum + (c.structurallyEmpty ? 0 : (c.subVerdicts?.length ?? 1)),
     0,
   );
-  return `Of its ${NUMBER_WORD[rows]} verdicts, ${NUMBER_WORD[runs.length]} have a method whose performance under contributor-grade capture is measured to fall short for ${n("measured")} (product identity), inferred from adjacent-domain or zero-shot evidence for ${n("inferred")}, and untested for ${n("untested")}.`;
+  const have = `${cap(NUMBER_WORD[runs.length])} of the ${NUMBER_WORD[rows]} verdicts have a method.`;
+  const capture =
+    "The open question is how it performs under contributor-grade capture: ordinary photos taken by the people who repair, reuse or recycle products.";
+  return `${have} ${capture} That performance is measured to fall short for ${n("measured")} (product identity). It is inferred from neighbouring fields or from zero-shot tests (models used without task training) for ${n("inferred")}, and untested for ${n("untested")}.`;
 })();
 
 /** The hero's shared copy: eyebrow, title, sub and maturity legend. `hint` is
@@ -800,14 +804,15 @@ export function Hero({
       </h1>
       <p className="cvt-hero-contract">
         Every verdict comes from the paper&rsquo;s <span className="cvt-cite">Table&nbsp;S2</span>.
-        The heavier the square, the stronger the evidence; colour only separates physical scales.
+        The more solid the square, the stronger the evidence. Colour only marks the physical scale.
       </p>
       <p className="cvt-hero-split">{FIELD_SPLIT}</p>
       {disclosureControl}
       <p className="cvt-sub" id={detailsId} hidden={!expanded}>
-        Circular-economy research keeps asking cameras to judge discarded products: what is this,
-        what's inside, what's it worth? Here is one worn-out desk fan and the ten tasks computer
-        vision could take on, each judged by how well it works today.
+        Research on reuse and recycling (the circular economy) keeps asking cameras to judge
+        discarded products. What is this? What&rsquo;s inside? What is it worth? Here is one
+        worn-out desk fan, and ten tasks that computer vision (software that reads images) could
+        take on. Each is judged by how well it works today.
         {hint ? ` ${hint}` : ""}
       </p>
     </>
@@ -870,10 +875,15 @@ export const Outro = memo(function Outro() {
     // tabIndex -1: the skip link and the rail's "the map" target this id, and a
     // focusable target is where the browser puts focus after the jump — without
     // it a keyboard reader's next Tab started from wherever it was before
-    <section className="cvt-outro" id="cvt-matrix" aria-label="Full taxonomy matrix" tabIndex={-1}>
+    <section
+      className="cvt-outro"
+      id="cvt-matrix"
+      aria-label="The full map of twelve cells"
+      tabIndex={-1}
+    >
       <h2>
-        The honest map is mostly gaps: by the paper's own rubric, no task earns a Strong on worn,
-        real-world products.
+        The honest map is mostly gaps. By the paper&rsquo;s own scoring rules (its rubric), no task
+        earns a Strong on worn, real-world products.
       </h2>
       <MaturityKey />
       {/* the caption and the table twin ride the narrative column beside the
@@ -881,15 +891,15 @@ export const Outro = memo(function Outro() {
       <Explorable>
         <div className="cvt-foot">
           <p>
-            Maturity of ten vision tasks in twelve cells, by physical scale and information type.
-            Each block stands as high as its verdict; the dashed rule is Strong, and nothing reaches
-            it. Verdicts come from the paper&rsquo;s Table&nbsp;S2, literature as of{" "}
-            {taxonomy.meta.scanDate}.
+            How mature ten vision tasks are, across twelve cells: physical scale by type of
+            information. Each block is as tall as its verdict. The dashed line is Strong, and
+            nothing reaches it. Verdicts come from the paper&rsquo;s Table&nbsp;S2 and cover the
+            literature as of {taxonomy.meta.scanDate}.
           </p>
           <p>
-            Hatched cells have no task of their own: structure is a component-scale question. Two
-            letters mark two sub-tasks; the block stands at the stronger verdict and is ruled across
-            at the weaker.
+            Hatched cells have no task of their own, because structure is a question for the
+            Component scale. Two letters mean two sub-tasks. The block stands at the stronger
+            verdict, with a line across at the weaker one.
           </p>
         </div>
         <TableView />
@@ -1039,10 +1049,12 @@ const RUBRIC_LABEL = "Rubric marks (evidence · field · deployed)";
 function RubricKey() {
   return (
     <p className="cvt-rubric-key">
-      The first mark is the evidence: <b>B</b> benchmarked product-general, <b>N</b> narrow class
-      only, <b>C</b> concept or adjacent domain only, <b>–</b> no method, or derived. Then two
-      gates, ✓ or ✗: survives end-of-life field capture; deployed on the task. A ✗ on the field gate
-      says why: ✗ᵐ measured drop, ✗ᵃ inferred from adjacent evidence, ✗ᵘ untested.
+      The first mark is the evidence. <b>B</b>: a general method, benchmarked on these or similar
+      products (benchmarked product-general). <b>N</b>: one narrow class only. <b>C</b>: a concept,
+      or shown only in a neighbouring field. <b>–</b>: no method, or worked out from other cells.
+      Then come two gates, each ✓ or ✗. The field gate asks whether it survives end-of-life photos.
+      The deployment gate asks whether it is in use on this task. A ✗ on the field gate says why: ✗ᵐ
+      measured drop, ✗ᵃ inferred from adjacent evidence, ✗ᵘ untested.
     </p>
   );
 }
@@ -1141,14 +1153,14 @@ export function DetailBody({ cell }: { cell: Cell }) {
   // handling: the weaker one's "do not populate" must not read as "verify"
   const split = splitOf(cell);
   const mentionsEol = [cell.maturityNote, cell.failureMode, cell.example].some((value) =>
-    value?.includes("EoL"),
+    /EoL|end-of-life|end of life/i.test(value ?? ""),
   );
   return (
     <>
       {mentionsEol && (
         <p className="cvt-term-note">
-          <abbr title="End-of-life">EoL</abbr> means end-of-life capture: products photographed
-          after use, often damaged, dirty, incomplete, or poorly framed.
+          End-of-life (<abbr title="End-of-life">EoL</abbr>) capture means photos of products after
+          use. They are often damaged, dirty, incomplete or poorly framed.
         </p>
       )}
       <div className="cvt-verdict">
@@ -1182,7 +1194,7 @@ export function DetailBody({ cell }: { cell: Cell }) {
         />
         {cell.failureMode && (
           <Row
-            label="Where it breaks"
+            label="Where it fails"
             value={<CitedProse text={cell.failureMode} citeKeys={cell.citations} />}
             mode="warn"
           />
@@ -1204,16 +1216,16 @@ export function DetailBody({ cell }: { cell: Cell }) {
           )}
           {cell.example && (
             <Row
-              label="Proven nearby"
+              label="Nearby examples"
               value={<CitedProse text={cell.example} citeKeys={cell.citations} />}
             />
           )}
-          {cell.hardware && <Row label="Typical hardware" value={cell.hardware} />}
+          {cell.hardware && <Row label="Where it runs" value={cell.hardware} />}
           {/* the paper's own notation, for a reader checking against Table S2; the
               run above already glosses each mark, so the key stays with the table */}
           <Row label={RUBRIC_LABEL} value={<span className="cvt-mono">{cell.rubricMarks}</span>} />
           <Row
-            label="Handling the output"
+            label="How to use the result"
             value={
               cell.subVerdicts
                 ? cell.subVerdicts.map((s) => (

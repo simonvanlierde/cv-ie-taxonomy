@@ -28,16 +28,16 @@ export interface Run {
 }
 
 const EVIDENCE_TEXT: Record<Evidence, string> = {
-  B: "benchmarked product-general",
+  B: "general method, benchmarked",
   N: "narrow class only",
-  C: "concept or adjacent domain only",
+  C: "concept or neighbouring field only",
   "–": "no method, or derived",
 };
 
 const BASIS_TEXT = {
-  measured: "measured drop under end-of-life capture",
-  inferred: "inferred from adjacent-domain or zero-shot evidence",
-  untested: "untested under end-of-life capture",
+  measured: "measured drop on end-of-life photos",
+  inferred: "inferred from neighbouring-field or zero-shot evidence",
+  untested: "untested on end-of-life photos",
 } as const;
 
 export const evidenceText = (e: Evidence) => EVIDENCE_TEXT[e];

@@ -184,7 +184,7 @@ describe("detail on the sheet (desktop)", () => {
 
     const region = await screen.findByRole("complementary", { name: /product · identity/i });
     expect(region.querySelector(".cvt-term-note")).toHaveTextContent(
-      /EoL means end-of-life capture/i,
+      /End-of-life \(EoL\) capture means photos of products after use/i,
     );
   });
 
@@ -424,7 +424,7 @@ describe("panel progressive disclosure", () => {
     const dialog = await screen.findByRole("complementary");
 
     // primary: failure mode is not inside the collapsible
-    const failure = within(dialog).getByText(/where it breaks/i);
+    const failure = within(dialog).getByText(/where it fails/i);
     expect(failure.closest("details")).toBeNull();
 
     // secondary: rubric marks live inside a closed <details>
