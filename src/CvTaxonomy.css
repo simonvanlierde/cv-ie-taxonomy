@@ -1911,7 +1911,7 @@
     width: 100%;
     height: 82vh;
     border-left: none;
-    border-top: 3px solid var(--hue);
+    border-top: 1px solid var(--hue);
     border-radius: 16px 16px 0 0;
     overscroll-behavior: contain;
   }
@@ -2046,6 +2046,8 @@
 .cvt-ruler {
   position: absolute;
   display: flex;
+  /* a reference past the sheet's frame is not on the sheet */
+  overflow: hidden;
 }
 .cvt-ruler-x {
   top: 19px;
@@ -2359,7 +2361,7 @@
   border-left: 0;
   border-right: 0;
   border-bottom: 0;
-  border-top: 3px solid var(--hue);
+  border-top: 1px solid var(--hue);
   /* the phone's own idiom for a surface sliding up over a page — the same
      radius the peek sheet under it carries; the exception stops at the breakpoint */
   border-radius: 16px 16px 0 0;
