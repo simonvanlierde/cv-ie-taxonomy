@@ -20,7 +20,7 @@ const allMaturities = cells.flatMap((c) => [
   ...(c.subVerdicts?.map((s) => s.maturity) ?? []),
 ]);
 
-describe("taxonomy data layer (mirrors Paper 2 Table S2)", () => {
+describe("taxonomy data layer (mirrors the review article's Table S2)", () => {
   it("covers the full 3x4 grid exactly once", () => {
     expect(SCALES.length * INFO_TYPES.length).toBe(12);
     expect(cells).toHaveLength(12);

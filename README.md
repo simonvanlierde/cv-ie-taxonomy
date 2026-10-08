@@ -5,7 +5,9 @@
 [![License: MIT](https://img.shields.io/badge/code-MIT-blue)](LICENSE)
 [![License: CC BY 4.0](https://img.shields.io/badge/content-CC%20BY%204.0-lightgrey)](LICENSE-CONTENT)
 
-An interactive map of the taxonomy in **Paper 2** (JIE Review). Explore which
+An interactive map of the taxonomy in the review article *Benchmarked, Rarely
+Field-Tested: Computer Vision for End-of-Life Product Data in Industrial
+Ecology* (van Lierde et al., [citation: forthcoming]). Explore which
 computer-vision task recovers each product data type at each physical scale,
 and how much to trust the result.
 
@@ -36,9 +38,9 @@ Use arrow keys to move between cells and filter chips to narrow the view.
 On mobile, the narrative uses full-screen pages with a fold-away peek sheet.
 
 The final screen shows the complete 3 × 4 matrix. Every cell remains clickable,
-and a **Plain table** button exposes the same data as a table. Structurally empty
-Hatching marks empty cells with no verdict. No task-level cell reaches Strong under
-end-of-life capture.
+and a **Plain table** button exposes the same data as a table. Hatching marks the
+two structurally empty cells, which carry no verdict. No task-level cell reaches
+Strong under end-of-life capture.
 
 ## Data is the source of truth
 

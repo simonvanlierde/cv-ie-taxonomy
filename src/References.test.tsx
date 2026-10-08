@@ -13,7 +13,7 @@ describe("references", () => {
 
   it("carries no reference nothing cites (regenerate references.json)", () => {
     // a reference earns its place by backing a cell's verdict, or by being the
-    // paper that introduced a model the prose names (Table S4)
+    // paper that introduced a model the prose names (Table S1)
     const used = new Set([...cells.flatMap((c) => c.citations), ...METHODS.map((m) => m.key)]);
     for (const r of REFERENCES) expect(used.has(r.key), r.key).toBe(true);
   });
@@ -69,7 +69,7 @@ describe("CitedProse", () => {
 
   it("links a named model whose paper the cell's own citations do not include", () => {
     // Table S2's Product · Condition row does not cite WinCLIP or AnomalyCLIP;
-    // Table S4 attributes both, so the names are still one click from their paper
+    // Table S1 attributes both, so the names are still one click from their paper
     const cell = cellAt("Product", "Condition");
     render(<CitedProse text={cell.methodFamily ?? ""} citeKeys={cell.citations} />);
     for (const name of ["WinCLIP", "AnomalyCLIP"]) {
