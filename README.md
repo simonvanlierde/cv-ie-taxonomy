@@ -5,14 +5,14 @@
 [![License: MIT](https://img.shields.io/badge/code-MIT-blue)](LICENSE)
 [![License: CC BY 4.0](https://img.shields.io/badge/content-CC%20BY%204.0-lightgrey)](LICENSE-CONTENT)
 
-An interactive map of the taxonomy in the review article *Benchmarked, Rarely
-Field-Tested: Computer Vision for End-of-Life Product Data in Industrial
-Ecology* (van Lierde et al., [citation: forthcoming]). Explore which
-computer-vision task recovers each product data type at each physical scale,
-and how much to trust the result.
+An interactive map from the review article *Benchmarked, Rarely Field-Tested:
+Computer Vision for End-of-Life Product Data in Industrial Ecology* (van Lierde
+et al., [citation: forthcoming]). It shows what cameras and image software
+(computer vision) can tell about a used product, and how far you can trust each
+answer.
 
-A self-contained React and TypeScript island that can run standalone or embed in
-an Astro or Next portfolio.
+The page is a self-contained React and TypeScript component. It runs on its own
+or inside an Astro or Next site.
 
 ![A desk fan drawn as a cyanotype teardown, ringed by computer-vision read-outs](public/screenshot.png)
 
@@ -20,27 +20,29 @@ an Astro or Next portfolio.
 
 ## What it does
 
-An end-of-life **desk fan** comes apart as you scroll through three physical
-scales: **Product → Component → Material**. The fan shows common computer-vision
-outputs:
+A worn-out **desk fan** comes apart as you scroll. It goes through three
+physical scales: **Product → Component → Material**. Along the way, the fan
+shows the kinds of output computer vision produces:
 
-- detection boxes for Identity
-- segmentation masks for Structure
-- OCR for the rating label
-- dimension call-outs for Quantity
-- anomaly tags for Condition
-- material tags at the Material scale
+- boxes around detected parts, for Identity
+- outlines of each part (segmentation masks), for Structure
+- text read off the rating label (OCR)
+- measurements, for Quantity
+- flags on possible damage, for Condition
+- material labels, at the Material scale
 
-Use the annotation chips to inspect each taxonomy cell. Hover to isolate a cell.
-Click to open its task, verdict, failure mode, example, rubric marks, and sources.
-With a detail open, arrow keys step to the next cell: within the scale on the
-fan, across the whole matrix in the closing figure.
+These read-outs are simulated. No model was run on the drawing.
 
-On mobile, the narrative uses full-screen pages with a fold-away peek sheet.
+Each label on the fan opens one cell of the map. Hover over a label to pick out
+its cell. Click it to see the task, the verdict, where it fails, an example, the
+rubric marks and the sources. With a detail open, the arrow keys step to the
+next cell: within the scale on the fan, or across the whole map at the end.
 
-The final screen shows the complete 3 × 4 matrix. Every cell remains clickable,
-and a **Plain table** button exposes the same data as a table. Hatching marks the
-two structurally empty cells, which carry no verdict. No task-level cell reaches
+On a phone, the story runs as full-screen pages with a sheet that folds away.
+
+The last screen shows all twelve cells as a 3 × 4 grid. Every cell can be
+clicked, and a **Plain table** button shows the same data as a table. Hatching
+marks the two structurally empty cells, which have no verdict. No task reaches
 Strong under end-of-life capture.
 
 ## Data is the source of truth
