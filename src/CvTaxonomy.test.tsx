@@ -116,6 +116,23 @@ describe("detail on the sheet (desktop)", () => {
     expect(screen.queryByRole("complementary", { name: /material · identity/i })).toBeNull();
   });
 
+  it("closes on the browser's Back", async () => {
+    const user = userEvent.setup();
+    render(<CvTaxonomy debugProgress={onStage("Material")} />);
+
+    await user.click(trigger("material-identity"));
+    await screen.findByRole("complementary", { name: /material · identity/i });
+    const entry = history.state?.cvtDetail;
+    expect(entry).toBeTruthy();
+
+    await act(async () => {
+      history.back();
+      await new Promise((r) => setTimeout(r, 50));
+    });
+    expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
+    expect(history.state?.cvtDetail).not.toBe(entry);
+  });
+
   it("closes on a press on the sheet outside it, but not on a press on a control", async () => {
     const user = userEvent.setup();
     const { container } = render(<CvTaxonomy debugProgress={onStage("Material")} />);

@@ -363,6 +363,34 @@ export function CvTaxonomy({
     withViewTransition(() => setSelected(null), !reduceMotion);
   }, [reduceMotion]);
 
+  // An open detail is a place the reader went, so the browser's Back closes it
+  // rather than leaving the page. One history entry per open detail, however
+  // many cells the reader steps through.
+  // NOTE: closing the detail any other way leaves its entry behind, so the next
+  // Back is a no-op. Taking it off with history.back() would restore the scroll
+  // position from when the detail opened, and the detail also closes itself
+  // when the reader scrolls to the matrix, so that would yank the page back.
+  // The entry carries a token of its own, so an entry left by another island
+  // (or an earlier mount) is never mistaken for this one.
+  const historyEntry = useRef<string | null>(null);
+  useEffect(() => {
+    if (selected && !historyEntry.current) {
+      historyEntry.current = `${Date.now()}-${Math.random()}`;
+      history.pushState({ ...history.state, cvtDetail: historyEntry.current }, "");
+    } else if (!selected) {
+      historyEntry.current = null;
+    }
+  }, [selected]);
+  useEffect(() => {
+    const onPop = () => {
+      if (!historyEntry.current || history.state?.cvtDetail === historyEntry.current) return;
+      historyEntry.current = null;
+      closeCell();
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [closeCell]);
+
   // The docked detail belongs to the drawing, and on the wide sheet it is fixed
   // in the margin band — so once the closing figure arrives it would sit over
   // the matrix instead of leaving with the stage. Act two has its own selection;
