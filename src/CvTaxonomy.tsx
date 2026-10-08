@@ -806,7 +806,6 @@ export function Hero({
         Every verdict comes from the paper&rsquo;s <span className="cvt-cite">Table&nbsp;S2</span>.
         The more solid the square, the stronger the evidence. Colour only marks the physical scale.
       </p>
-      <p className="cvt-hero-split">{FIELD_SPLIT}</p>
       {disclosureControl}
       <p className="cvt-sub" id={detailsId} hidden={!expanded}>
         Research on reuse and recycling (the circular economy) keeps asking cameras to judge
@@ -815,6 +814,7 @@ export function Hero({
         take on. Each is judged by how well it works today.
         {hint ? ` ${hint}` : ""}
       </p>
+      <p className="cvt-hero-split">{FIELD_SPLIT}</p>
     </>
   );
 }
