@@ -133,6 +133,21 @@ describe("detail on the sheet (desktop)", () => {
     expect(history.state?.cvtDetail).not.toBe(entry);
   });
 
+  it("keeps one history entry however many details are opened and closed with ×", async () => {
+    const user = userEvent.setup();
+    render(<CvTaxonomy debugProgress={onStage("Material")} />);
+    const lengths: number[] = [];
+
+    for (let i = 0; i < 3; i++) {
+      await user.click(trigger("material-identity"));
+      const region = await screen.findByRole("complementary", { name: /material · identity/i });
+      await user.click(within(region).getByRole("button", { name: /close details/i }));
+      lengths.push(history.length);
+    }
+
+    expect(new Set(lengths).size).toBe(1);
+  });
+
   it("closes on a press on the sheet outside it, but not on a press on a control", async () => {
     const user = userEvent.setup();
     const { container } = render(<CvTaxonomy debugProgress={onStage("Material")} />);

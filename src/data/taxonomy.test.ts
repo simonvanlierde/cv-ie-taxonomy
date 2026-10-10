@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { runsOf } from "../rubricMarks";
+import { runsOf, verdictOf } from "../rubricMarks";
 import { cellAt, cells, INFO_TYPES, SCALES, taxonomy, VERDICT_LETTER } from "./taxonomy";
 import type { SourceStatus, Verdict } from "./types";
 
@@ -80,21 +80,11 @@ describe("taxonomy data layer (mirrors the review article's Table S2)", () => {
   });
 
   it("every verdict follows from its rubric marks by the ladder", () => {
-    const ladder = (r: ReturnType<typeof runsOf>[number]): Verdict =>
-      r.evidence === "B"
-        ? r.capture === "pass" && r.deployed === "pass"
-          ? "Strong"
-          : "Partial"
-        : r.evidence === "N"
-          ? "Emerging-but-narrow"
-          : r.evidence === "C"
-            ? "Plausible-but-unvalidated"
-            : "Absent";
     for (const c of cells) {
       if (c.structurallyEmpty) continue;
       const runs = runsOf(c);
       const expected = c.subVerdicts?.map((s) => s.maturity) ?? [c.maturity];
-      expect(runs.map(ladder), c.id).toEqual(expected);
+      expect(runs.map(verdictOf), c.id).toEqual(expected);
     }
   });
 
