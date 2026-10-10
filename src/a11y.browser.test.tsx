@@ -9,17 +9,21 @@ import { plateauCentre } from "./timeline";
  * rendered page can prove (names, roles, contrast of real text on real
  * backgrounds), so it runs here on Chromium's layout, not on jsdom's 0×0 boxes.
  *
- * NOTE: axe cannot judge text contrast on this page: the sheet's grid is a
- * pseudo-element, so every color-contrast node comes back "incomplete", not
- * passed. Contrast is covered only by the token tests (theme.test.ts,
- * verdictRamp.test.ts) until the page background is a plain colour.
+ * Text sits on a plain background colour, so axe can measure its contrast:
+ * each scan must pass color-contrast on real nodes, not only report no
+ * violations. Text over the drawing's grid stays "incomplete" (axe reads a
+ * background image as unknown); the token tests cover that.
  */
 const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
 async function violations() {
   // let entrance transitions finish, so contrast is read on settled opacity
   await new Promise((r) => setTimeout(r, 600));
-  const { violations } = await axe.run(document, { runOnly: { type: "tag", values: TAGS } });
+  const { violations, passes } = await axe.run(document, {
+    runOnly: { type: "tag", values: TAGS },
+  });
+  const contrast = passes.find((p) => p.id === "color-contrast");
+  expect(contrast?.nodes.length ?? 0, "color-contrast passes on some text").toBeGreaterThan(0);
   return violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`);
 }
 

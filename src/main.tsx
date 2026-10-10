@@ -1,12 +1,10 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { CvTaxonomy } from "./CvTaxonomy";
-import "./demo.css";
 import { parseProgress } from "./params";
 
-// Demo-only deep links: ?theme=dark|light forces a theme, ?cell=<id> opens a
-// panel, ?p=0.5 pins scroll progress (dev screenshots). The component owns the
-// page background from here on, so nothing writes body styles by hand.
+// Deep links: ?theme=dark|light forces a theme, ?cell=<id> opens a
+// panel, ?p=0.5 pins scroll progress (dev screenshots).
 const params = new URLSearchParams(window.location.search);
 const theme = params.get("theme");
 

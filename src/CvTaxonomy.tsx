@@ -168,31 +168,21 @@ export function CvTaxonomy({
 
   const reduceMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
   // render exactly one fan: full on desktop, compact on mobile. The container's own
-  // width drives this (so an embed adapts to its slot, not the viewport); the
-  // viewport query only stands in for the first paint, before anything is measured.
+  // width drives this; the viewport query only stands in for the first paint,
+  // before anything is measured.
   const viewportIsMobile = useMediaQuery(`(max-width: ${BREAKPOINT_PX - 1}px)`);
   const { narrow: containerNarrow, columns } = useContainerSize(rootRef);
   const isMobile = containerNarrow ?? viewportIsMobile;
 
-  // Theme has one owner, resolved here: the host's prop beats the OS, and there
-  // is nothing else in the chain. There is no in-page switch, because there is
-  // nothing to choose between: both grounds are the same cyanotype, one printed
-  // and one nearly burnt out, and the OS already says which one the reader wants.
-  // Reading `theme` as a prop rather than seeding state from it means a host that
-  // switches its own theme still moves the island.
+  // Theme has one owner, resolved here: `?theme=` beats the OS. There is no
+  // in-page switch; the OS already says which ground the reader wants.
   const systemDark = useMediaQuery("(prefers-color-scheme: dark)");
   const effectiveTheme: Theme = theme ?? (systemDark ? "dark" : "light");
 
-  // The island styles its own surface via [data-theme], but the page behind it
-  // (rubber-band over-scroll) is not ours to paint. Stamp the resolved theme on
-  // <html> and let the host stylesheet key off it — but only when a theme is
-  // actually in force, so an embedded island with no explicit theme keeps its
-  // hands off the host's document.
-  //
-  // Both the attribute and color-scheme: the attribute because build targets that
-  // predate light-dark() get it lowered to a prefers-color-scheme shim, which
-  // would follow the OS and ignore the host's prop; color-scheme because it is
-  // what form controls and scrollbars read.
+  // A forced theme is also stamped on <html>, so the over-scroll area and the
+  // form controls follow it. Both the attribute and color-scheme: the attribute
+  // because build targets that predate light-dark() get it lowered to a
+  // prefers-color-scheme shim, which would follow the OS instead.
   const forcedTheme = theme;
   useEffect(() => {
     if (!forcedTheme) return;

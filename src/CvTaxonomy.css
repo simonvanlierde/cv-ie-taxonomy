@@ -7,10 +7,9 @@
    the maturity ramp as a permanent margin instrument. The exploded fan holds
    the drawing field, and the CV read-outs docked to its parts ARE the controls.
 
-   Cyanotype, both exposures. Light is the print itself, Prussian-blue paper
-   with the linework burnt out white; dark takes the same sheet almost to
-   black. Both grounds are dark, which is why one scale-hue set and one
-   segmentation set serve both. Maturity is ink coverage and a letter, never
+   Light is drafting paper with Prussian-blue linework, so the cyanotype is
+   the figure; dark is the cyanotype sheet itself, linework burnt out white.
+   Scale and segmentation hues have one set per ground (theme.ts). Maturity is ink coverage and a letter, never
    colour; a texture layer stands in where fills flatten.
 
    Two faces, self-hosted (OFL): Overpass for display and body, Overpass Mono
@@ -60,12 +59,40 @@
   descent-override: 37.43%;
   line-gap-override: 0%;
 }
+/* ---- the page ------------------------------------------------------------------ */
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+  /* disable Blink font boosting on narrow viewports */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* the rubber-band over-scroll matches the sheet, following the OS */
+  color-scheme: light dark;
+  background-color: light-dark(#f7f8f5, #0d3b5e);
+}
+/* A forced theme (?theme=) is stamped on <html>. light-dark() alone would not
+   follow it on build targets where it is lowered to a prefers-color-scheme shim. */
+html[data-theme="light"] {
+  color-scheme: light;
+  background-color: #f7f8f5;
+}
+html[data-theme="dark"] {
+  color-scheme: dark;
+  background-color: #0d3b5e;
+}
+#root {
+  min-height: 100vh;
+}
+
 /* Palette. Each token is declared once, as light-dark(light, dark); which arm
-   wins is decided by the element's used color-scheme, so the OS preference, the
-   host's `theme` prop and the in-page toggle all flow through a single switch
-   (`color-scheme` on .cvt) instead of three restatements of the same 10 values.
-   The light arm is the cyanotype print, Prussian-blue paper with white
-   linework; the dark arm is the same sheet taken almost to black. */
+   wins is decided by the element's used color-scheme, so the OS preference and
+   the `?theme=` override flow through a single switch (`color-scheme` on .cvt).
+   The light arm is drafting paper with Prussian-blue ink; the dark arm is the
+   cyanotype sheet with white linework. */
 .cvt {
   container: cvt / inline-size;
   color-scheme: light dark;
@@ -77,20 +104,20 @@
   --cvt-edge: 28px;
 
   /* the surface; must equal SURFACE in theme.ts, which the contrast tests read (check:theme) */
-  --cvt-bg: light-dark(#0d3b5e, #050c14);
-  --cvt-bg2: light-dark(#0a3050, #020609);
-  --cvt-grid: light-dark(rgba(233, 244, 255, 0.13), rgba(207, 227, 242, 0.11));
-  --cvt-ink: light-dark(#e9f4ff, #cfe3f2);
-  --cvt-ink-dim: light-dark(#9dc2df, #6f93b0);
-  --cvt-line: light-dark(rgba(233, 244, 255, 0.34), rgba(207, 227, 242, 0.3));
-  --cvt-card: light-dark(rgba(233, 244, 255, 0.06), rgba(207, 227, 242, 0.05));
-  --cvt-card-hi: light-dark(rgba(233, 244, 255, 0.11), rgba(207, 227, 242, 0.09));
-  --cvt-panel: light-dark(#0a3050, #020609);
-  /* status text sits on --cvt-panel at 11px, so both arms hold the 4.5:1 text
-     floor there (theme.test.ts). Both grounds are dark now, so one amber and one
-     green clear it on either; the old dark-on-pale arms would vanish. */
-  --cvt-warn: light-dark(#ffb454, #ffb454);
-  --cvt-ok: light-dark(#4ade80, #4ade80);
+  --cvt-bg: light-dark(#f7f8f5, #0d3b5e);
+  --cvt-bg2: light-dark(#eceee9, #0a3050);
+  --cvt-grid: light-dark(rgba(13, 59, 94, 0.09), rgba(233, 244, 255, 0.13));
+  --cvt-ink: light-dark(#0d3b5e, #e9f4ff);
+  --cvt-ink-dim: light-dark(#4a6680, #9dc2df);
+  --cvt-line: light-dark(rgba(13, 59, 94, 0.36), rgba(233, 244, 255, 0.34));
+  --cvt-card: light-dark(rgba(13, 59, 94, 0.04), rgba(233, 244, 255, 0.06));
+  --cvt-card-hi: light-dark(rgba(13, 59, 94, 0.08), rgba(233, 244, 255, 0.11));
+  --cvt-panel: light-dark(#ffffff, #0a3050);
+  /* status text sits on --cvt-panel, so both arms hold the 4.5:1 text floor
+     there (theme.test.ts). --cvt-tag-ink is the text on a segmentation tag. */
+  --cvt-warn: light-dark(#8a4b00, #ffb454);
+  --cvt-tag-ink: light-dark(#ffffff, #0b1622);
+  --cvt-ok: light-dark(#1a6b37, #4ade80);
 
   /* Six steps, and every rule picks one. The floor is 11px and it is reserved
      for uppercase tracked mono, which reads a size larger than it measures;
@@ -112,11 +139,9 @@
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   color: var(--cvt-ink);
+  /* a plain colour behind all text, so contrast can be measured (axe reads a
+     background image as unknown); the grid ruling lives on the drawing only */
   background-color: var(--cvt-bg);
-  background-image:
-    linear-gradient(var(--cvt-grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--cvt-grid) 1px, transparent 1px);
-  background-size: 32px 32px;
   font-family: var(--cvt-sans);
   /* the base of the scale, so anything that sets no size of its own — and every
      control, now that they inherit instead of taking the UA's 13.3px Arial —
@@ -125,9 +150,8 @@
   overflow-x: clip;
 }
 
-/* Both exposures are dark grounds, so the browser's own surfaces are painted from
-   the palette rather than left to the used color-scheme, which on the light arm
-   would hand a blue sheet a light scrollbar and a default selection blue. */
+/* the browser's own surfaces, painted from the palette rather than left to the
+   default scrollbar and selection blue */
 .cvt {
   scrollbar-color: var(--cvt-line) transparent;
   caret-color: var(--cvt-ink);
@@ -137,7 +161,7 @@
   color: var(--cvt-bg);
 }
 
-/* host prop or in-page toggle: pin the scheme, and every light-dark() follows */
+/* a forced theme pins the scheme, and every light-dark() follows */
 .cvt[data-theme="dark"] {
   color-scheme: dark;
 }
@@ -237,6 +261,10 @@
   position: sticky;
   top: 0;
   height: 100dvh;
+  background-image:
+    linear-gradient(var(--cvt-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--cvt-grid) 1px, transparent 1px);
+  background-size: 32px 32px;
   /* clear of the coordinate ruler and the mat's fade above, and of the scale bar
      at the field's foot below: the drawing's own read-outs run to the frame's
      edges, so the field has to start inside the sheet's furniture, not under it */
@@ -354,7 +382,7 @@
 /* YOLO-style detection boxes + class tags. The read-outs are mock values, so
    they sit a step below the verdict chips that carry the claims: thinner boxes,
    and hues pulled toward grey. saturate() keeps each hue's lightness, so the
-   dark tag text holds its contrast. */
+   tag text (--cvt-tag-ink) holds its contrast. */
 .ov-bbox-r {
   fill: none;
   stroke: var(--c, var(--cvt-ink));
@@ -368,7 +396,7 @@
 .ov-tag text {
   font-family: var(--cvt-mono);
   font-weight: 600;
-  fill: #0b1622;
+  fill: var(--cvt-tag-ink);
 }
 /* OCR read-out types itself in when the product chapter arrives */
 .ov-ocr-reveal {
@@ -383,7 +411,7 @@
   }
 }
 .ov-caret {
-  fill: #0b1622;
+  fill: var(--cvt-tag-ink);
   opacity: 0;
 }
 .ov-ocr[data-active="true"] .ov-caret {
@@ -2106,10 +2134,10 @@
   margin: 0;
   color: var(--cvt-ink);
 }
-/* a labelled blank, not a placeholder: the deposit is planned and does not exist */
+/* a labelled blank, not a placeholder: the deposit is planned and does not exist.
+   Italic marks it; no opacity, which would drop it below the 4.5:1 text floor. */
 .cvt-tb-blank {
   color: var(--cvt-ink-dim);
-  opacity: 0.65;
   font-style: italic;
 }
 

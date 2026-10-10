@@ -12,9 +12,6 @@ et al., [citation: forthcoming]). It shows what cameras and image software
 (computer vision) can tell about a used product, and how far you can trust each
 answer.
 
-The page is a self-contained React and TypeScript component. It runs on its own
-or inside an Astro or Next site.
-
 ![A desk fan drawn as a cyanotype teardown, ringed by computer-vision read-outs](public/screenshot.png)
 
 **[▶ Open the live demo](https://simonvanlierde.github.io/cv-ie-taxonomy/)**
@@ -73,8 +70,9 @@ colour. Their hues follow COCO/YOLO conventions and adapt to the theme.
 SVG read-outs, matrix cells, and mobile rows are keyboard-operable controls with
 accessible labels. The detail view is a dialog that closes with `Esc`.
 
-`prefers-reduced-motion` disables the idle spin and scroll smoothing. The island
-follows the colour scheme, or the host can force a theme.
+`prefers-reduced-motion` disables the idle spin and scroll smoothing. The page
+follows the colour scheme: paper white in light mode, the blue cyanotype sheet
+in dark mode. `?theme=dark|light` forces one.
 
 ## Develop
 
@@ -99,23 +97,6 @@ values are ignored.
 Requires Node 26 or later. `pnpm test:browser` needs Chromium once:
 `pnpm exec playwright install chromium`. CI also runs `pnpm check` (Biome) and
 `pnpm check:theme`, which fails if a surface colour in CSS or HTML differs from `src/theme.ts`.
-
-## Embed as an island
-
-The package is not published. Copy `src/` (without the tests) into the host
-project and import the component; it imports its own stylesheet and fonts, so the
-host bundler needs to handle CSS and `.woff2` imports.
-
-```astro
----
-import { CvTaxonomy } from "../cv-ie-taxonomy/CvTaxonomy";
----
-<CvTaxonomy client:visible />
-```
-
-Optional props: `theme: "light" | "dark"` forces a theme over the media-query
-default; `initialCell: string` opens a cell's detail on load. `debugProgress` is
-for development only.
 
 ## Assumptions
 
