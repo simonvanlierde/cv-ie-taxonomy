@@ -97,7 +97,7 @@ values are ignored.
 
 Requires Node 26 or later. `pnpm test:browser` needs Chromium once:
 `pnpm exec playwright install chromium`. CI also runs `pnpm check` (Biome) and
-`pnpm check:theme`; after editing `src/theme.ts`, run `pnpm gen:theme`.
+`pnpm check:theme`, which fails if a surface colour in CSS or HTML differs from `src/theme.ts`.
 
 ## Embed as an island
 
