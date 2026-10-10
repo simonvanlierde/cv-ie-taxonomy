@@ -1,7 +1,7 @@
 import { render, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { cellById, cells, taxonomy } from "./data/taxonomy";
-import { Fan } from "./Fan";
+import { CHIP_LAYOUT, Fan } from "./Fan";
 import { FRAMES } from "./frames";
 import { TIMELINE } from "./timeline";
 
@@ -193,5 +193,18 @@ describe("chip names", () => {
     // the letter and the read-out text, in the order they are drawn
     expect(texts.join(" ")).toBe("P segment · attached-to? E");
     expect(label.startsWith("P segment · attached-to? E.")).toBe(true);
+  });
+});
+
+describe("chip read-outs", () => {
+  // The read-outs are mock values, but their hedges claim a verdict, so a
+  // verdict change in taxonomy.json must reach the chip text too.
+  it.each(CHIP_LAYOUT)("$id: hedge words agree with the verdict", ({ id, text, strike }) => {
+    const cell = cellById(id);
+    expect(text.includes("(unvalidated)"), text).toBe(
+      cell.maturity === "Plausible-but-unvalidated",
+    );
+    expect(text.includes("(narrow class)"), text).toBe(cell.maturity === "Emerging-but-narrow");
+    expect(Boolean(strike), text).toBe(cell.maturity === "Absent" && !cell.structurallyEmpty);
   });
 });

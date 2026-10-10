@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CHAPTER_COPY } from "./chapters";
+import { CHAPTER_COPY, FIELD_SPLIT } from "./chapters";
 import { cells, SCALES } from "./data/taxonomy";
 
 /**
@@ -45,8 +45,7 @@ describe("chapter prose is backed by taxonomy.json", () => {
 });
 
 describe("the hero's field split", () => {
-  it("states the article's 1 measured / 3 inferred / 4 untested split of eight field-bound rows", async () => {
-    const { FIELD_SPLIT } = await import("./CvTaxonomy");
+  it("states the article's 1 measured / 3 inferred / 4 untested split of eight field-bound rows", () => {
     expect(FIELD_SPLIT).toContain("Eight of the eleven verdicts have a method.");
     expect(FIELD_SPLIT).toContain("fall short for one (product identity)");
     expect(FIELD_SPLIT).toContain("without task training) for three, and untested for four.");

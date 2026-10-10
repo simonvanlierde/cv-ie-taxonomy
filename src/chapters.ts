@@ -1,4 +1,6 @@
+import { cells } from "./data/taxonomy";
 import type { Scale } from "./data/types";
+import { runsOf } from "./rubricMarks";
 
 /**
  * The narrative rail's prose, one chapter per physical scale.
@@ -23,3 +25,44 @@ export const CHAPTER_COPY: Record<Scale, { title: string; body: string }> = {
     body: "Can a camera tell steel from plastic? Often, under controlled conditions. It is far less reliable once the lighting shifts, even in the lab. Weight is estimated, not measured. One-photo mass methods are tested only on circuit boards, catalog objects and smart-bin items. Otherwise, mass is computed from estimated shape, guessed material and a density from a table. Every small error multiplies. The drawing has been fading on purpose: the picture blurs as the evidence thins.",
   },
 };
+
+const cap = (s = "") => s.charAt(0).toUpperCase() + s.slice(1);
+const NUMBER_WORD = [
+  "no",
+  "one",
+  "two",
+  "three",
+  "four",
+  "five",
+  "six",
+  "seven",
+  "eight",
+  "nine",
+  "ten",
+  "eleven",
+  "twelve",
+];
+
+/** The field-gate split, counted from the marks rather than typed: of the rows
+ *  where a method exists (evidence B or N), how many have their field
+ *  performance measured, inferred, or untested. */
+export const FIELD_SPLIT = (() => {
+  const withMethod = cells.flatMap((c) =>
+    runsOf(c)
+      .filter((r) => r.evidence === "B" || r.evidence === "N")
+      .map((r) => ({ cell: c, run: r })),
+  );
+  const n = (basis: string) => NUMBER_WORD[withMethod.filter((m) => m.run.basis === basis).length];
+  const measured = withMethod
+    .filter((m) => m.run.basis === "measured")
+    .map((m) => `${m.cell.scale} ${m.cell.informationType}`.toLowerCase())
+    .join(", ");
+  const rows = cells.reduce(
+    (sum, c) => sum + (c.structurallyEmpty ? 0 : (c.subVerdicts?.length ?? 1)),
+    0,
+  );
+  const have = `${cap(NUMBER_WORD[withMethod.length])} of the ${NUMBER_WORD[rows]} verdicts have a method.`;
+  const capture =
+    "The open question is how it performs under contributor-grade capture: ordinary photos taken by the people who repair, reuse or recycle products.";
+  return `${have} ${capture} That performance is measured to fall short for ${n("measured")} (${measured}). It is inferred from neighbouring fields or from zero-shot tests (models used without task training) for ${n("inferred")}, and untested for ${n("untested")}.`;
+})();

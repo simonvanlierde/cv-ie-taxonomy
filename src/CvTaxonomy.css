@@ -21,10 +21,6 @@
    lines, hairlines, dashed hairlines for absence, balloons and leaders.
    =========================================================================== */
 
-/* --cvt-bg is generated from theme.ts (the surface's single source); the rest of
-   the palette lives below. Run `pnpm gen:theme` after changing SURFACE. */
-@import "./theme.generated.css";
-
 /* Type system — engineering-drawing register.
    Display, body and data are one superfamily: Overpass (Highway-Gothic / DIN
    lineage) and its Overpass Mono sibling, so the headline, the prose and the
@@ -80,7 +76,8 @@
      agree. */
   --cvt-edge: 28px;
 
-  /* --cvt-bg comes from theme.generated.css (imported above) */
+  /* the surface; must equal SURFACE in theme.ts, which the contrast tests read (check:theme) */
+  --cvt-bg: light-dark(#0d3b5e, #050c14);
   --cvt-bg2: light-dark(#0a3050, #020609);
   --cvt-grid: light-dark(rgba(233, 244, 255, 0.13), rgba(207, 227, 242, 0.11));
   --cvt-ink: light-dark(#e9f4ff, #cfe3f2);
