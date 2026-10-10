@@ -5,11 +5,9 @@ on:
     branches: [main]
   pull_request:
 
-# Allow the deploy job to publish to GitHub Pages.
+# Read-only by default; only the deploy job may publish to GitHub Pages.
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 # Cancel superseded PR runs; never cancel a push run, which carries the deploy.
 # The `pages` group lives on the deploy job instead, so PR builds no longer queue
@@ -62,6 +60,9 @@ jobs:
     concurrency:
       group: pages
       cancel-in-progress: false
+    permissions:
+      pages: write
+      id-token: write
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment:
