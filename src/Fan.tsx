@@ -69,7 +69,7 @@ const ON_STAGE = 0.5;
  *  chip that opened it in frame. Leader targets live in the render, where the
  *  part centres are. `id` is looked up through cellById at render, so a typo
  *  throws rather than drawing a blank chip. */
-const CHIP_LAYOUT: {
+export const CHIP_LAYOUT: {
   id: string;
   x?: number;
   y: number;

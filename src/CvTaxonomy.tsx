@@ -10,7 +10,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import { flushSync } from "react-dom";
-import { CHAPTER_COPY } from "./chapters";
+import { CHAPTER_COPY, FIELD_SPLIT } from "./chapters";
 import "./CvTaxonomy.css";
 import {
   cellAt,
@@ -40,7 +40,6 @@ import {
 import { MobileStepper } from "./MobileStepper";
 import { Cite, CitedProse } from "./References";
 import { RubricCircuit } from "./RubricCircuit";
-import { runsOf } from "./rubricMarks";
 import { BREAKPOINT_PX, SCALE_VAR, SURFACE, THEME_VARS, type Theme, VERDICT_VAR } from "./theme";
 import { plateauCentre, TIMELINE } from "./timeline";
 import { useCamera } from "./useCamera";
@@ -736,41 +735,6 @@ const Rail = memo(function Rail({ chapter }: { chapter: Chapter }) {
 
 // ---- pieces shared between the desktop rail and the mobile stepper, so the
 // claim-bearing copy and the cell buttons have exactly one source ---------------
-
-const cap = (s = "") => s.charAt(0).toUpperCase() + s.slice(1);
-const NUMBER_WORD = [
-  "no",
-  "one",
-  "two",
-  "three",
-  "four",
-  "five",
-  "six",
-  "seven",
-  "eight",
-  "nine",
-  "ten",
-  "eleven",
-  "twelve",
-];
-
-/** The field-gate split, counted from the marks rather than typed: of the rows
- *  where a method exists (evidence B or N), how many have their field
- *  performance measured, inferred, or untested. */
-export const FIELD_SPLIT = (() => {
-  const runs = cells
-    .flatMap((c) => runsOf(c))
-    .filter((r) => r.evidence === "B" || r.evidence === "N");
-  const n = (basis: string) => NUMBER_WORD[runs.filter((r) => r.basis === basis).length];
-  const rows = cells.reduce(
-    (sum, c) => sum + (c.structurallyEmpty ? 0 : (c.subVerdicts?.length ?? 1)),
-    0,
-  );
-  const have = `${cap(NUMBER_WORD[runs.length])} of the ${NUMBER_WORD[rows]} verdicts have a method.`;
-  const capture =
-    "The open question is how it performs under contributor-grade capture: ordinary photos taken by the people who repair, reuse or recycle products.";
-  return `${have} ${capture} That performance is measured to fall short for ${n("measured")} (product identity). It is inferred from neighbouring fields or from zero-shot tests (models used without task training) for ${n("inferred")}, and untested for ${n("untested")}.`;
-})();
 
 /** The hero's shared copy: eyebrow, title, sub and maturity legend. `hint` is
  *  the interaction sentence — the desktop rail points at the fan's chips, which
