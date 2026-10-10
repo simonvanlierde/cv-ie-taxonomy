@@ -1,4 +1,4 @@
-import type { Cell } from "./data/types";
+import type { Cell, Verdict } from "./data/types";
 
 /**
  * The paper records each cell as an evidence mark and two gates, printed in
@@ -89,4 +89,19 @@ export function runsOf(cell: Cell): Run[] {
     .split(";")
     .map((r) => parseRun(r))
     .filter((r): r is Run => r !== null);
+}
+
+/** The verdict a run's marks give. Every verdict in taxonomy.json must equal this;
+ *  the article's deposit derives its verdicts by the same ladder. */
+export function verdictOf(run: Run): Verdict {
+  switch (run.evidence) {
+    case "B":
+      return run.completes ? "Strong" : "Partial";
+    case "N":
+      return "Emerging-but-narrow";
+    case "C":
+      return "Plausible-but-unvalidated";
+    case "–":
+      return "Absent";
+  }
 }
