@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import axe from "axe-core";
 import { describe, expect, it, vi } from "vitest";
 import { CvTaxonomy } from "./CvTaxonomy";
@@ -37,6 +37,7 @@ describe("WCAG 2.2 AA (axe)", () => {
 
   it("an open cell detail", async () => {
     render(<CvTaxonomy initialCell="component-structure" />);
+    await screen.findByRole("complementary", { name: /component · structure/i });
     expect(await violations()).toEqual([]);
   });
 
