@@ -36,7 +36,7 @@ describe("taxonomy data layer (mirrors the review article's Table S2)", () => {
     for (const m of allMaturities) expect(VERDICTS).toContain(m);
   });
 
-  it("no cell or sub-verdict claims Strong (the paper's finding: nothing reaches Strong under EoL capture)", () => {
+  it("no cell or sub-verdict claims Strong (the paper's finding: nothing reaches Strong on field photos)", () => {
     expect(allMaturities).not.toContain("Strong");
   });
 

@@ -44,7 +44,9 @@ describe("MobileStepper", () => {
     for (let i = 0; i < 4; i++) {
       await user.click(container.querySelector(".cvt-stepper-next") as HTMLButtonElement);
     }
-    expect(screen.getByRole("heading", { name: /mostly gaps/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /tested where products are actually handled/i }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("Matrix · 5/5");
     expect(container.querySelector(".cvt-stepper-next")).not.toBeInTheDocument();
   });
@@ -117,7 +119,7 @@ describe("MobileStepper", () => {
     // folded, but never a bare handle: the strip names the scale it holds, so
     // there is something to open and something saying what is behind it
     expect(toggle()).toHaveAttribute("aria-expanded", "false");
-    expect(toggle()).toHaveTextContent(/one product, seen whole/i);
+    expect(toggle()).toHaveTextContent(/reading the label works/i);
     expect(container.querySelector(".cvt-mgroup")).toBeNull(); // text away, fan alone
 
     await user.click(toggle());

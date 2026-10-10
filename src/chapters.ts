@@ -3,7 +3,8 @@ import type { Scale } from "./data/types";
 import { runsOf } from "./rubricMarks";
 
 /**
- * The narrative rail's prose, one chapter per physical scale.
+ * The narrative rail's prose, one chapter per physical scale. The title is the
+ * chapter's one claim.
  *
  * Unlike the fan overlays, this prose is NOT illustrative — every figure in it
  * is a claim the paper makes. So each percentage must appear verbatim in the
@@ -13,16 +14,17 @@ import { runsOf } from "./rubricMarks";
  */
 export const CHAPTER_COPY: Record<Scale, { title: string; body: string }> = {
   Product: {
-    title: "One product, seen whole",
-    body: "With the whole product, vision comes closest to use: read the rating label, then look the product up. Label reading can be trialled now, if a person checks each value. Model numbers were read from 95.7% of label-visible images taken for professional repair. At a recycler's intake, that fell to 39.7%. Size from one camera stays a rough estimate. The key question is whether the product is worth repairing. So far it has been answered one product class at a time. Laptop covers are graded at 86.7% on a conveyor with ambient light blocked. Nothing has been tested on the photos a contributor would actually take.",
+    title: "Reading the label works on 95.7% of repair photos, but on only 39.7% at the recycler.",
+    body: "This is where cameras come closest to real use: read the rating label, then look the product up. The repair photos were taken by customers on their own phones, and all the numbers come from one research group working on washing machines. Label reading can be tried now, as long as a person checks each value.",
   },
   Component: {
-    title: "Pulled apart",
-    body: "Once the fan is opened up, vision can find and count parts like blades and motors. That works after tuning on similar products. What it can't yet do is say how the parts connect. The methods that try cover only jointed household objects and toy vehicles. Their map of connections falls from ~82% to ~39% on a new dataset of the same kinds.",
+    title:
+      "Cameras can find the parts in the lab. Nobody has yet worked out how to describe how the parts are fastened together.",
+    body: "Finding and outlining parts has only been tested on teardowns photographed in a lab or on a fixed rig, so the next step is a trial in a real workshop. For how parts attach, there is no agreed list of fastener types linked to photos, and no photo collection that marks which part is attached to which. The few methods that try handle only jointed household objects and toy vehicles, and their accuracy falls from ~82% to ~39% on new objects of the same kinds.",
   },
   Material: {
-    title: "Down to matter",
-    body: "Can a camera tell steel from plastic? Often, under controlled conditions. It is far less reliable once the lighting shifts, even in the lab. Weight is estimated, not measured. One-photo mass methods are tested only on circuit boards, catalog objects and smart-bin items. Otherwise, mass is computed from estimated shape, guessed material and a density from a table. Every small error multiplies. The drawing has been fading on purpose: the picture blurs as the evidence thins.",
+    title: "A camera sees the surface, not what’s underneath. Weight is estimated, not measured.",
+    body: "Under controlled conditions, a camera can often name the material on the outside of a part. What lies underneath, such as insides, coatings and alloys, it cannot see, and no method for it exists yet. Weight is worked out from an estimated shape, a guessed material and a density from a table, so every small error adds up. The drawing fades on purpose: the picture blurs as the evidence thins.",
   },
 };
 
@@ -63,6 +65,6 @@ export const FIELD_SPLIT = (() => {
   );
   const have = `${cap(NUMBER_WORD[withMethod.length])} of the ${NUMBER_WORD[rows]} verdicts have a method.`;
   const capture =
-    "The open question is how it performs under contributor-grade capture: ordinary photos taken by the people who repair, reuse or recycle products.";
-  return `${have} ${capture} That performance is measured to fall short for ${n("measured")} (${measured}). It is inferred from neighbouring fields or from zero-shot tests (models used without task training) for ${n("inferred")}, and untested for ${n("untested")}.`;
+    "The open question is how well it works on field photos: ordinary photos taken by the people who repair, collect or recycle products.";
+  return `${have} ${capture} That performance is measured to fall short for ${n("measured")} (${measured}). It is inferred from neighbouring fields, or from tests of models not trained for the task, for ${n("inferred")}, and untested for ${n("untested")}.`;
 })();

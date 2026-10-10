@@ -41,7 +41,7 @@ On a phone, the story runs as full-screen pages with a sheet that folds away.
 The last screen shows all twelve cells as a 3 × 4 grid. Every cell can be
 clicked, and a **Plain table** button shows the same data as a table. Hatching
 marks the two structurally empty cells, which have no verdict. No task reaches
-Strong under end-of-life capture.
+Strong on field photos.
 
 ## Data is the source of truth
 

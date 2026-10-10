@@ -767,14 +767,15 @@ export function Hero({
       </h1>
       <p className="cvt-hero-contract">
         Every verdict comes from the paper&rsquo;s <span className="cvt-cite">Table&nbsp;S2</span>.
-        The more solid the square, the stronger the evidence. Colour only marks the physical scale.
+        The more solid the mark, the stronger the evidence. Colour only shows the physical scale.
       </p>
       {disclosureControl}
       <p className="cvt-sub" id={detailsId} hidden={!expanded}>
         Research on reuse and recycling (the circular economy) keeps asking cameras to judge
         discarded products. What is this? What&rsquo;s inside? What is it worth? Here is one
         worn-out desk fan, and ten tasks that computer vision (software that reads images) could
-        take on. Each is judged by how well it works today.
+        take on. Most of them work in the lab. Almost none has been tested on photos taken where
+        products are repaired, collected or recycled.
         {hint ? ` ${hint}` : ""}
       </p>
       <p className="cvt-hero-split">{FIELD_SPLIT}</p>
@@ -845,8 +846,7 @@ export const Outro = memo(function Outro() {
       tabIndex={-1}
     >
       <h2>
-        The honest map is mostly gaps. By the paper&rsquo;s own scoring rules (its rubric), no task
-        earns a Strong on worn, real-world products.
+        Most of these tools exist. Almost none has been tested where products are actually handled.
       </h2>
       <MaturityKey />
       {/* the caption and the table twin ride the narrative column beside the
@@ -863,6 +863,17 @@ export const Outro = memo(function Outro() {
             Hatched cells have no task of their own, because structure is a question for the
             Component scale. Two letters mean two sub-tasks. The block stands at the stronger
             verdict, with a line across at the weaker one.
+          </p>
+          <p>
+            By the paper&rsquo;s own scoring rules (its rubric), no task earns a Strong on field
+            photos. What is missing comes in three shapes. Some tasks have no shared taxonomy yet,
+            for example for a product&rsquo;s condition across product types, or for how its parts
+            are fastened. One has no method at all: seeing what lies under the surface. The rest
+            have methods that have not been tested on field photos.
+          </p>
+          <p>
+            Industrial ecology already describes products by hand, so it can help build those shared
+            words and a shared set of field photos to test on.
           </p>
         </div>
         <TableView />

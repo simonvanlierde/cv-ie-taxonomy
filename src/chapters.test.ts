@@ -22,7 +22,8 @@ describe("chapter prose is backed by taxonomy.json", () => {
       .map((c) => c.maturityNote)
       .join(" ");
 
-    for (const figure of percentages(CHAPTER_COPY[scale].body)) {
+    const { title, body } = CHAPTER_COPY[scale];
+    for (const figure of percentages(`${title} ${body}`)) {
       expect(notes, `${scale} chapter cites ${figure}%, absent from taxonomy.json`).toContain(
         `${figure}%`,
       );
@@ -30,10 +31,10 @@ describe("chapter prose is backed by taxonomy.json", () => {
   });
 
   it("the Product chapter cites the label-read collapse, not a rounded version of it", () => {
-    // 95.7 → 39.7 is the paper's clean-to-field penalty; 96 → 40 would be a
+    // 95.7 → 39.7 is the paper's repair-to-recycler drop; 96 → 40 would be a
     // second, unsourced set of numbers.
-    expect(CHAPTER_COPY.Product.body).toContain("95.7%");
-    expect(CHAPTER_COPY.Product.body).toContain("39.7%");
+    expect(CHAPTER_COPY.Product.title).toContain("95.7%");
+    expect(CHAPTER_COPY.Product.title).toContain("39.7%");
   });
 
   it("every chapter has a title and a non-empty body", () => {
@@ -48,7 +49,7 @@ describe("the hero's field split", () => {
   it("states the article's 1 measured / 3 inferred / 4 untested split of eight field-bound rows", () => {
     expect(FIELD_SPLIT).toContain("Eight of the eleven verdicts have a method.");
     expect(FIELD_SPLIT).toContain("fall short for one (product identity)");
-    expect(FIELD_SPLIT).toContain("without task training) for three, and untested for four.");
-    expect(FIELD_SPLIT).toContain("contributor-grade capture");
+    expect(FIELD_SPLIT).toContain("not trained for the task, for three, and untested for four.");
+    expect(FIELD_SPLIT).toContain("field photos");
   });
 });

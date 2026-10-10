@@ -428,8 +428,7 @@ export function Fan({
 
   // The capture degrades as the scales get smaller, because that is what the
   // paper found: the evidence thins from product to material, and the reason is
-  // that nothing has been validated on the images a contributor would actually
-  // take. So the DRAWING loses definition while the read-outs stay crisp — the
+  // that nothing has been validated on field photos. So the DRAWING loses definition while the read-outs stay crisp — the
   // machine goes on reporting confident boxes over a picture it can see less and
   // less of. Quantized, so a continuous scrub does not rebuild an SVG filter
   // every frame; 0 through Product, and never blurred past legibility.
