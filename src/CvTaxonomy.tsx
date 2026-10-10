@@ -370,13 +370,22 @@ export function CvTaxonomy({
   // Back is a no-op. Taking it off with history.back() would restore the scroll
   // position from when the detail opened, and the detail also closes itself
   // when the reader scrolls to the matrix, so that would yank the page back.
+  // The next detail reuses that leftover entry instead of pushing another, so
+  // there is never more than one.
   // The entry carries a token of its own, so an entry left by another island
   // (or an earlier mount) is never mistaken for this one.
   const historyEntry = useRef<string | null>(null);
+  const lastEntry = useRef<string | null>(null);
   useEffect(() => {
     if (selected && !historyEntry.current) {
-      historyEntry.current = `${Date.now()}-${Math.random()}`;
-      history.pushState({ ...history.state, cvtDetail: historyEntry.current }, "");
+      const token = `${Date.now()}-${Math.random()}`;
+      const state = { ...history.state, cvtDetail: token };
+      if (lastEntry.current && history.state?.cvtDetail === lastEntry.current) {
+        history.replaceState(state, "");
+      } else {
+        history.pushState(state, "");
+      }
+      historyEntry.current = lastEntry.current = token;
     } else if (!selected) {
       historyEntry.current = null;
     }
