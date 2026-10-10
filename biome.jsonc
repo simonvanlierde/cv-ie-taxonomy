@@ -13,7 +13,8 @@
       "!node_modules",
       "!coverage",
       "!test-results",
-      "!src/theme.generated.css"
+      "!src/theme.generated.css",
+      "!src/data/deposit-rubric-marks.json"
     ]
   },
   "formatter": {

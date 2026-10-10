@@ -1,0 +1,169 @@
+[
+ {
+  "cell": "Product · Identity",
+  "sub_cell": null,
+  "evidence_mark": "B",
+  "field_gate": "✗",
+  "field_gate_basis": "measured",
+  "deployment_gate": "✓",
+  "derived_verdict": "Partial",
+  "evidence_citekeys": [
+   "koyanakaIndividualModelIdentification2024",
+   "sterkensProductLabelIdentification2023",
+   "sterkensSelectionReuseWEEE2024",
+   "zhouMultiviewGraphTransformer2025"
+  ]
+ },
+ {
+  "cell": "Product · Quantity",
+  "sub_cell": null,
+  "evidence_mark": "B",
+  "field_gate": "✗",
+  "field_gate_basis": "untested",
+  "deployment_gate": "✗",
+  "derived_verdict": "Partial",
+  "evidence_citekeys": [
+   "bochkovskiiDepthProSharp2025",
+   "hamilton-fletcherAccuracyUsabilitySmartphoneBased2024",
+   "huMetric3Dv2VersatileMonocular2024",
+   "keethaMapAnythingUniversalFeedForward2026",
+   "leePhysicallyGuidedVisual2026",
+   "luetzenburgEvaluationAppleIPhone2021",
+   "standleyImage2massEstimatingMass2017",
+   "wangImage2MassHybridConditionguided2026",
+   "wangMoGe2AccurateMonocular2025",
+   "wangVGGTVisualGeometry2025",
+   "yangDepthAnythingV22024"
+  ]
+ },
+ {
+  "cell": "Product · Condition",
+  "sub_cell": null,
+  "evidence_mark": "N",
+  "field_gate": "✗",
+  "field_gate_basis": "untested",
+  "deployment_gate": "✗",
+  "derived_verdict": "Emerging-but-narrow",
+  "evidence_citekeys": [
+   "bowlesKioskRecyclingElectronic2012",
+   "ctiacertificationWirelessDeviceGrading2019",
+   "hasanVehicleDamageDetection2025",
+   "liEnhancedAutomaticCosmetic2021",
+   "mohandasDeepLearningEnabled2025",
+   "wuSCESSurfaceCondition2026"
+  ]
+ },
+ {
+  "cell": "Component · Structure (BoC)",
+  "sub_cell": "detect/segment",
+  "evidence_mark": "B",
+  "field_gate": "✗",
+  "field_gate_basis": "adjacent-inferred",
+  "deployment_gate": "✗",
+  "derived_verdict": "Partial",
+  "evidence_citekeys": [
+   "bashkirovaVisDA2022Challenge2023",
+   "carionSAM3Segment2026",
+   "zhangEvaluatingLargeLightweight2026"
+  ]
+ },
+ {
+  "cell": "Component · Structure (BoC)",
+  "sub_cell": "relations",
+  "evidence_mark": "N",
+  "field_gate": "✗",
+  "field_gate_basis": "untested",
+  "deployment_gate": "✗",
+  "derived_verdict": "Emerging-but-narrow",
+  "evidence_citekeys": [
+   "chenURDFormerPipelineConstructing2024",
+   "liuSINGAPOSingleImage2025",
+   "yuanLARMLargeArticulatedObject2025"
+  ]
+ },
+ {
+  "cell": "Component · Identity",
+  "sub_cell": null,
+  "evidence_mark": "B",
+  "field_gate": "✗",
+  "field_gate_basis": "adjacent-inferred",
+  "deployment_gate": "✗",
+  "derived_verdict": "Partial",
+  "evidence_citekeys": [
+   "liuGroundingDINOMarrying2025",
+   "popovRoboflow100VLMultiDomainObject2025",
+   "sterkensComputerVisionOptical2022",
+   "sterkensProductLabelIdentification2023"
+  ]
+ },
+ {
+  "cell": "Component · Quantity",
+  "sub_cell": null,
+  "evidence_mark": "B",
+  "field_gate": "✗",
+  "field_gate_basis": "untested",
+  "deployment_gate": "✗",
+  "derived_verdict": "Partial",
+  "evidence_citekeys": [
+   "huMetric3Dv2VersatileMonocular2024",
+   "wangVGGTVisualGeometry2025"
+  ]
+ },
+ {
+  "cell": "Component · Condition",
+  "sub_cell": null,
+  "evidence_mark": "C",
+  "field_gate": "✗",
+  "field_gate_basis": "untested",
+  "deployment_gate": "✗",
+  "derived_verdict": "Plausible-but-unvalidated",
+  "evidence_citekeys": [
+   "ishikuraIndustrialGradeRobustRobot2026",
+   "liuRAISERobotAssistedSelective2026",
+   "liuVisionLanguageActionModelsSelective2025",
+   "mandoliniAutomaticAssessmentRust2026",
+   "saenzAutomatedDisassemblyEwasterequirements2024",
+   "sutradharComputerComponentDisassembly2025"
+  ]
+ },
+ {
+  "cell": "Material · Identity (BoM)",
+  "sub_cell": null,
+  "evidence_mark": "B",
+  "field_gate": "✗",
+  "field_gate_basis": "adjacent-inferred",
+  "deployment_gate": "✗",
+  "derived_verdict": "Partial",
+  "evidence_citekeys": [
+   "chedotelAutomatingInventoryLife2026",
+   "drehwaldOneshotRecognitionAny2023",
+   "funkEvaluationVisionLanguage2026",
+   "liMaterialSeg3DSegmentingDense2024",
+   "penumuruIdentificationClassificationMaterials2020",
+   "vogelgesangAutomatedMaterialFlow2025"
+  ]
+ },
+ {
+  "cell": "Material · Quantity",
+  "sub_cell": null,
+  "evidence_mark": "–",
+  "field_gate": "✗",
+  "field_gate_basis": null,
+  "deployment_gate": "✗",
+  "derived_verdict": "Absent",
+  "evidence_citekeys": []
+ },
+ {
+  "cell": "Material · Condition",
+  "sub_cell": null,
+  "evidence_mark": "C",
+  "field_gate": "✗",
+  "field_gate_basis": "untested",
+  "deployment_gate": "✗",
+  "derived_verdict": "Plausible-but-unvalidated",
+  "evidence_citekeys": [
+   "liMaterialSeg3DSegmentingDense2024",
+   "zhouParticleSAMSmallParticle2025"
+  ]
+ }
+]
