@@ -84,7 +84,10 @@ describe("chip operability", () => {
       const g = chip(container, id);
       expect(g, `${id} is visible but unreachable`).toHaveAttribute("tabindex", "0");
       expect(g, `${id} is visible but unannounced`).toHaveAttribute("aria-hidden", "false");
-      expect(g.style.opacity, `${id} should be dimmed, not hidden`).toMatch(/\* 0\.7\)$/);
+      // dimmed below its scene's full presence, but not hidden
+      expect(g.style.opacity, `${id} should be dimmed`).not.toBe(
+        chip(container, focused.id).style.opacity,
+      );
     }
   });
 

@@ -464,6 +464,8 @@ export function Fan({
 
   // On the phone the read-outs grow: same viewBox units, roughly half the pixels.
   const ts = compact ? 1.6 : 1;
+  // the phone's taller "anomaly?" tag reaches down to the OCR read-out; drop it clear
+  const ocrY = P.sy(728) + (ts - 1) * 30;
 
   // Leader targets per chip, read off each scale's part centres; the chips' own
   // positions and labels are static (CHIP_LAYOUT), so the camera can know a
@@ -487,7 +489,11 @@ export function Fan({
   return (
     <figure
       className={compact ? "cvt-fan cvt-fan-compact" : "cvt-fan"}
-      aria-label="Exploding desk fan; the computer-vision read-outs around it open task details"
+      aria-label={
+        compact
+          ? "Exploding desk fan with simulated computer-vision read-outs"
+          : "Exploding desk fan; the computer-vision read-outs around it open task details"
+      }
     >
       <svg
         className="cvt-fan-parts"
@@ -580,8 +586,15 @@ export function Fan({
         </g>
       </svg>
 
-      {/* biome-ignore lint/a11y/noSvgWithoutTitle: the group above names the figure; this svg holds the chips, each named on its own */}
-      <svg className="cvt-fan-marks" viewBox={viewBox} preserveAspectRatio="xMidYMid meet">
+      {/* biome-ignore lint/a11y/noSvgWithoutTitle: named by aria-label; on the phone it holds only hidden read-outs */}
+      <svg
+        className="cvt-fan-marks"
+        viewBox={viewBox}
+        preserveAspectRatio="xMidYMid meet"
+        role={compact ? undefined : "group"}
+        aria-label={compact ? undefined : "Task chips"}
+        aria-hidden={compact || undefined}
+      >
         {/* ---- CV annotations painted on the product. Every read-out here is a
                mock, kept out of the accessibility tree by <Layer>. ---- */}
         {/* product · identity: whole-object detection box + OCR read-out on the label */}
@@ -603,12 +616,12 @@ export function Fan({
             width={52 * P.s}
             height={24 * P.s}
           />
-          <line className="ov-leader" x1={P.sx(358)} y1={P.sy(682)} x2={P.sx(320)} y2={P.sy(736)} />
+          <line className="ov-leader" x1={P.sx(358)} y1={P.sy(682)} x2={P.sx(320)} y2={ocrY + 8} />
           {/* OCR read-out types itself when the chapter arrives */}
           <g
             className="ov-tag ov-ocr"
             data-active={chapter === "Product"}
-            transform={`translate(${P.sx(196)} ${P.sy(728)})`}
+            transform={`translate(${P.sx(196)} ${ocrY})`}
             style={{ "--ocr-w": `${OCR_W * ts}px`, "--ocr-caret": `${(OCR_W - 11) * ts}px` }}
           >
             <clipPath id={ocrClip}>
@@ -719,10 +732,16 @@ export function Fan({
 
         {/* material · identity: material tags on the tinted parts */}
         <Layer scale="Material" focus={deco("material-identity")}>
-          <Tag x={M.fgC[0] - 20} y={M.fgC[1] - 60} label="steel" color="#9ba7b0" s={ts} />
-          <Tag x={M.blC[0] - 96} y={M.blC[1] + 26} label="ABS" color="#8b97a3" s={ts} />
-          <Tag x={M.moC[0] + 8} y={M.moC[1] - 6} label="Cu" color="#b87333" s={ts} />
-          <Tag x={M.baC[0] - 20} y={M.baC[1] - 8} label="PCB" color="#3a9460" s={ts} />
+          <Tag
+            x={M.fgC[0] - 20}
+            y={M.fgC[1] - 60}
+            label="steel"
+            color="var(--cvt-tag-steel)"
+            s={ts}
+          />
+          <Tag x={M.blC[0] - 96} y={M.blC[1] + 26} label="ABS" color="var(--cvt-tag-abs)" s={ts} />
+          <Tag x={M.moC[0] + 8} y={M.moC[1] - 6} label="Cu" color="var(--cvt-tag-cu)" s={ts} />
+          <Tag x={M.baC[0] - 20} y={M.baC[1] - 8} label="PCB" color="var(--cvt-tag-pcb)" s={ts} />
         </Layer>
         <Layer scale="Material" focus={deco("material-condition")}>
           <ellipse className="ov-blob" cx={M.moC[0] + 42} cy={M.moC[1] - 24} rx="16" ry="11" />

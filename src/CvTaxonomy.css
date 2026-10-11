@@ -117,6 +117,11 @@ html[data-theme="dark"] {
      there (theme.test.ts). --cvt-tag-ink is the text on a segmentation tag. */
   --cvt-warn: light-dark(#8a4b00, #ffb454);
   --cvt-tag-ink: light-dark(#ffffff, #0b1622);
+  /* the material tags' plates, which carry --cvt-tag-ink text (theme.test.ts) */
+  --cvt-tag-steel: light-dark(#5b6770, #9ba7b0);
+  --cvt-tag-abs: light-dark(#56606b, #8b97a3);
+  --cvt-tag-cu: light-dark(#8a4f1d, #b87333);
+  --cvt-tag-pcb: light-dark(#2e6b47, #3a9460);
   --cvt-ok: light-dark(#1a6b37, #4ade80);
 
   /* Six steps, and every rule picks one. The floor is 11px and it is reserved
@@ -239,20 +244,12 @@ html[data-theme="dark"] {
   }
 }
 
+/* clear of the sheet's 24px margin spine */
 .cvt-stagecol {
   position: relative;
   min-width: 0;
-}
-/* The drawing column starts clear of the sheet's margin. This used to be worth a
-   breakpoint — a 268px band of panels cost more than the overlap it prevented on
-   a narrow sheet — but the margin is a 24px spine now, so every desktop sheet can
-   afford it and there is one composition instead of two. */
-.cvt-stagecol {
   padding-left: 44px;
 }
-/* Below the wide sheet there is no room for a margin band, but the letters still
-   need their key — without it P/E/U/A mean nothing. The instrument becomes a
-   single ruled line along the bottom instead of standing down. */
 .cvt-sticky {
   position: sticky;
   top: 0;
@@ -266,6 +263,7 @@ html[data-theme="dark"] {
      edges, so the field has to start inside the sheet's furniture, not under it */
   padding-top: 62px;
   padding-bottom: 46px;
+  --cvt-stage-h: calc(100dvh - 108px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -273,11 +271,13 @@ html[data-theme="dark"] {
 /* ---- the figure: one box in VIEW's aspect ratio (800 × 875), holding the camera,
    which holds the two drawings. The camera is a CSS transform set from the
    active scene or the open cell (cameraTransform in CvTaxonomy.tsx). ---- */
+/* Sized from the room the sticky gives it (--cvt-stage-h) and never wider than
+   the column, so the box always keeps the drawing's aspect ratio: the camera
+   maths in cameraTransform assumes it. */
 .cvt-stage {
   position: relative;
   aspect-ratio: 800 / 875;
-  height: 100%;
-  max-width: 100%;
+  width: min(100%, calc(var(--cvt-stage-h) * 800 / 875));
   overflow: hidden;
 }
 .cvt-cam {
@@ -312,10 +312,12 @@ html[data-theme="dark"] {
      --e     explode, 0 assembled → 1 apart (the Component scene)
      --m     drift, 0 → 1 (the Material scene)
      --fog   blur and fade of the parts as the evidence thins (the Material scene)
-     --pr-*  each scale scene's presence, 0 → 1 → 0
-   By default each scene sets its end state, and a transition moves between them.
-   Where the browser has scroll-driven animations and motion is welcome, each
-   scene's own view timeline scrubs them instead (the block further down). */
+     --pr-*  each scale scene's presence: its read-outs and chips, 0 or 1
+   Each scene sets its end state, and a transition moves between them. Where the
+   browser has scroll-driven animations and motion is welcome, the scenes' view
+   timelines scrub the parts (--e, --m, --fog) instead (the block further down).
+   Presence always follows the scene the page reports, so a chip is never
+   operable while invisible, nor visible while inert. */
 @property --e {
   syntax: "<number>";
   inherits: true;
@@ -389,8 +391,8 @@ html[data-theme="dark"] {
 /* Scrubbed by scroll. Each scale scene names its own view timeline, and
    timeline-scope lifts the names up to the figure beside them. Percentages are
    of each section's `cover` range: its top entering the viewport's foot (0%) to
-   its foot leaving the top (100%). With a scene about 1.4 viewports tall, its
-   middle third holds the viewport's middle line. */
+   its foot leaving the top (100%). The parts move while the scene's top crosses
+   the lower half of the screen, before its read-outs arrive. */
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
     .cvt-scroll {
@@ -406,80 +408,34 @@ html[data-theme="dark"] {
       view-timeline: --scene-material block;
     }
     .cvt-sticky {
-      transition: none;
+      transition:
+        --pr-product 0.35s,
+        --pr-component 0.35s,
+        --pr-material 0.35s;
       animation:
-        cvt-presence-product linear both,
-        cvt-presence-component linear both,
-        cvt-presence-material linear both,
         cvt-explode linear both,
         cvt-drift linear both,
         cvt-fog linear both;
-      animation-timeline:
-        --scene-product, --scene-component, --scene-material, --scene-component, --scene-material,
-        --scene-material;
+      animation-timeline: --scene-component, --scene-material, --scene-material;
     }
-  }
-}
-/* a scene's read-outs arrive once its parts have settled and leave before the
-   next pose starts, so the fan never moves under an annotation pointing at it */
-@keyframes cvt-presence-product {
-  0%,
-  14% {
-    --pr-product: 0;
-  }
-  24%,
-  68% {
-    --pr-product: 1;
-  }
-  80%,
-  100% {
-    --pr-product: 0;
-  }
-}
-@keyframes cvt-presence-component {
-  0%,
-  26% {
-    --pr-component: 0;
-  }
-  36%,
-  68% {
-    --pr-component: 1;
-  }
-  80%,
-  100% {
-    --pr-component: 0;
-  }
-}
-@keyframes cvt-presence-material {
-  0%,
-  26% {
-    --pr-material: 0;
-  }
-  36%,
-  84% {
-    --pr-material: 1;
-  }
-  96%,
-  100% {
-    --pr-material: 0;
   }
 }
 @keyframes cvt-explode {
   0%,
-  8% {
+  4% {
     --e: 0;
   }
-  26%,
+  20%,
   100% {
     --e: 1;
   }
 }
 @keyframes cvt-drift {
   0%,
-  8% {
+  4% {
     --m: 0;
   }
-  26%,
+  20%,
   100% {
     --m: 1;
   }
@@ -982,8 +938,9 @@ html[data-theme="dark"] {
   }
 }
 
-/* About 1.4 viewports tall: the scene keyframes (cvt-presence-*, cvt-explode)
-   are placed for that height. Retune the two together. */
+/* About 1.4 viewports tall: the scrub keyframes (cvt-explode, cvt-drift) finish
+   as a scene's top reaches the middle of the screen at that height. Retune the
+   two together. */
 .cvt-chapter {
   min-height: 140vh;
   padding: 24vh 0 4rem;
@@ -1009,11 +966,19 @@ html[data-theme="dark"] {
   line-height: 1.1;
   margin: 0 0 0.8rem;
 }
-.cvt-chapter[data-active="true"] h2 {
-  text-decoration: underline;
-  text-decoration-color: var(--hue);
-  text-decoration-thickness: 3px;
-  text-underline-offset: 7px;
+/* the scene in view: a short rule in its scale's colour above the claim */
+.cvt-chapter h2::before {
+  content: "";
+  display: block;
+  width: 2.5rem;
+  height: 3px;
+  margin-bottom: 0.9rem;
+  background: var(--hue);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.cvt-chapter[data-active="true"] h2::before {
+  opacity: 1;
 }
 .cvt-body {
   font-size: var(--cvt-t-3);
@@ -1067,7 +1032,7 @@ html[data-theme="dark"] {
   min-width: 0;
 }
 /* the matrix's own min-width would otherwise force its track wider than the
-   canvas, same reason .cvt-matrixwrap used to scroll the old figure */
+   canvas */
 .cvt-explorable-grid {
   min-width: 0;
   overflow-x: auto;
@@ -1079,12 +1044,9 @@ html[data-theme="dark"] {
   position: sticky;
   top: 8vh;
   /* the leader hangs off its left edge, so it needs a positioned box to hang from */
-  /* fixed height, scrolling inside: this column sits in .cvt-scroll, the element
-     the scroll timeline is measured over. Selecting the first cell grows the
-     outer height once, by design; from then on the height is pinned, so moving
-     cell to cell or opening "More detail" cannot remap the calibrated presence
-     windows under a reader mid-scan (see timeline.ts, and the same reasoning on
-     TableView) */
+  /* fixed height, scrolling inside: selecting the first cell grows the outer
+     height once, by design; from then on it is pinned, so moving cell to cell or
+     opening "More detail" does not shift the page under a reader mid-scan */
   height: 70vh;
   overflow-y: auto;
 }
@@ -1138,8 +1100,7 @@ html[data-theme="dark"] {
 /* Below the wide sheet the figure and a column cannot share the canvas (the
    matrix is 660px wide), so the column dissolves into the grid: the prompt sits
    above the figure and the caption or the detail below it, as a printed figure
-   reads. The detail then flows at its own height; the outro is outside the
-   column the scroll timeline is measured over, so its height moves nothing. */
+   reads. The detail then flows at its own height. */
 @container cvt (width < 1180px) {
   .cvt-explorable {
     grid-template-columns: minmax(0, 1fr);
@@ -1819,6 +1780,7 @@ html[data-theme="dark"] {
     position: relative;
     height: 55svh;
     padding: 0.5rem 0 1.6rem;
+    --cvt-stage-h: calc(55svh - 2.1rem);
     background-color: var(--cvt-bg);
     border-bottom: 1px solid var(--cvt-line);
   }
@@ -1829,10 +1791,18 @@ html[data-theme="dark"] {
     min-height: auto;
     padding: 2rem 0 3rem;
   }
-  /* the text has only the screen under the figure, so a scene is shorter */
+  /* the text has only the screen under the figure, so a scene is as long as
+     its text */
   .cvt-chapter {
-    min-height: 90svh;
-    padding: 2rem 0 3rem;
+    min-height: auto;
+    padding: 2rem 0 4rem;
+  }
+  /* anything focused or scrolled to lands below the sticky figure, not under it */
+  .cvt-chapter,
+  .cvt-hero,
+  .cvt-outro,
+  .cvt-mcell {
+    scroll-margin-top: calc(55svh + 1rem);
   }
   .cvt-outro {
     min-height: auto;
@@ -1955,6 +1925,33 @@ html[data-theme="dark"] {
   }
   .cvt-panel:not([open]) {
     translate: 0 100%;
+  }
+}
+
+/* A phone on its side has no height for a figure over the text, so the two sit
+   side by side, as on the sheet. */
+@container cvt (width < 881px) {
+  @media (orientation: landscape) and (max-height: 500px) {
+    .cvt-scroll {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      column-gap: 1.5rem;
+    }
+    .cvt-stagecol {
+      margin: 0;
+      top: 0;
+      height: 100svh;
+    }
+    .cvt-sticky {
+      height: 100svh;
+      border-bottom: 0;
+      --cvt-stage-h: calc(100svh - 2.1rem);
+    }
+    .cvt-chapter,
+    .cvt-hero,
+    .cvt-outro,
+    .cvt-mcell {
+      scroll-margin-top: 1rem;
+    }
   }
 }
 
@@ -2205,7 +2202,8 @@ html[data-theme="dark"] {
   opacity: 0;
   transition: opacity 0.15s;
 }
-.cvt-rung[data-reading="true"] .cvt-rung-name,
+/* only for the rung under the pointer: a split cell lights two adjacent rungs,
+   and their names overlapped */
 .cvt-rung:hover .cvt-rung-name {
   opacity: 1;
 }
@@ -2263,10 +2261,9 @@ html[data-theme="dark"] {
 .cvt-railcol[data-detail="open"] .cvt-rail {
   visibility: hidden;
 }
-/* The slot is the sticky, zero-height thing; the detail overflows it. A float
-   here was meant to be zero-height too, but the hero's flex box could not
-   overlap it and dropped below it, lengthening the column — and the column IS
-   the scroll timeline, so every chapter jumped the moment a detail opened. */
+/* The slot is the sticky, zero-height thing; the detail overflows it, so opening
+   a detail does not change the height of the scenes it covers (which would move
+   every scene under the reader). */
 .cvt-detail-slot {
   position: sticky;
   /* inside the sheet's ruled border and clear of the coordinate ruler: the one
@@ -2336,13 +2333,13 @@ html[data-theme="dark"] {
    still clears it: below that the detail either crowds the field or is too
    narrow to read, and taking the column is the better trade. The stage's own
    left padding is widened to the detail's width in this band, so the field
-   never reflows when one opens — a drawing resizing under a camera spring is
-   two motions fighting. */
+   never reflows when one opens — a drawing resizing during a camera move is two
+   motions fighting. */
 @container cvt (width >= 1700px) {
   /* The enlargement claims its strip only while it is docked, beside the spine.
      Reserving it permanently spent the sheet on empty margin; the field re-fits
-     once, at the same moment the camera springs to the part, so the two moves
-     read as one. */
+     once, at the same moment the camera moves to the part, so the two moves read
+     as one. */
   .cvt-scroll[data-panel="open"] .cvt-stagecol {
     padding-left: 392px;
   }

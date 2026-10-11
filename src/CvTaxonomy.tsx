@@ -33,8 +33,6 @@ import {
   clampFrame,
   FRAMES,
   type Frame,
-  frameToViewBox,
-  HOME_FRAME,
   unionFrame,
   VIEW,
 } from "./frames";
@@ -56,20 +54,16 @@ export function cameraTransform(f: Frame): string {
   return `translate(${pct(0.5 - cx * z)}, ${pct(0.5 - cy * z)}) scale(${+z.toFixed(4)})`;
 }
 
-/** Which scene the reader is in: the section crossing the middle of the
- *  viewport. Each scene is a section marked `data-chapter-at`. Off while
- *  `enabled` is false (a pinned scene), and where IntersectionObserver is
- *  missing (jsdom), the opening scene stands. */
-function useActiveChapter(
-  ref: RefObject<HTMLElement | null>,
-  enabled: boolean,
-  layoutKey: unknown,
-): Chapter {
+/** Which scene the reader is in: the section crossing a line across the
+ *  screen. Each scene is a section marked `data-chapter-at`. The line is the
+ *  middle of the screen, or on a phone the middle of the text under the sticky
+ *  figure (55% of the screen tall). Where IntersectionObserver is missing
+ *  (jsdom), the opening scene stands. */
+function useActiveChapter(ref: RefObject<HTMLElement | null>, phone: boolean): Chapter {
   const [chapter, setChapter] = useState<Chapter>("hero");
-  // biome-ignore lint/correctness/useExhaustiveDependencies: layoutKey re-arms the observer when the layout swaps what the sections contain
   useEffect(() => {
     const root = ref.current;
-    if (!enabled || !root || typeof IntersectionObserver === "undefined") return;
+    if (!root || typeof IntersectionObserver === "undefined") return;
     const io = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
@@ -77,19 +71,18 @@ function useActiveChapter(
           if (entry.isIntersecting && at) setChapter(at);
         }
       },
-      // a line across the middle of the viewport
-      { rootMargin: "-50% 0px -50% 0px" },
+      { rootMargin: phone ? "-77% 0px -23% 0px" : "-50% 0px -50% 0px" },
     );
     for (const el of root.querySelectorAll("[data-chapter-at]")) io.observe(el);
     return () => io.disconnect();
-  }, [ref, enabled, layoutKey]);
+  }, [ref, phone]);
   return chapter;
 }
 
 /** The camera frame for a cell's detail: its part frame, grown to hold its own
  *  chip, kept inside the drawing. */
 export function frameFor(cellId: string): Frame {
-  const part = FRAMES[cellId] ?? HOME_FRAME;
+  const part = FRAMES[cellId] ?? VIEW;
   const chip = chipFrame(cellId);
   return chip ? clampFrame(unionFrame(part, chip, 16), VIEW) : part;
 }
@@ -236,7 +229,7 @@ export function CvTaxonomy({
     };
   }, [forcedTheme]);
 
-  const observed = useActiveChapter(rootRef, debugChapter === undefined, isMobile);
+  const observed = useActiveChapter(rootRef, isMobile);
   const chapter = debugChapter ?? observed;
 
   const [selected, setSelected] = useState<Cell | null>(
@@ -257,7 +250,7 @@ export function CvTaxonomy({
     const id = requestAnimationFrame(() => setCameraLive(true));
     return () => cancelAnimationFrame(id);
   }, []);
-  const cameraFrame = cameraLive ? (zoomFrame ?? CHAPTER_FRAMES[chapter]) : HOME_FRAME;
+  const cameraFrame = cameraLive ? (zoomFrame ?? CHAPTER_FRAMES[chapter]) : VIEW;
 
   const focus = hovered ?? selected;
 
@@ -449,7 +442,6 @@ export function CvTaxonomy({
             <div className="cvt-stage">
               <div
                 className="cvt-cam"
-                data-frame={frameToViewBox(cameraFrame)}
                 style={isMobile ? undefined : { transform: cameraTransform(cameraFrame) }}
               >
                 <Fan
@@ -483,7 +475,11 @@ export function CvTaxonomy({
                       </li>
                     ))}
                     <li className="cvt-ind-end">
-                      <a href="#cvt-matrix" data-active={chapter === "outro"}>
+                      <a
+                        href="#cvt-matrix"
+                        data-active={chapter === "outro"}
+                        aria-current={chapter === "outro" ? "true" : undefined}
+                      >
                         the map
                       </a>
                     </li>
@@ -530,7 +526,7 @@ export function CvTaxonomy({
       </div>
 
       {/* licences live in the repo (LICENSE + README), not the chrome */}
-      <SheetFooter />
+      <SheetFooter inert={isMobile && selected !== null} />
     </div>
   );
 }
@@ -588,9 +584,10 @@ function TitleRows() {
 /** The sheet's end: the title block again, laid along the bottom edge as one
  *  strip, with the page's own two fields (©, code) added. The fixed block fades
  *  as the closing figure rises, and this is where its content lands. */
-function SheetFooter() {
+function SheetFooter({ inert }: { inert: boolean }) {
   return (
-    <footer className="cvt-footer">
+    // behind the phone's sheet, like the scenes
+    <footer className="cvt-footer" inert={inert}>
       <dl className="cvt-foot-tb">
         <div className="cvt-tb-row cvt-tb-row-title">
           <dt>title</dt>
@@ -819,8 +816,7 @@ export function CellList({
 }
 
 // ---- outro: the matrix, live — select a cell to fill the detail inline
-// (memoized: nothing here depends on scroll progress, so the per-scroll-frame
-// render skips it entirely) -----
+// (memoized: nothing here changes with the scene or the hovered chip) ------------
 export const Outro = memo(function Outro() {
   return (
     // tabIndex -1: the skip link and the rail's "the map" target this id, and a

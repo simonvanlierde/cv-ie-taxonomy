@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { frameFor } from "./CvTaxonomy";
+import { cameraTransform, frameFor } from "./CvTaxonomy";
 import { cells } from "./data/taxonomy";
 import { chipFrame } from "./Fan";
-import { CHAPTER_FRAMES, clampFrame, FRAMES, frameToViewBox, HOME_FRAME, VIEW } from "./frames";
+import { CHAPTER_FRAMES, clampFrame, FRAMES, VIEW } from "./frames";
 import { frameOf } from "./test-helpers";
 
 const inside = (f: { x: number; y: number; w: number; h: number }) =>
@@ -31,6 +31,17 @@ describe("frames", () => {
     }
   });
 
+  // the figure clips at the camera's frame, so a chip outside its scene's frame
+  // is cut off (its plate's stroke counts: 2 units either side)
+  it("keeps every chip inside its own scene's frame", () => {
+    for (const c of cells) {
+      const chip = chipFrame(c.id);
+      if (!chip) continue;
+      const f = CHAPTER_FRAMES[c.scale];
+      expect(chip.x - 2 >= f.x && chip.x + chip.w + 2 <= f.x + f.w, `${c.id} chip x`).toBe(true);
+    }
+  });
+
   // clampFrame would quietly shrink an out-of-bounds chapter frame, and a frame
   // that had drifted to VIEW's own size would make the whole feature a no-op
   // without anything failing — hence both halves of this check.
@@ -42,16 +53,28 @@ describe("frames", () => {
     expect(CHAPTER_FRAMES.hero.h, "the hero sits on the product").toBeLessThan(VIEW.h * 0.8);
   });
 
-  it("home frame is the whole view", () => {
-    // no literal viewBox here: VIEW is a tuned crop around the drawing, and
-    // pinning its numbers would fail on every retune without catching a defect
-    expect(HOME_FRAME).toEqual(VIEW);
-    expect(frameToViewBox(HOME_FRAME)).toBe(frameToViewBox(VIEW));
-  });
-
   it("clamps an over-large or off-edge frame back inside its bounds", () => {
     const clamped = clampFrame({ x: -999, y: 0, w: 5000, h: 5000 }, VIEW);
     expect(inside(clamped)).toBe(true);
     expect(clamped).toEqual({ x: VIEW.x, y: VIEW.y, w: VIEW.w, h: VIEW.h });
+  });
+});
+
+describe("cameraTransform", () => {
+  // the box has VIEW's aspect ratio and transform-origin 0 0; translate % is of the box
+  it("leaves the whole view as it is", () => {
+    expect(cameraTransform(VIEW)).toBe("translate(0%, 0%) scale(1)");
+  });
+
+  it("doubles a centred half-size frame and shifts it back by half the box", () => {
+    const half = { x: VIEW.x + VIEW.w / 4, y: VIEW.y + VIEW.h / 4, w: VIEW.w / 2, h: VIEW.h / 2 };
+    expect(cameraTransform(half)).toBe("translate(-50%, -50%) scale(2)");
+  });
+
+  it("fits a wide frame by its width, like a viewBox with meet, and centres it", () => {
+    // the top-left quarter strip: twice as wide (relative to VIEW) as it is tall
+    const strip = { x: VIEW.x, y: VIEW.y, w: VIEW.w / 2, h: VIEW.h / 4 };
+    // z = min(2, 4) = 2; centre (0.25, 0.125) lands on (0.5, 0.5)
+    expect(cameraTransform(strip)).toBe("translate(0%, 25%) scale(2)");
   });
 });

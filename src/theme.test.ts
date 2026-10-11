@@ -39,6 +39,23 @@ describe.each(["light", "dark"] as const)("mark hues hold the 3:1 floor (%s)", (
   });
 });
 
+// axe does not read SVG text, so the read-out tags' text is held to 4.5:1 here
+describe.each(["light", "dark"] as const)("tag text holds the 4.5:1 floor (%s)", (theme) => {
+  const ink = lightDark("--cvt-tag-ink")[theme];
+
+  it("on every segmentation hue", () => {
+    for (const [slot, hex] of Object.entries(SEG_HUE[theme])) {
+      expect(contrast(ink, hex), `tag text on seg ${slot}`).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
+  it("on every material tag", () => {
+    for (const token of ["--cvt-tag-steel", "--cvt-tag-abs", "--cvt-tag-cu", "--cvt-tag-pcb"]) {
+      expect(contrast(ink, lightDark(token)[theme]), token).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+});
+
 describe.each(["light", "dark"] as const)("status text holds the 4.5:1 floor (%s)", (theme) => {
   const panel = lightDark("--cvt-panel")[theme];
 

@@ -49,9 +49,12 @@ describe("the covered scenes, in an engine that implements inert", () => {
   it("are not there to be pressed while the sheet is over them", async () => {
     const button = await openSheetOverScenes();
 
-    // the button still has a box — inert hides nothing — but the pixel over it
-    // does not belong to it, which is why a tap cannot open another cell
-    expect(button.getBoundingClientRect().width).toBeGreaterThan(0);
+    // the button still has a box on screen — inert hides nothing — but the pixel
+    // over it does not belong to it, which is why a tap cannot open another cell
+    const r = button.getBoundingClientRect();
+    expect(r.width).toBeGreaterThan(0);
+    expect(r.top >= 0 && r.bottom <= innerHeight, "the button is on screen").toBe(true);
+    expect((document.querySelector(".cvt-scroll") as HTMLElement).inert).toBe(true);
     expect(button.contains(centreOf(button))).toBe(false);
   });
 

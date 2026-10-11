@@ -1,9 +1,9 @@
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { CvTaxonomy, frameFor, Outro, withViewTransition } from "./CvTaxonomy";
+import { CvTaxonomy, cameraTransform, frameFor, Outro, withViewTransition } from "./CvTaxonomy";
 import { cellById } from "./data/taxonomy";
-import { CHAPTER_FRAMES, frameToViewBox, VIEW } from "./frames";
+import { CHAPTER_FRAMES, VIEW } from "./frames";
 import { matchMediaStub } from "./test-helpers";
 
 /**
@@ -337,9 +337,9 @@ function forceReducedMotion() {
   window.matchMedia = matchMediaStub((query) => query.includes("prefers-reduced-motion"));
 }
 
-/** the camera's current frame, as the viewBox string it stands for */
+/** the camera, as the transform it sets on the drawing's box */
 const camera = (container: HTMLElement) =>
-  (container.querySelector(".cvt-cam") as HTMLElement).dataset.frame;
+  (container.querySelector(".cvt-cam") as HTMLElement).style.transform;
 
 describe("camera framing (desktop)", () => {
   // The camera holds the chapter's own frame, not the envelope of every chapter:
@@ -348,13 +348,7 @@ describe("camera framing (desktop)", () => {
   it("starts framed on the product itself, not on the whole envelope", async () => {
     forceReducedMotion();
     const { container } = render(<CvTaxonomy />);
-    await waitFor(() => expect(camera(container)).toBe(frameToViewBox(CHAPTER_FRAMES.hero)));
-  });
-
-  it("sets the frame as a CSS transform, which a transition moves", async () => {
-    const { container } = render(<CvTaxonomy debugChapter="Component" />);
-    const cam = container.querySelector(".cvt-cam") as HTMLElement;
-    await waitFor(() => expect(cam.style.transform).toMatch(/^translate\(.+\) scale\(.+\)$/));
+    await waitFor(() => expect(camera(container)).toBe(cameraTransform(CHAPTER_FRAMES.hero)));
   });
 
   it("zooms to a cell's frame when its panel opens, and back home on close", async () => {
@@ -366,11 +360,11 @@ describe("camera framing (desktop)", () => {
     await user.click(trigger("component-quantity"));
     await screen.findByRole("complementary");
     await waitFor(() =>
-      expect(camera(container)).toBe(frameToViewBox(frameFor("component-quantity"))),
+      expect(camera(container)).toBe(cameraTransform(frameFor("component-quantity"))),
     );
 
     await user.keyboard("{Escape}");
-    expect(camera(container)).toBe(frameToViewBox(CHAPTER_FRAMES.Component));
+    expect(camera(container)).toBe(cameraTransform(CHAPTER_FRAMES.Component));
   });
 
   it("pulls the camera home once the reader scrolls on to another chapter", async () => {
@@ -380,22 +374,24 @@ describe("camera framing (desktop)", () => {
     await user.click(trigger("component-quantity"));
     await screen.findByRole("complementary");
     await waitFor(() =>
-      expect(camera(container)).toBe(frameToViewBox(frameFor("component-quantity"))),
+      expect(camera(container)).toBe(cameraTransform(frameFor("component-quantity"))),
     );
 
     // the sheet is not locked: the next chapter arrives under the docked detail,
     // and its frame would point at parts that have since drifted
     rerender(<CvTaxonomy debugChapter="Material" />);
-    expect(camera(container)).toBe(frameToViewBox(CHAPTER_FRAMES.Material));
+    expect(camera(container)).toBe(cameraTransform(CHAPTER_FRAMES.Material));
     expect(screen.getByRole("complementary")).toBeInTheDocument();
   });
 
-  it("mounts a deep link with the camera at home, so the whole drawing is seen first", () => {
-    // the camera then dives to the part from here
+  it("mounts a deep link with the camera at home, then dives to the part", async () => {
     const { container } = render(
       <CvTaxonomy initialCell="material-condition" debugChapter="Material" />,
     );
-    expect(camera(container)).toBe(frameToViewBox(VIEW));
+    expect(camera(container)).toBe(cameraTransform(VIEW));
+    await waitFor(() =>
+      expect(camera(container)).toBe(cameraTransform(frameFor("material-condition"))),
+    );
   });
 
   it("frames the fan on a cell opened via the initialCell deep link", async () => {
@@ -404,7 +400,7 @@ describe("camera framing (desktop)", () => {
       <CvTaxonomy initialCell="material-condition" debugChapter="Material" />,
     );
     await waitFor(() =>
-      expect(camera(container)).toBe(frameToViewBox(frameFor("material-condition"))),
+      expect(camera(container)).toBe(cameraTransform(frameFor("material-condition"))),
     );
   });
 });
@@ -543,6 +539,19 @@ describe("the chapter rail is navigation, not decoration", () => {
     expect(within(rail).getByRole("link", { name: /the map/i })).toHaveAttribute(
       "href",
       "#cvt-matrix",
+    );
+  });
+
+  it("marks the current scene, the map included", () => {
+    window.matchMedia = matchMediaStub(() => false);
+    render(<CvTaxonomy debugChapter="outro" />);
+    const rail = screen.getByLabelText("Physical scale chapters");
+    expect(within(rail).getByRole("link", { name: /the map/i })).toHaveAttribute(
+      "aria-current",
+      "true",
+    );
+    expect(within(rail).getByRole("button", { name: "Material" })).not.toHaveAttribute(
+      "aria-current",
     );
   });
 

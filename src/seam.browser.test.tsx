@@ -44,6 +44,7 @@ describe("the layout seam, on real layout", () => {
   it("keeps the same scenes mounted across a trip over the seam and back", async () => {
     render(<CvTaxonomy />);
     const component = scene("cvt-ch-Component");
+    const camera = document.querySelector(".cvt-cam");
 
     await page.viewport(PHONE.w, PHONE.h);
     await vi.waitFor(() => expect(layout()).toBe("phone"));
@@ -51,5 +52,7 @@ describe("the layout seam, on real layout", () => {
     await vi.waitFor(() => expect(layout()).toBe("sheet"));
 
     expect(scene("cvt-ch-Component")).toBe(component);
+    // the figure too, which is where the reader's view of the drawing lives
+    expect(document.querySelector(".cvt-cam")).toBe(camera);
   });
 });

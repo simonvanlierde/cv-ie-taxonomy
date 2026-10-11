@@ -3,11 +3,11 @@ import type { Scale, Verdict } from "./data/types";
 
 export type Theme = "light" | "dark";
 
-/** The one layout fork, shared by the JS tree swap and the CSS container queries:
- *  below this width the page is a phone (figure over text, detail as a sheet), at or above it
- *  desktop (scroll narrative). Container queries cannot read a TS constant, so
- *  CvTaxonomy.css hard-codes it as `(width < 881px)` / `(width >= 881px)` —
- *  scripts/check-theme.ts fails CI if the two drift. */
+/** The one layout fork, shared by the JS layout switch and the CSS container
+ *  queries: below this width the page is a phone (figure over text, detail as a
+ *  sheet), at or above it the drawing sheet. Container queries cannot read a TS
+ *  constant, so CvTaxonomy.css hard-codes it as `(width < 881px)` /
+ *  `(width >= 881px)`; scripts/check-theme.ts fails CI if the two drift. */
 export const BREAKPOINT_PX = 881;
 
 // Colourblind-safe (Okabe–Ito) hue per physical scale. Maturity is NEVER colour.
@@ -39,10 +39,10 @@ export const SURFACE: Record<Theme, string> = {
 // Maturity is ordinal, so it rides ink coverage: one ink, monotone in lightness,
 // stepped away from each exposure's own ground. `Absent` is not a step — it is the
 // hollow no-data cell, marked by its dashed stroke. Partial, Emerging and
-// Plausible are spaced evenly in contrast (about 2:1 apart on either ground): with the faintest held at 2:1 off the ground there is not
-// room for 3:1 between every neighbour. Strong sits just above Partial, since no
-// cell reaches it. Order here is the encoding;
-// `verdictRamp.test.ts` holds it to that.
+// Plausible are spaced evenly in contrast (about 2:1 apart on either ground):
+// with the faintest held at 2:1 off the ground there is not room for 3:1 between
+// every neighbour. Strong sits just above Partial, since no cell reaches it.
+// Order here is the encoding; `verdictRamp.test.ts` holds it to that.
 
 export const VERDICT_RAMP: Record<Theme, Record<Verdict, string | null>> = {
   light: {
@@ -149,8 +149,7 @@ const themeVars = (theme: Theme): CSSProperties => {
 };
 
 /** Every overlay/ramp hue as CSS custom properties for the root element's inline
- *  style — precomputed per theme, so the per-scroll-frame render hands React the
- *  same object reference and the style diff short-circuits. */
+ *  style, precomputed per theme so each render hands React the same object. */
 export const THEME_VARS: Record<Theme, CSSProperties> = {
   light: themeVars("light"),
   dark: themeVars("dark"),
