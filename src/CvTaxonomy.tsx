@@ -127,7 +127,7 @@ function useBodyScrollLock(locked: boolean) {
 }
 
 type ViewTransitionDocument = Document & {
-  startViewTransition?: (cb: () => void) => unknown;
+  startViewTransition?: (cb: () => void) => { ready?: Promise<unknown> } | undefined;
 };
 
 /** Run a DOM mutation inside a view transition when supported and enabled;
@@ -139,7 +139,9 @@ export function withViewTransition(run: () => void, enabled: boolean): void {
     // browser's after-snapshot sees the open panel; without it React batches the
     // setState past the snapshot and nothing morphs. Safe here: only ever called
     // from an event handler (openCell ← onClick), never during render.
-    doc.startViewTransition(() => flushSync(run));
+    // The browser aborts the morph if, say, the viewport resizes, and rejects `ready`.
+    // The update itself still ran, so there is nothing to recover.
+    doc.startViewTransition(() => flushSync(run))?.ready?.catch(() => {});
   } else {
     run();
   }
