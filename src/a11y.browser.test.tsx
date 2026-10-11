@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import axe from "axe-core";
 import { describe, expect, it, vi } from "vitest";
 import { CvTaxonomy } from "./CvTaxonomy";
-import { plateauCentre } from "./timeline";
+import { SCENES } from "./params";
 
 /**
  * WCAG 2.2 AA scan at each stop a reader can land on. axe checks what a
@@ -28,14 +28,8 @@ async function violations() {
 }
 
 describe("WCAG 2.2 AA (axe)", () => {
-  it.each([
-    ["hero", 0],
-    ["product", plateauCentre("Product")],
-    ["component", plateauCentre("Component")],
-    ["material", plateauCentre("Material")],
-    ["map", 1],
-  ])("%s scene", async (_, p) => {
-    render(<CvTaxonomy debugProgress={p} />);
+  it.each(SCENES)("%s scene", async (chapter) => {
+    render(<CvTaxonomy debugChapter={chapter} />);
     expect(await violations()).toEqual([]);
   });
 
@@ -45,14 +39,14 @@ describe("WCAG 2.2 AA (axe)", () => {
     expect(await violations()).toEqual([]);
   });
 
-  it("the phone stepper", async () => {
+  it("the phone layout", async () => {
     // the component switches layout on its own width, not the viewport's
     render(
       <div style={{ width: 420 }}>
         <CvTaxonomy />
       </div>,
     );
-    await vi.waitFor(() => expect(document.querySelector(".cvt-stepper")).not.toBeNull());
+    await vi.waitFor(() => expect(document.querySelector(".cvt-mcell")).not.toBeNull());
     expect(await violations()).toEqual([]);
   });
 });

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { cellById, cells, taxonomy } from "./data/taxonomy";
 import { CHIP_LAYOUT, Fan } from "./Fan";
 import { FRAMES } from "./frames";
-import { TIMELINE } from "./timeline";
+import { SCENES } from "./params";
 
 /**
  * The floating chips ARE the controls. Their operability must track the chapter
@@ -14,23 +14,17 @@ import { TIMELINE } from "./timeline";
  * and set aria-hidden on every sibling, so Tab left the fan after a single chip.
  */
 
-/** mid-plateau of the Component chapter: its four chips are fully present */
-const COMPONENT_PLATEAU = (TIMELINE.presence.Component[1] + TIMELINE.presence.Component[2]) / 2;
-
 const noop = () => {};
 const renderFan = (props: Partial<Parameters<typeof Fan>[0]> = {}) =>
   render(
-    <svg aria-label="test host">
-      <title>test host</title>
-      <Fan
-        p={COMPONENT_PLATEAU}
-        focus={null}
-        onSelect={noop}
-        onHover={noop}
-        reduceMotion={true}
-        {...props}
-      />
-    </svg>,
+    <Fan
+      chapter="Component"
+      focus={null}
+      onSelect={noop}
+      onHover={noop}
+      reduceMotion={true}
+      {...props}
+    />,
   );
 
 const chip = (container: HTMLElement, id: string) =>
@@ -59,17 +53,14 @@ describe("chip operability", () => {
     expect(chip(container, "component-quantity")).toHaveAttribute("tabindex", "0");
     // camera home: the whole chapter is back in the ring
     rerender(
-      <svg aria-label="test host">
-        <title>test host</title>
-        <Fan
-          p={COMPONENT_PLATEAU}
-          focus={selected}
-          onSelect={noop}
-          onHover={noop}
-          reduceMotion={true}
-          frame={null}
-        />
-      </svg>,
+      <Fan
+        chapter="Component"
+        focus={selected}
+        onSelect={noop}
+        onHover={noop}
+        reduceMotion={true}
+        frame={null}
+      />,
     );
     expect(chip(container, "component-identity")).toHaveAttribute("tabindex", "0");
   });
@@ -84,8 +75,8 @@ describe("chip operability", () => {
   });
 
   it("keeps siblings focusable while one chip has focus", () => {
-    // this is the regression: focus on component-identity dims the other three
-    // to 0.45, and they used to drop out of the tab order and the a11y tree
+    // this is the regression: focus on component-identity dims the other three,
+    // and they used to drop out of the tab order and the a11y tree
     const focused = cellById("component-identity");
     const { container } = renderFan({ focus: focused });
 
@@ -93,7 +84,7 @@ describe("chip operability", () => {
       const g = chip(container, id);
       expect(g, `${id} is visible but unreachable`).toHaveAttribute("tabindex", "0");
       expect(g, `${id} is visible but unannounced`).toHaveAttribute("aria-hidden", "false");
-      expect(Number(g.style.opacity), `${id} should be dimmed, not hidden`).toBeGreaterThan(0);
+      expect(g.style.opacity, `${id} should be dimmed, not hidden`).toMatch(/\* 0\.7\)$/);
     }
   });
 
@@ -144,11 +135,13 @@ describe("mock overlays", () => {
     for (const layer of layers) expect(layer).toHaveAttribute("aria-hidden", "true");
   });
 
-  it("renders no NaN coordinates at any scroll position", () => {
-    for (const p of [0, 0.15, 0.35, 0.5, 0.66, 0.85, 1]) {
-      const { container, unmount } = renderFan({ p });
-      expect(container.innerHTML, `p=${p}`).not.toMatch(/NaN/);
-      unmount();
+  it("renders no NaN coordinates in any scene", () => {
+    for (const chapter of SCENES) {
+      for (const compact of [false, true]) {
+        const { container, unmount } = renderFan({ chapter, compact });
+        expect(container.innerHTML, `${chapter}, compact ${compact}`).not.toMatch(/NaN/);
+        unmount();
+      }
     }
   });
 });
@@ -157,29 +150,9 @@ describe("compact fan", () => {
   it("drops the floating chips but keeps painting the annotations", () => {
     const { container } = renderFan({ compact: true });
     expect(container.querySelectorAll(".cvt-co")).toHaveLength(0);
-    // …which is exactly why the annotations must remain painted on mobile
+    // the phone lists the cells in the text; the drawing still shows the read-outs
     expect(container.querySelectorAll(".ov-layer")).toHaveLength(9);
     expect(within(container).getByText(/desk_fan/)).toBeInTheDocument();
-  });
-
-  it("turns the on-stage annotation layers into the cell's tap targets", () => {
-    const opened: string[] = [];
-    const { container } = renderFan({
-      compact: true,
-      onSelect: (cell) => opened.push(cell.id),
-    });
-
-    const layer = container.querySelector("#cvt-ov-component-identity") as SVGGElement;
-    expect(layer).toHaveAttribute("role", "button");
-    expect(layer).toHaveAttribute("tabindex", "0");
-    expect(layer).toHaveAttribute("aria-hidden", "false");
-    layer.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-    expect(opened).toEqual(["component-identity"]);
-
-    // off-stage chapters stay out of reach, exactly like the desktop chips
-    const offStage = container.querySelector("#cvt-ov-product-identity") as SVGGElement;
-    expect(offStage).toHaveAttribute("tabindex", "-1");
-    expect(offStage).toHaveAttribute("aria-hidden", "true");
   });
 });
 

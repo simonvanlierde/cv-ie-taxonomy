@@ -1,10 +1,10 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { CvTaxonomy } from "./CvTaxonomy";
-import { parseProgress } from "./params";
+import { parseScene } from "./params";
 
 // Deep links: ?theme=dark|light forces a theme, ?cell=<id> opens a
-// panel, ?p=0.5 pins scroll progress (dev screenshots).
+// panel, ?scene=0..4 pins a scene (dev screenshots).
 const params = new URLSearchParams(window.location.search);
 const theme = params.get("theme");
 
@@ -16,7 +16,7 @@ createRoot(root).render(
     <CvTaxonomy
       theme={theme === "dark" || theme === "light" ? theme : undefined}
       initialCell={params.get("cell") ?? undefined}
-      debugProgress={parseProgress(params.get("p"))}
+      debugChapter={parseScene(params.get("scene"))}
     />
   </StrictMode>,
 );

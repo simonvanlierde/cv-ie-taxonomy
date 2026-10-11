@@ -31,12 +31,17 @@ shows the kinds of output computer vision produces:
 
 These read-outs are simulated. No model was run on the drawing.
 
+The page has five scenes: the opening, one per scale, and the map. The scroll
+moves the fan in CSS alone (scroll-driven animations). A browser without them,
+or a reader who asks for reduced motion, sees each scene's finished state.
+
 Each label on the fan opens one cell of the map. Hover over a label to pick out
 its cell. Click it to see the task, the verdict, where it fails, an example, the
 rubric marks and the sources. With a detail open, the arrow keys step to the
 next cell: within the scale on the fan, or across the whole map at the end.
 
-On a phone, the story runs as full-screen pages with a sheet that folds away.
+On a phone, the drawing stays at the top of the screen while the text scrolls
+under it, and each scene lists its cells as buttons.
 
 The last screen shows all twelve cells as a 3 × 4 grid. Every cell can be
 clicked, and a **Plain table** button shows the same data as a table. Hatching
@@ -70,7 +75,8 @@ colour. Their hues follow COCO/YOLO conventions and adapt to the theme.
 SVG read-outs, matrix cells, and mobile rows are keyboard-operable controls with
 accessible labels. The detail view is a dialog that closes with `Esc`.
 
-`prefers-reduced-motion` disables the idle spin and scroll smoothing. The page
+`prefers-reduced-motion` stops the idle spin, and the fan then jumps between its
+poses instead of moving with the scroll; only the read-outs fade. The page
 follows the colour scheme: paper white in light mode, the blue cyanotype sheet
 in dark mode. `?theme=dark|light` forces one.
 
@@ -90,7 +96,8 @@ restore, `inert`, the top layer, real `ResizeObserver` layout. `pnpm
 test:all` runs both; CI does.
 
 Demo deep links: `?cell=component-structure` opens a detail, `?theme=dark|light`
-forces a theme, and `?p=0.56` pins scroll progress for screenshots. Cell ids are
+forces a theme, and `?scene=2` pins a scene for screenshots (0 is the opening,
+4 the map). Cell ids are
 `<scale>-<information type>` in lower case, e.g. `material-quantity`; invalid
 values are ignored.
 

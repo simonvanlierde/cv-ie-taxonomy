@@ -1,63 +1,55 @@
-import { render, screen } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { page, userEvent } from "vitest/browser";
+import { page } from "vitest/browser";
 import { CvTaxonomy } from "./CvTaxonomy";
 
 /**
  * The 881px layout seam, measured rather than declared.
  *
- * `useContainerSize` reads the island's own width through a ResizeObserver, so
- * an embed adapts to its slot instead of to the viewport. jsdom reports every
- * box as 0×0 and never fires the observer, which leaves the unit project no
- * choice but to fake the seam through matchMedia — and a faked seam proves the
- * fallback, not the measurement. Here Chromium does the layout and the observer
- * fires for real.
+ * `useContainerSize` reads the page's own width through a ResizeObserver. jsdom
+ * reports every box as 0×0 and never fires the observer, which leaves the unit
+ * project no choice but to fake the seam through matchMedia — and a faked seam
+ * proves the fallback, not the measurement. Here Chromium does the layout and
+ * the observer fires for real.
  *
- * The round trip matters as much as the crossing: the seam unmounts one whole
- * tree and mounts the other, so `step` lives in CvTaxonomy rather than in
- * MobileStepper. A reader three steps in must not be put back at the start
- * because a phone was rotated.
+ * Both layouts render the same scenes, so crossing the seam must not remount
+ * them: a reader halfway down the page keeps their place when a phone is
+ * rotated or a window dragged narrow.
  */
 const DESKTOP = { w: 1280, h: 900 };
 const PHONE = { w: 420, h: 900 };
 
-const stepper = () => document.querySelector(".cvt-stepper");
-const desktopSheet = () => document.querySelector(".cvt-scroll");
-/** the stepper's live region, "Component · 3/5" */
-const where = () => screen.getByRole("status").textContent;
+const layout = () => (document.querySelector(".cvt-scroll") as HTMLElement).dataset.layout;
+const scene = (id: string) => document.getElementById(id);
 
 // back to the configured viewport, so one test's resize cannot set up the next
 afterEach(() => page.viewport(DESKTOP.w, DESKTOP.h));
 
 describe("the layout seam, on real layout", () => {
-  it("swaps the desktop sheet for the stepper when the container narrows", async () => {
+  it("swaps the fan's chips for per-scene cell lists when the container narrows", async () => {
     render(<CvTaxonomy />);
-    expect(desktopSheet()).not.toBeNull();
-    expect(stepper()).toBeNull();
+    expect(layout()).toBe("sheet");
+    expect(document.querySelector(".cvt-co")).not.toBeNull();
 
     await page.viewport(PHONE.w, PHONE.h);
 
     // a ResizeObserver delivers on the next frame, so poll rather than assume
     await vi.waitFor(() => {
-      expect(stepper()).not.toBeNull();
-      expect(desktopSheet()).toBeNull();
+      expect(layout()).toBe("phone");
+      expect(document.querySelector(".cvt-co")).toBeNull();
+      expect(scene("cvt-ch-Product")?.querySelector(".cvt-mcell")).not.toBeNull();
     });
   });
 
-  it("keeps the reader's step across a trip over the seam and back", async () => {
+  it("keeps the same scenes mounted across a trip over the seam and back", async () => {
     render(<CvTaxonomy />);
+    const component = scene("cvt-ch-Component");
+
     await page.viewport(PHONE.w, PHONE.h);
-    await vi.waitFor(() => expect(stepper()).not.toBeNull());
-
-    await userEvent.click(screen.getByRole("button", { name: /^Start/ }));
-    await userEvent.click(document.querySelector(".cvt-stepper-next") as HTMLElement);
-    await vi.waitFor(() => expect(where()).toMatch(/Component · 3\/5/));
-
+    await vi.waitFor(() => expect(layout()).toBe("phone"));
     await page.viewport(DESKTOP.w, DESKTOP.h);
-    await vi.waitFor(() => expect(stepper()).toBeNull());
+    await vi.waitFor(() => expect(layout()).toBe("sheet"));
 
-    await page.viewport(PHONE.w, PHONE.h);
-    await vi.waitFor(() => expect(stepper()).not.toBeNull());
-    expect(where()).toMatch(/Component · 3\/5/);
+    expect(scene("cvt-ch-Component")).toBe(component);
   });
 });

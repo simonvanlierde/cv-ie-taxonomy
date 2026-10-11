@@ -33,26 +33,57 @@ import {
   clampFrame,
   FRAMES,
   type Frame,
+  frameToViewBox,
   HOME_FRAME,
   unionFrame,
   VIEW,
 } from "./frames";
-import { MobileStepper } from "./MobileStepper";
 import { Cite, CitedProse } from "./References";
 import { RubricCircuit } from "./RubricCircuit";
 import { BREAKPOINT_PX, SCALE_VAR, SURFACE, THEME_VARS, type Theme, VERDICT_VAR } from "./theme";
-import { plateauCentre, TIMELINE } from "./timeline";
-import { useCamera } from "./useCamera";
 import { useDialogRegion } from "./useDialogRegion";
-import { useScrollProgress } from "./useScrollProgress";
 import { VerdictSwatch } from "./VerdictSwatch";
 
-function chapterAt(p: number): Chapter {
-  if (p < TIMELINE.heroEnd) return "hero";
-  if (p < TIMELINE.productEnd) return "Product";
-  if (p < TIMELINE.componentEnd) return "Component";
-  if (p < TIMELINE.materialEnd) return "Material";
-  return "outro";
+/** The camera as a CSS transform on the drawing's box: scale the frame up to
+ *  fill the box (contain, like a viewBox with `meet`) and centre it. The box has
+ *  VIEW's aspect ratio and `transform-origin: 0 0`; translate percentages are of
+ *  the box itself. A CSS transition does the move. */
+export function cameraTransform(f: Frame): string {
+  const z = Math.min(VIEW.w / f.w, VIEW.h / f.h);
+  const cx = (f.x + f.w / 2 - VIEW.x) / VIEW.w;
+  const cy = (f.y + f.h / 2 - VIEW.y) / VIEW.h;
+  const pct = (v: number) => `${+(v * 100).toFixed(3)}%`;
+  return `translate(${pct(0.5 - cx * z)}, ${pct(0.5 - cy * z)}) scale(${+z.toFixed(4)})`;
+}
+
+/** Which scene the reader is in: the section crossing the middle of the
+ *  viewport. Each scene is a section marked `data-chapter-at`. Off while
+ *  `enabled` is false (a pinned scene), and where IntersectionObserver is
+ *  missing (jsdom), the opening scene stands. */
+function useActiveChapter(
+  ref: RefObject<HTMLElement | null>,
+  enabled: boolean,
+  layoutKey: unknown,
+): Chapter {
+  const [chapter, setChapter] = useState<Chapter>("hero");
+  // biome-ignore lint/correctness/useExhaustiveDependencies: layoutKey re-arms the observer when the layout swaps what the sections contain
+  useEffect(() => {
+    const root = ref.current;
+    if (!enabled || !root || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const at = (entry.target as HTMLElement).dataset.chapterAt as Chapter | undefined;
+          if (entry.isIntersecting && at) setChapter(at);
+        }
+      },
+      // a line across the middle of the viewport
+      { rootMargin: "-50% 0px -50% 0px" },
+    );
+    for (const el of root.querySelectorAll("[data-chapter-at]")) io.observe(el);
+    return () => io.disconnect();
+  }, [ref, enabled, layoutKey]);
+  return chapter;
 }
 
 /** The camera frame for a cell's detail: its part frame, grown to hold its own
@@ -149,27 +180,22 @@ export function withViewTransition(run: () => void, enabled: boolean): void {
 export function CvTaxonomy({
   theme,
   initialCell,
-  debugProgress,
+  debugChapter,
 }: {
   theme?: Theme;
   /** deep-link: open this cell's panel on load */
   initialCell?: string;
-  /** dev-only: pin scroll progress (?p=0.5) for screenshots. Must be finite. */
-  debugProgress?: number;
+  /** dev and tests: pin the page to one scene (?scene=0..4) */
+  debugChapter?: Chapter;
 } = {}) {
   const rootRef = useRef<HTMLDivElement>(null);
-  /** the narrative column: the scroll timeline is measured over it, not over the
-   *  whole scroll section, so the closing figure's height cannot drag the
-   *  chapters off the sticky stage */
-  const scrollRef = useRef<HTMLDivElement>(null);
   const lastFocused = useRef<string | null>(null);
   /** cancels a chapter stop's pending focus landing (timer + scrollend listener) */
   const cancelLanding = useRef<(() => void) | null>(null);
 
   const reduceMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
-  // render exactly one fan: full on desktop, compact on mobile. The container's own
-  // width drives this; the viewport query only stands in for the first paint,
-  // before anything is measured.
+  // The container's own width picks the layout; the viewport query only stands in
+  // for the first paint, before anything is measured.
   const viewportIsMobile = useMediaQuery(`(max-width: ${BREAKPOINT_PX - 1}px)`);
   const { narrow: containerNarrow, columns } = useContainerSize(rootRef);
   const isMobile = containerNarrow ?? viewportIsMobile;
@@ -210,97 +236,71 @@ export function CvTaxonomy({
     };
   }, [forcedTheme]);
 
-  const scroll = useScrollProgress(scrollRef, !reduceMotion, !isMobile);
-  const p = debugProgress ?? scroll.p;
-  // the chapter reads the raw scroll, not the spring: it gates the sheet
-  // furniture and the rail, which must answer an anchor jump at once
-  const chapter = chapterAt(debugProgress ?? scroll.raw);
+  const observed = useActiveChapter(rootRef, debugChapter === undefined, isMobile);
+  const chapter = debugChapter ?? observed;
 
   const [selected, setSelected] = useState<Cell | null>(
     () => cells.find((c) => c.id === initialCell) ?? null,
   );
   const [hovered, setHovered] = useState<Cell | null>(null);
-  // The mobile stepper's reading position lives up here because the layout seam
-  // unmounts the stepper: an ordinary window resize, or a tablet turned
-  // portrait→landscape mid-read, would otherwise drop the reader back on step 0.
-  const [step, setStep] = useState(0);
-  // Folded by default on the scale steps: the phone's whole budget is one
-  // screen, and an open sheet leaves the drawing 45% of it. The reader pulls the
-  // sheet up when they want the text, and it stays up from then on.
-  const [sheetCollapsed, setSheetCollapsed] = useState(true);
-  // the camera target derives from the selection (frames.test.ts holds FRAMES
-  // to a frame per cell), so open/close paths cannot desync the two
   // The zoom holds only while the reader is in the selected cell's chapter: the
   // sheet is not locked while a detail is open, and a frame tuned for one
-  // chapter's explode state frames the wrong geometry once the parts move on, so
+  // chapter's pose frames the wrong geometry once the parts move on, so
   // scrolling on pulls the camera home while the detail stays docked.
-  // The frame is the part's frame grown to hold the chip that opened it: an
-  // enlargement that cropped the read-out the reader clicked, and magnified the
-  // mock numbers around it, spent the zoom on the wrong thing.
-  const zoomFrame =
-    selected && (isMobile || chapter === selected.scale) ? frameFor(selected.id) : null;
-  // On mobile the compact fan ignores this viewBox, so cut instantly rather than
-  // burn a per-frame spring re-rendering the whole tree for output nobody sees.
-  // Always mounted at home: a ?cell= deep link then dives from the whole
-  // drawing to the part, instead of opening on a close-up of one corner.
-  // Standing at HOME_FRAME through every chapter drew each state inside the
-  // envelope of all of them; the camera holds the chapter's own frame instead,
-  // and still springs home for the hero and the closing figure.
-  const chapterFrame = CHAPTER_FRAMES[chapter];
-  const viewBox = useCamera(zoomFrame ?? chapterFrame, reduceMotion || isMobile, HOME_FRAME);
+  // The frame is the part's frame grown to hold the chip that opened it.
+  const zoomFrame = selected && chapter === selected.scale ? frameFor(selected.id) : null;
+  // Mounted at home, then moved to its target on the next frame: a ?cell= deep
+  // link then dives from the whole drawing to the part, instead of opening on a
+  // close-up of one corner.
+  const [cameraLive, setCameraLive] = useState(false);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setCameraLive(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+  const cameraFrame = cameraLive ? (zoomFrame ?? CHAPTER_FRAMES[chapter]) : HOME_FRAME;
 
   const focus = hovered ?? selected;
 
-  // A ?cell= deep link lands the desktop page on that cell's chapter plateau, so
-  // the zoom frame (tuned for the chapter's explode state) frames real geometry
-  // instead of a giant assembled close-up, and the chip is operable on close.
-  /** Scroll to where a scale's chapter is at full strength. The deep link and the
-   *  chapter rail share it: both want a fan state whose chips are operable and
-   *  whose camera frames point at real geometry. */
-  const goToScale = useCallback((scale: Scale, smooth = true) => {
-    const scrollEl = scrollRef.current;
-    if (!scrollEl) return;
-    const span = scrollEl.offsetHeight - window.innerHeight;
-    if (span <= 0) return;
-    const top = scrollEl.getBoundingClientRect().top + window.scrollY;
-    window.scrollTo({
-      top: top + plateauCentre(scale) * span,
-      behavior: smooth ? "smooth" : "auto",
-    });
-    if (!smooth) return;
-
-    // Land the reader ON the cells the stop just brought out. The callouts are
-    // drawn inside the SVG, which precedes the rail in DOM order, so tabbing on
-    // from the rail walks *away* from them — a keyboard user could reach a
-    // scale's chips only by shift-tabbing backwards past everything. Moving
-    // focus to the first chip makes the stop behave like the skip link it is.
-    const target = cells.find((c) => c.scale === scale && !c.structurallyEmpty);
-    if (!target) return;
-    const land = () => {
-      const chip = document.getElementById(`cvt-co-${target.id}`);
-      // only once the chapter is actually on stage; before that it is aria-hidden
-      if (chip?.getAttribute("tabindex") === "0") chip.focus();
-    };
-    // scrollend fires when the smooth scroll settles; the timeout covers engines
-    // without it, and firing land() twice is harmless. Both are cancellable: a
-    // pending landing that outlives the component would move focus into a tree
-    // that is no longer on the page.
-    cancelLanding.current?.();
-    const timer = setTimeout(land, 700);
-    window.addEventListener("scrollend", land, { once: true });
-    cancelLanding.current = () => {
-      clearTimeout(timer);
-      window.removeEventListener("scrollend", land);
-    };
-  }, []);
+  /** Scroll a scene into view. The deep link, the chapter stops and a pinned
+   *  scene share it. With `land`, focus then moves to the scene's first chip,
+   *  so a stop behaves like the skip link it is. */
+  const goToChapter = useCallback(
+    (to: Chapter, smooth: boolean, land = false) => {
+      const el = rootRef.current?.querySelector<HTMLElement>(`[data-chapter-at="${to}"]`);
+      el?.scrollIntoView?.({ behavior: smooth ? "smooth" : "auto", block: "start" });
+      if (!land || isMobile) return;
+      const target = cells.find((c) => c.scale === to && !c.structurallyEmpty);
+      if (!target) return;
+      const landOn = () => {
+        const chip = document.getElementById(`cvt-co-${target.id}`);
+        // only once the chapter is actually on stage; before that it is aria-hidden
+        if (chip?.getAttribute("tabindex") === "0") chip.focus();
+      };
+      // scrollend fires when the smooth scroll settles; the timeout covers engines
+      // without it, and landing twice is harmless. Both are cancellable: a pending
+      // landing that outlives the component would move focus into a tree that is
+      // no longer on the page.
+      cancelLanding.current?.();
+      const timer = setTimeout(landOn, 700);
+      window.addEventListener("scrollend", landOn, { once: true });
+      cancelLanding.current = () => {
+        clearTimeout(timer);
+        window.removeEventListener("scrollend", landOn);
+      };
+    },
+    [isMobile],
+  );
 
   useEffect(() => () => cancelLanding.current?.(), []);
 
+  // A ?cell= deep link lands on that cell's scene, so the zoom frame points at
+  // real geometry and the chip is operable on close. A pinned scene scrolls there
+  // too, so the scroll-driven drawing agrees with it.
   // biome-ignore lint/correctness/useExhaustiveDependencies: mount-only by design — a later mobile↔desktop resize must not yank the reader's scroll position
   useEffect(() => {
-    if (!initialCell || isMobile) return;
     const cell = cells.find((c) => c.id === initialCell);
-    if (cell) goToScale(cell.scale, false);
+    const to = debugChapter ?? cell?.scale;
+    if (to) goToChapter(to, false);
   }, []);
 
   const openCell = useCallback(
@@ -330,7 +330,7 @@ export function CvTaxonomy({
     const onKey = (e: KeyboardEvent) => {
       const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
       if (!step || e.altKey || e.metaKey || e.ctrlKey) return;
-      // scoped to the drawing and its docked detail; act two has its own
+      // scoped to the drawing and its docked detail; the map has its own
       const t = e.target as HTMLElement | null;
       if (
         !t?.closest(".cvt-detail, .cvt-fan") ||
@@ -361,8 +361,8 @@ export function CvTaxonomy({
   // when the reader scrolls to the matrix, so that would yank the page back.
   // The next detail reuses that leftover entry instead of pushing another, so
   // there is never more than one.
-  // The entry carries a token of its own, so an entry left by another island
-  // (or an earlier mount) is never mistaken for this one.
+  // The entry carries a token of its own, so an entry left by an earlier mount
+  // is never mistaken for this one.
   const historyEntry = useRef<string | null>(null);
   const lastEntry = useRef<string | null>(null);
   useEffect(() => {
@@ -389,10 +389,9 @@ export function CvTaxonomy({
     return () => window.removeEventListener("popstate", onPop);
   }, [closeCell]);
 
-  // The docked detail belongs to the drawing, and on the wide sheet it is fixed
-  // in the margin band — so once the closing figure arrives it would sit over
-  // the matrix instead of leaving with the stage. Act two has its own selection;
-  // reaching the map closes act one's.
+  // The docked detail belongs to the drawing, so once the map arrives it would
+  // sit over the matrix instead of leaving with the drawing. The map has its own
+  // selection; reaching it closes the drawing's.
   useEffect(() => {
     if (selected && !isMobile && chapter === "outro") closeCell();
   }, [selected, isMobile, chapter, closeCell]);
@@ -420,9 +419,8 @@ export function CvTaxonomy({
       data-theme={effectiveTheme}
       style={THEME_VARS[effectiveTheme]}
     >
-      {/* On mobile the sheet has no narrative column to give up, so the detail
-          arrives as a bottom sheet over the stepper — same region, same focus
-          contract, different place on the page. */}
+      {/* On a phone the detail arrives as a sheet over the scenes — same region,
+          same focus contract, different place on the page. */}
       {isMobile && selected && (
         <DetailRegion
           cell={selected}
@@ -435,117 +433,101 @@ export function CvTaxonomy({
           modal
         />
       )}
-      {isMobile ? (
-        <MobileStepper
-          onOpen={openCell}
-          reduceMotion={reduceMotion}
-          step={step}
-          setStep={setStep}
-          collapsed={sheetCollapsed}
-          setCollapsed={setSheetCollapsed}
-          // the sheet covers the stepper, so the stepper's controls must leave
-          // the accessibility tree with it: a browse cursor walks past a trap
-          inert={selected !== null}
-        />
-      ) : (
-        <div
-          className="cvt-scroll"
-          data-chapter={chapter}
-          data-panel={selected ? "open" : undefined}
-        >
-          <SheetFrame columns={columns} />
-          {/* The stage + chapters share one wrapper, placed directly by the grid. */}
-          <div className="cvt-pinwrap">
-            {/* ---- sticky stage: the fan IS the interface ---- */}
-            <div className="cvt-stagecol">
-              <div className="cvt-sticky">
+      <div
+        className="cvt-scroll"
+        data-layout={isMobile ? "phone" : "sheet"}
+        data-chapter={chapter}
+        data-panel={selected ? "open" : undefined}
+        // the sheet covers the scenes, so their controls leave the accessibility
+        // tree with them: a browse cursor walks past a focus trap
+        inert={isMobile && selected !== null}
+      >
+        {!isMobile && <SheetFrame columns={columns} />}
+        {/* ---- sticky figure: the fan IS the interface ---- */}
+        <div className="cvt-stagecol">
+          <div className="cvt-sticky">
+            <div className="cvt-stage">
+              <div
+                className="cvt-cam"
+                data-frame={frameToViewBox(cameraFrame)}
+                style={isMobile ? undefined : { transform: cameraTransform(cameraFrame) }}
+              >
                 <Fan
-                  p={p}
+                  chapter={chapter}
                   focus={focus}
                   onSelect={openCell}
                   onHover={setHovered}
                   reduceMotion={reduceMotion}
                   compact={isMobile}
-                  viewBox={viewBox}
                   frame={zoomFrame}
                 />
-                <div className="cvt-hud">
-                  <div className="cvt-hud-top">
-                    {/* Operable, not just an indicator: the fan's own chips are
-                        gated to their chapter's plateau, so before this a desktop
-                        keyboard user could not reach the Component or Material
-                        cells at all — only a scroll wheel could bring them on
-                        stage. Each stop is a real button that goes there. */}
-                    <ol className="cvt-ind" aria-label="Physical scale chapters">
-                      {SCALES.map((s) => (
-                        <li key={s} style={{ "--hue": SCALE_VAR[s] }}>
-                          <button
-                            type="button"
-                            data-active={chapter === s}
-                            aria-current={chapter === s ? "true" : undefined}
-                            onClick={() => goToScale(s, !reduceMotion)}
-                          >
-                            {s}
-                          </button>
-                        </li>
-                      ))}
-                      <li className="cvt-ind-end">
-                        <a href="#cvt-matrix" data-active={chapter === "outro"}>
-                          the map
-                        </a>
-                      </li>
-                    </ol>
-                  </div>
-                  <div className="cvt-hud-foot">
-                    <MaturityInstrument
-                      live={CLAIMED_VERDICTS}
-                      reading={focus ? (splitOf(focus) ?? [focus.maturity]).join("|") : ""}
-                    />
-                    <IllustrativeDisclosure />
-                  </div>
-                </div>
               </div>
             </div>
-
-            {/* Both live in the narrative column. The rail stays mounted even
-                while the detail is open, because its chapters ARE the scroll
-                length the whole narrative is measured over — swapping it out
-                collapsed the page and dropped the reader at the outro. */}
-            <div
-              className="cvt-railcol"
-              ref={scrollRef}
-              data-detail={selected ? "open" : undefined}
-            >
-              {/* before the rail, not after it: the detail is sticky, and sticky
-                  cannot pin above its own static position — placed last it sat
-                  at the far end of the rail's five thousand pixels and never
-                  appeared on screen at all */}
-              {selected && (
-                // a zero-height sticky slot: the detail rides it down the column
-                // without adding to the column's height, which is the scroll
-                // timeline — a detail that lengthened it remapped every chapter
-                // under the reader the moment it opened
-                <div className="cvt-detail-slot">
-                  <DetailRegion
-                    cell={selected}
-                    // a deep link has no opener; its cell's own callout is the
-                    // nearest thing to one, and the link has scrolled it on stage
-                    returnFocusTo={lastFocused.current ?? `cvt-co-${selected.id}`}
-                    onClose={closeCell}
-                    onBackToStart={
-                      selected.id === initialCell && !lastFocused.current ? backToStart : undefined
-                    }
-                  />
+            <div className="cvt-hud">
+              {!isMobile && (
+                <div className="cvt-hud-top">
+                  {/* Operable, not just an indicator: the fan's own chips are
+                      gated to their scene, so each stop is a real button that
+                      goes there and lands focus on its first chip. */}
+                  <ol className="cvt-ind" aria-label="Physical scale chapters">
+                    {SCALES.map((s) => (
+                      <li key={s} style={{ "--hue": SCALE_VAR[s] }}>
+                        <button
+                          type="button"
+                          data-active={chapter === s}
+                          aria-current={chapter === s ? "true" : undefined}
+                          onClick={() => goToChapter(s, !reduceMotion, true)}
+                        >
+                          {s}
+                        </button>
+                      </li>
+                    ))}
+                    <li className="cvt-ind-end">
+                      <a href="#cvt-matrix" data-active={chapter === "outro"}>
+                        the map
+                      </a>
+                    </li>
+                  </ol>
                 </div>
               )}
-              <Rail chapter={chapter} />
+              <div className="cvt-hud-foot">
+                {!isMobile && (
+                  <MaturityInstrument
+                    live={CLAIMED_VERDICTS}
+                    reading={focus ? (splitOf(focus) ?? [focus.maturity]).join("|") : ""}
+                  />
+                )}
+                <IllustrativeDisclosure />
+              </div>
             </div>
           </div>
-          {/* full-width row: the stage's sticky column ends here, and the matrix
-              gets the whole canvas as a captioned paper figure */}
-          <Outro />
         </div>
-      )}
+
+        <div className="cvt-railcol" data-detail={selected ? "open" : undefined}>
+          {/* before the rail, not after it: the detail is sticky, and sticky
+              cannot pin above its own static position */}
+          {!isMobile && selected && (
+            // a zero-height sticky slot: the detail rides it down the column
+            // without pushing the scenes it covers
+            <div className="cvt-detail-slot">
+              <DetailRegion
+                cell={selected}
+                // a deep link has no opener; its cell's own callout is the
+                // nearest thing to one, and the link has scrolled it on stage
+                returnFocusTo={lastFocused.current ?? `cvt-co-${selected.id}`}
+                onClose={closeCell}
+                onBackToStart={
+                  selected.id === initialCell && !lastFocused.current ? backToStart : undefined
+                }
+              />
+            </div>
+          )}
+          <Rail chapter={chapter} phone={isMobile} onOpen={openCell} />
+        </div>
+        {/* full-width row: the figure's sticky column ends here, and the matrix
+            gets the whole canvas as a captioned paper figure */}
+        <Outro />
+      </div>
 
       {/* licences live in the repo (LICENSE + README), not the chrome */}
       <SheetFooter />
@@ -683,13 +665,27 @@ const CLAIMED_VERDICTS = new Set<Verdict>(
   cells.flatMap((c) => [c.maturity, ...(c.subVerdicts ?? []).map((s) => s.maturity)]),
 );
 
-// ---- narrative rail (memoized: only re-renders on chapter change, not on
-// every scroll frame) ---------------------------------------------------------
-const Rail = memo(function Rail({ chapter }: { chapter: Chapter }) {
+// ---- the scenes' text (memoized: only re-renders on chapter change) ----------
+const Rail = memo(function Rail({
+  chapter,
+  phone,
+  onOpen,
+}: {
+  chapter: Chapter;
+  /** on a phone the fan has no chips, so each scene lists its cells as buttons */
+  phone: boolean;
+  onOpen: (cell: Cell, focusId?: string) => void;
+}) {
   return (
     <div className="cvt-rail">
-      <section className="cvt-hero" id="cvt-start" tabIndex={-1}>
-        <Hero hint="Once labels appear on the fan, click one to see its evidence." />
+      <section className="cvt-hero" id="cvt-start" tabIndex={-1} data-chapter-at="hero">
+        <Hero
+          hint={
+            phone
+              ? "Each scene lists its cells. Tap one to see its evidence."
+              : "Once labels appear on the fan, click one to see its evidence."
+          }
+        />
         <p className="cvt-scrollhint" aria-hidden>
           scroll to take it apart{" "}
           <span className="cvt-scrollhint-arrow">
@@ -706,15 +702,18 @@ const Rail = memo(function Rail({ chapter }: { chapter: Chapter }) {
         return (
           <section
             key={scale}
+            id={`cvt-ch-${scale}`}
             className="cvt-chapter"
+            data-chapter-at={scale}
             data-active={chapter === scale}
             style={{ "--hue": SCALE_VAR[scale] }}
           >
-            {/* the prose pins while its chapter's overlays are on the stage, so the
-                two are read together rather than in sequence */}
+            {/* the text pins while its scene holds the figure, so the two are
+                read together rather than in sequence */}
             <div className="cvt-chapter-inner">
               <h2>{copy.title}</h2>
               <p className="cvt-body">{copy.body}</p>
+              {phone && <CellList scale={scale} onOpen={onOpen} />}
             </div>
           </section>
         );
@@ -723,12 +722,9 @@ const Rail = memo(function Rail({ chapter }: { chapter: Chapter }) {
   );
 });
 
-// ---- pieces shared between the desktop rail and the mobile stepper, so the
+// ---- pieces shared between the scenes, the detail and the map, so the
 // claim-bearing copy and the cell buttons have exactly one source ---------------
 
-/** The hero's shared copy: eyebrow, title, sub and maturity legend. `hint` is
- *  the interaction sentence — the desktop rail points at the fan's chips, which
- *  the compact fan does not render, so the stepper omits it. */
 export function IllustrativeDisclosure() {
   return <p className="cvt-illustrative-note">Simulated read-outs · no model run</p>;
 }
@@ -747,17 +743,9 @@ export function MaturityKey() {
   );
 }
 
-export function Hero({
-  hint,
-  expanded = true,
-  disclosureControl,
-  detailsId,
-}: {
-  hint?: string;
-  expanded?: boolean;
-  disclosureControl?: ReactNode;
-  detailsId?: string;
-}) {
+/** The opening's copy. `hint` is the interaction sentence, which differs
+ *  between the fan's chips and the phone's cell lists. */
+export function Hero({ hint }: { hint: string }) {
   return (
     <>
       <h1 className="cvt-title">
@@ -769,21 +757,20 @@ export function Hero({
         Every verdict comes from the paper&rsquo;s <span className="cvt-cite">Table&nbsp;S2</span>.
         The more solid the mark, the stronger the evidence. Colour only shows the physical scale.
       </p>
-      {disclosureControl}
-      <p className="cvt-sub" id={detailsId} hidden={!expanded}>
+      <p className="cvt-sub">
         Research on reuse and recycling (the circular economy) keeps asking cameras to judge
         discarded products. What is this? What&rsquo;s inside? What is it worth? Here is one
         worn-out desk fan, and ten tasks that computer vision (software that reads images) could
         take on. Most of them work in the lab. Almost none has been tested on photos taken where
         products are repaired, collected or recycled.
-        {hint ? ` ${hint}` : ""}
+        {` ${hint}`}
       </p>
       <p className="cvt-hero-split">{FIELD_SPLIT}</p>
     </>
   );
 }
 
-/** One scale's cells as a plain list of buttons: the mobile stand-in for the
+/** One scale's cells as a plain list of buttons: the phone's stand-in for the
  *  fan's chips. */
 export function CellList({
   scale,
@@ -844,6 +831,7 @@ export const Outro = memo(function Outro() {
       id="cvt-matrix"
       aria-label="The full map of twelve cells"
       tabIndex={-1}
+      data-chapter-at="outro"
     >
       <h2>
         Most of these tools exist. Almost none has been tested where products are actually handled.
@@ -882,10 +870,7 @@ export const Outro = memo(function Outro() {
   );
 });
 
-/** The figure's table twin: every verdict as text, nothing encoded by ink alone.
- *  A modal rather than an in-flow <details>: the scroll timeline is measured over
- *  this container, so expanding ~700px of table inline would remap every
- *  calibrated presence window under the reader (see timeline.ts). */
+/** The figure's table twin: every verdict as text, nothing encoded by ink alone. */
 function TableView() {
   const ref = useRef<HTMLDialogElement>(null);
   const [open, setOpen] = useState(false);
@@ -973,11 +958,11 @@ function ShareLink({ cellId }: { cellId: string }) {
   // could only silently no-op is worse than no button
   if (typeof navigator.share !== "function" && !navigator.clipboard) return null;
   const share = async () => {
-    // build on the current URL so host params survive (?theme=dark stays a dark
-    // link); ?p is the dev-only scroll pin and has no business being shared
+    // build on the current URL so its params survive (?theme=dark stays a dark
+    // link); ?scene is the dev-only scene pin and has no business being shared
     const url = new URL(location.href);
     url.searchParams.set("cell", cellId);
-    url.searchParams.delete("p");
+    url.searchParams.delete("scene");
     // a fragment (#cvt-matrix after the skip link) would race the deep link's
     // own scroll on load and can close the detail it opens
     url.hash = "";
@@ -1270,8 +1255,8 @@ function CloseIcon() {
   );
 }
 
-/** A drawn chevron in the close icon's stroke, for the stepper's Back and Next
- *  and the scroll cues; always beside words that name the action. */
+/** A drawn chevron in the close icon's stroke, for the scroll cue; always beside
+ *  words that name the action. */
 export function ChevronIcon({ dir }: { dir: "left" | "right" | "down" }) {
   const d = { left: "M15 5l-7 7 7 7", right: "M9 5l7 7-7 7", down: "M5 9l7 7 7-7" }[dir];
   return (

@@ -4,7 +4,7 @@ import type { Scale, Verdict } from "./data/types";
 export type Theme = "light" | "dark";
 
 /** The one layout fork, shared by the JS tree swap and the CSS container queries:
- *  below this width the page is mobile (stepper, bottom sheet), at or above it
+ *  below this width the page is a phone (figure over text, detail as a sheet), at or above it
  *  desktop (scroll narrative). Container queries cannot read a TS constant, so
  *  CvTaxonomy.css hard-codes it as `(width < 881px)` / `(width >= 881px)` —
  *  scripts/check-theme.ts fails CI if the two drift. */
