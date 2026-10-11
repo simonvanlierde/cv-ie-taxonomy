@@ -412,6 +412,10 @@ export function CvTaxonomy({
       data-theme={effectiveTheme}
       style={THEME_VARS[effectiveTheme]}
     >
+      {/* the first tab stop: past the drawing and its scene buttons to the map */}
+      <a className="cvt-skip-first" href="#cvt-matrix">
+        Skip to the map
+      </a>
       {/* On a phone the detail arrives as a sheet over the scenes — same region,
           same focus contract, different place on the page. */}
       {isMobile && selected && (
@@ -457,11 +461,11 @@ export function CvTaxonomy({
             </div>
             <div className="cvt-hud">
               {!isMobile && (
-                <div className="cvt-hud-top">
+                <nav className="cvt-hud-top" aria-label="Scenes">
                   {/* Operable, not just an indicator: the fan's own chips are
                       gated to their scene, so each stop is a real button that
                       goes there and lands focus on its first chip. */}
-                  <ol className="cvt-ind" aria-label="Physical scale chapters">
+                  <ol className="cvt-ind">
                     {SCALES.map((s) => (
                       <li key={s} style={{ "--hue": SCALE_VAR[s] }}>
                         <button
@@ -484,7 +488,7 @@ export function CvTaxonomy({
                       </a>
                     </li>
                   </ol>
-                </div>
+                </nav>
               )}
               <div className="cvt-hud-foot">
                 {!isMobile && (
@@ -791,23 +795,25 @@ export function CellList({
             type="button"
             className="cvt-mcell"
             data-ghost={!!cell.structurallyEmpty}
-            aria-label={`${scale} · ${info}: ${
-              cell.structurallyEmpty ? "answered at the component scale" : cell.task
-            }. Maturity: ${maturity}. Open details.`}
             onClick={() => onOpen(cell, hid)}
           >
+            {/* the name is the visible text, in order, with the scale before it
+                and the verdict after it for a listener: a voice user says what
+                they see */}
+            <span className="cvt-sr">{scale} ·</span>{" "}
             <VerdictSwatch verdict={cell.maturity} split={split} size={20} />
-            <span className="cvt-mcell-info">{info}</span>
+            <span className="cvt-mcell-info">{info}</span>{" "}
             <span className="cvt-mcell-task">
               {cell.structurallyEmpty ? "answered at the component scale" : cell.task}
-            </span>
+            </span>{" "}
             <b>
               {cell.structurallyEmpty
                 ? ""
                 : split
                   ? split.map((v) => VERDICT_LETTER[v]).join(" / ")
                   : VERDICT_LETTER[cell.maturity]}
-            </b>
+            </b>{" "}
+            <span className="cvt-sr">Maturity: {maturity}. Open details.</span>
           </button>
         );
       })}

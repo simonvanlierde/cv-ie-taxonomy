@@ -17,8 +17,16 @@ import { SCENES } from "./params";
 const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
 async function violations() {
-  // let entrance transitions finish, so contrast is read on settled opacity
-  await new Promise((r) => setTimeout(r, 600));
+  // let every time-based fade and move finish, so contrast is read on settled
+  // opacity; scroll-driven and endless animations (the idle spin, the caret)
+  // never finish, so they are left out
+  await new Promise(requestAnimationFrame);
+  const settling = document
+    .getAnimations()
+    .filter(
+      (a) => a.timeline === document.timeline && a.effect?.getTiming().iterations !== Infinity,
+    );
+  await Promise.all(settling.map((a) => a.finished.catch(() => undefined)));
   const { violations, passes } = await axe.run(document, {
     runOnly: { type: "tag", values: TAGS },
   });

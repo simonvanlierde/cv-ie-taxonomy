@@ -124,12 +124,10 @@ html[data-theme="dark"] {
   --cvt-tag-pcb: light-dark(#2e6b47, #3a9460);
   --cvt-ok: light-dark(#1a6b37, #4ade80);
 
-  /* Six steps, and every rule picks one. The floor is 11px and it is reserved
-     for uppercase tracked mono, which reads a size larger than it measures;
-     anything sentence-case, and every verdict the reader is meant to weigh,
-     starts at t-2. Below t-4 the steps sit ~2px apart, which is the smallest
-     gap that still reads as a step rather than a rounding error. */
-  --cvt-t-1: 0.6875rem;
+  /* Five steps, and every rule picks one. The floor is 13px (t-2): nothing that
+     carries meaning is set smaller. Only the sheet's ruler letters, which are
+     decoration, go below it. Below t-4 the steps sit ~2px apart, which is the
+     smallest gap that still reads as a step rather than a rounding error. */
   --cvt-t-2: 0.8125rem;
   --cvt-t-3: 0.9375rem;
   --cvt-t-4: 1.1875rem;
@@ -179,7 +177,7 @@ html[data-theme="dark"] {
    panel's own) would otherwise set this label in display size */
 .cvt-panel .cvt-tableview-title {
   font-family: var(--cvt-mono);
-  font-size: var(--cvt-t-1);
+  font-size: var(--cvt-t-2);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--cvt-ink-dim);
@@ -188,7 +186,8 @@ html[data-theme="dark"] {
 }
 .cvt-cite {
   font-family: var(--cvt-mono);
-  font-size: 0.85em;
+  /* a step under the prose around it, never under the 13px floor */
+  font-size: max(var(--cvt-t-2), 0.85em);
   color: var(--cvt-ink);
   border-bottom: 1px dotted var(--cvt-line);
 }
@@ -715,6 +714,25 @@ html[data-theme="dark"] {
   outline-offset: 3px;
 }
 
+/* hidden until a keyboard reader lands on it */
+.cvt-skip-first {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 10;
+  padding: 0.5rem 0.9rem;
+  background: var(--cvt-panel);
+  color: var(--cvt-ink);
+  border: 1px solid var(--cvt-ink);
+  font-size: var(--cvt-t-3);
+  translate: 0 -200%;
+}
+.cvt-skip-first:focus-visible {
+  translate: 0 0;
+  outline: 2px solid var(--cvt-ink);
+  outline-offset: 2px;
+}
+
 /* ---- HUD --------------------------------------------------------------------------- */
 .cvt-hud {
   position: absolute;
@@ -739,7 +757,7 @@ html[data-theme="dark"] {
   width: fit-content;
   color: var(--cvt-ink-dim);
   font-family: var(--cvt-mono);
-  font-size: var(--cvt-t-1);
+  font-size: var(--cvt-t-2);
   line-height: 1.35;
   letter-spacing: 0.04em;
   pointer-events: none;
@@ -779,7 +797,7 @@ html[data-theme="dark"] {
 .cvt-ind button,
 .cvt-ind a {
   font-family: var(--cvt-mono);
-  font-size: var(--cvt-t-1);
+  font-size: var(--cvt-t-2);
   letter-spacing: 0.14em;
   /* set along the spine, reading up the sheet */
   writing-mode: vertical-rl;
@@ -896,7 +914,7 @@ html[data-theme="dark"] {
   list-style: none;
   color: var(--cvt-ink-dim);
   font-family: var(--cvt-mono);
-  font-size: var(--cvt-t-1);
+  font-size: var(--cvt-t-2);
 }
 .cvt-maturity-key li {
   display: inline-flex;
@@ -908,7 +926,7 @@ html[data-theme="dark"] {
 }
 .cvt-scrollhint {
   font-family: var(--cvt-mono);
-  font-size: var(--cvt-t-1);
+  font-size: var(--cvt-t-2);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--cvt-ink-dim);
@@ -1141,7 +1159,7 @@ html[data-theme="dark"] {
 }
 .cvt-mx-h {
   font-family: var(--cvt-mono);
-  font-size: var(--cvt-t-1);
+  font-size: var(--cvt-t-2);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--cvt-ink-dim);
@@ -1203,6 +1221,9 @@ html[data-theme="dark"] {
   bottom: var(--cvt-mx-floor);
   height: calc(var(--h, 0) * (100% - var(--cvt-mx-floor)));
   background: var(--fill, none);
+  /* the faintest fill sits at 2:1 on paper, under the 3:1 a shape needs; the
+     block's top edge, which is where its height reads, is drawn in full ink */
+  border-top: 2px solid var(--cvt-ink);
   display: block;
 }
 /* a split cell stands at its stronger sub-verdict and rules the weaker one across */
@@ -1352,7 +1373,7 @@ html[data-theme="dark"] {
 }
 .cvt-tablewrap thead th {
   font-family: var(--cvt-mono);
-  font-size: var(--cvt-t-1);
+  font-size: var(--cvt-t-2);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--cvt-ink-dim);
@@ -1373,7 +1394,7 @@ html[data-theme="dark"] {
   margin: 0 auto;
   padding: 0 clamp(1rem, 2.5vw, 2.5rem) 2.4rem;
   font-family: var(--cvt-mono);
-  font-size: var(--cvt-t-1);
+  font-size: var(--cvt-t-2);
   letter-spacing: 0.08em;
   color: var(--cvt-ink-dim);
 }
@@ -1467,7 +1488,7 @@ html[data-theme="dark"] {
 }
 .cvt-panel-scale {
   font-family: var(--cvt-mono);
-  font-size: var(--cvt-t-1);
+  font-size: var(--cvt-t-2);
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--cvt-ink-dim);
@@ -1579,7 +1600,7 @@ html[data-theme="dark"] {
 }
 .cvt-row dt {
   font-family: var(--cvt-mono);
-  font-size: var(--cvt-t-1);
+  font-size: var(--cvt-t-2);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--cvt-ink-dim);
@@ -1637,7 +1658,7 @@ html[data-theme="dark"] {
 }
 .cvt-status {
   font-family: var(--cvt-mono);
-  font-size: var(--cvt-t-1);
+  font-size: var(--cvt-t-2);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   padding: 0.2rem 0.55rem;
@@ -1732,7 +1753,7 @@ html[data-theme="dark"] {
   padding-top: 0.5rem;
   border-top: 1px solid var(--cvt-line);
   font-family: var(--cvt-mono);
-  font-size: var(--cvt-t-1);
+  font-size: var(--cvt-t-2);
 }
 .cvt-cite-meta a {
   color: var(--cvt-ink-dim);
@@ -1796,6 +1817,11 @@ html[data-theme="dark"] {
   .cvt-chapter {
     min-height: auto;
     padding: 2rem 0 4rem;
+  }
+  /* the map is in the same column as the scenes, so the figure lets go of the
+     screen once the map arrives, instead of covering its top half */
+  .cvt-scroll[data-chapter="outro"] .cvt-stagecol {
+    position: relative;
   }
   /* anything focused or scrolled to lands below the sticky figure, not under it */
   .cvt-chapter,
@@ -2015,7 +2041,8 @@ html[data-theme="dark"] {
   z-index: 3;
   pointer-events: none;
   font-family: var(--cvt-mono);
-  font-size: var(--cvt-t-1);
+  /* the ruler letters: decoration, so below the 13px floor */
+  font-size: 0.6875rem;
   letter-spacing: 0.08em;
   color: var(--cvt-ink-dim);
 }
@@ -2175,7 +2202,7 @@ html[data-theme="dark"] {
   gap: 0.55rem;
   pointer-events: auto;
   font-family: var(--cvt-mono);
-  font-size: var(--cvt-t-1);
+  font-size: var(--cvt-t-2);
   letter-spacing: 0.08em;
   color: var(--cvt-ink-dim);
 }
@@ -2211,7 +2238,8 @@ html[data-theme="dark"] {
   width: 26px;
   height: 12px;
   flex: 0 0 26px;
-  border: 1px solid var(--cvt-line);
+  /* holds 3:1 against the ground, whatever the fill inside it */
+  border: 1px solid var(--cvt-ink-dim);
 }
 .cvt-rung b {
   color: var(--cvt-ink);
@@ -2464,7 +2492,7 @@ html[data-theme="dark"] {
 .cvt-circuit-sub {
   margin: 0 0 0.3rem;
   font-family: var(--cvt-mono);
-  font-size: var(--cvt-t-1);
+  font-size: var(--cvt-t-2);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--cvt-ink-dim);
@@ -2508,8 +2536,7 @@ html[data-theme="dark"] {
 }
 .cvt-circuit-seg em {
   font-style: normal;
-  /* sentence-case, so it starts at t-2 like everything else the reader weighs;
-     11px is reserved for uppercase tracked mono */
+  /* t-2, the floor for everything the reader weighs */
   font-size: var(--cvt-t-2);
   line-height: 1.35;
   color: var(--cvt-ink-dim);
@@ -2541,7 +2568,7 @@ html[data-theme="dark"] {
   border-top: 1px dashed var(--cvt-line);
 }
 /* the dashed line is what marks a dead segment; fading its text as well dropped
-   it to 3.25:1 on the panel, under the 4.5:1 floor for 11px type */
+   it to 3.25:1 on the panel, under the 4.5:1 floor for small text */
 .cvt-circuit-seg[data-state="dead"] b {
   color: var(--cvt-ink-dim);
 }

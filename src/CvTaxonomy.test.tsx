@@ -154,7 +154,7 @@ describe("detail on the sheet (desktop)", () => {
     const region = await screen.findByRole("complementary", { name: /material · identity/i });
 
     // a control outside is that control's business: a chapter stop navigates
-    const chapters = screen.getByRole("list", { name: /physical scale chapters/i });
+    const chapters = screen.getByRole("navigation", { name: "Scenes" });
     await user.click(within(chapters).getByRole("button", { name: /^component$/i }));
     expect(screen.getByRole("complementary")).toBeInTheDocument();
 
@@ -532,7 +532,7 @@ describe("the chapter rail is navigation, not decoration", () => {
   it("gives every scale a real control, and the closing figure a link", () => {
     window.matchMedia = matchMediaStub(() => false); // desktop
     render(<CvTaxonomy />);
-    const rail = screen.getByLabelText("Physical scale chapters");
+    const rail = screen.getByRole("navigation", { name: "Scenes" });
     for (const scale of ["Product", "Component", "Material"]) {
       expect(within(rail).getByRole("button", { name: scale })).toBeInTheDocument();
     }
@@ -545,7 +545,7 @@ describe("the chapter rail is navigation, not decoration", () => {
   it("marks the current scene, the map included", () => {
     window.matchMedia = matchMediaStub(() => false);
     render(<CvTaxonomy debugChapter="outro" />);
-    const rail = screen.getByLabelText("Physical scale chapters");
+    const rail = screen.getByRole("navigation", { name: "Scenes" });
     expect(within(rail).getByRole("link", { name: /the map/i })).toHaveAttribute(
       "aria-current",
       "true",
@@ -564,7 +564,7 @@ describe("the chapter rail is navigation, not decoration", () => {
     };
     try {
       render(<CvTaxonomy />);
-      const rail = screen.getByLabelText("Physical scale chapters");
+      const rail = screen.getByRole("navigation", { name: "Scenes" });
       await userEvent.click(within(rail).getByRole("button", { name: "Material" }));
       expect(scrolled.at(-1)).toHaveAttribute("id", "cvt-ch-Material");
     } finally {
