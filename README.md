@@ -16,107 +16,54 @@ answer.
 
 **[▶ Open the live demo](https://simonvanlierde.github.io/cv-ie-taxonomy/)**
 
-## What it does
+A worn-out desk fan comes apart as you scroll, through Product → Component →
+Material. Each label on it opens one cell of the paper's map, and the last
+screen shows all twelve cells, with a **Plain table** button for the same data.
+No task reaches Strong on field photos. Label reading, for example, falls from
+95.7% on repair photos to 39.7% at the recycler.
 
-A worn-out **desk fan** comes apart as you scroll. It goes through three
-physical scales: **Product → Component → Material**. Along the way, the fan
-shows the kinds of output computer vision produces:
+## Data and assumptions
 
-- boxes around detected parts, for Identity
-- outlines of each part (segmentation masks), for Structure
-- text read off the rating label (OCR)
-- measurements, for Quantity
-- flags on possible damage, for Condition
-- material labels, at the Material scale
+[`src/data/taxonomy.json`](src/data/taxonomy.json) mirrors **Table S2** of the
+paper, and [`src/data/taxonomy.test.ts`](src/data/taxonomy.test.ts) fails if it
+drifts from the paper's rules.
 
-These read-outs are simulated. No model was run on the drawing. Two scenes also
-draw a real finding from the paper, as a measuring scale beside the fan. Label
-reading falls from 95.7% on repair photos to 39.7% at the recycler. Mapping how
-parts connect falls from ~82% to ~39% on new objects.
+- The read-outs on the fan are simulated **mock values** that show what each
+  technique outputs: I didn't run a model on the drawing. The verdict letters
+  come from the paper.
+- The desk fan stands in for any WEEE product (waste electrical and electronic
+  equipment). The taxonomy isn't tied to one product: its evidence comes from
+  washing machines, laptops, smartphones, and vehicles. The drawing is
+  schematic, not to scale.
+- Verdicts are a **June 2026 snapshot**. The taxonomy's structure is the part
+  meant to last.
 
-The page has five scenes: the opening, one per scale, and the map. The scroll
-moves the fan in CSS alone (scroll-driven animations). A browser without them,
-or a reader who asks for reduced motion, sees each scene's finished state.
+## What if? and real models
 
-Each label on the fan opens one cell of the map. Hover over a label to pick out
-its cell. Click it to see the task, the verdict, where it fails, an example, the
-rubric marks and the sources. With a detail open, the arrow keys step to the
-next cell: within the scale on the fan, or across the whole map at the end.
+**What if?**, above the map, lets you change any cell's rubric marks and see the
+verdict follow by the paper's own rules. The paper's verdict stays as a dashed
+outline, and **Export CSV** writes your marks in the deposit's `rubric-marks.csv`
+format.
 
-On a phone or tablet (a page under 1180px wide), the drawing stays at the top of
-the screen while the text scrolls under it, and each scene lists its cells as
-buttons.
-
-The last screen shows all twelve cells as a 3 × 4 grid. Every cell can be
-clicked, and a **Plain table** button shows the same data as a table. Hatching
-marks the two structurally empty cells, which have no verdict. No task reaches
-Strong on field photos. Under each block, the cell says what it is missing, in
-the paper's three kinds: no shared taxonomy yet, no method yet, or short on field
-photos.
-
-### What if? and real photos
-
-**What if?**, above the map, lets you change any cell's rubric marks. The
-verdict, the block and the words under it follow from your marks by the paper's
-own rules. The paper's verdict stays drawn as a dashed outline, and **Export
-CSV** writes your marks in the deposit's `rubric-marks.csv` format.
-
-Each scale scene can also **try a real model on one photo**, in your browser.
-Nothing runs until you press the button, and your photo is not sent anywhere.
-No photo of the paper's fan exists yet, so for now each scene takes your own.
-Every result says it is one photo, not validation.
-
-| Scene | Model | Asked to | First download | Licence |
-|---|---|---|---|---|
-| Product | Tesseract 5 (tesseract.js) | read the rating label | about 7 MB | Apache-2.0 |
-| Component | OWL-ViT base/32 (onnx-community export) | find the blades, motor, grilles and base | about 165 MB | Apache-2.0 |
-| Material | the same OWL-ViT | find steel, plastic, copper and circuit boards | shared with Component | Apache-2.0 |
-
-The libraries load only when a model runs, so the page itself stays small.
-Tesseract's runtime and English data are built into the site. OWL-ViT's runtime
-is too, but its weights come from Hugging Face (US), at a fixed commit. Hugging
-Face sees your IP address and browser. The weights stay in your browser's cache
-for next time; **Remove downloaded models** in the panel deletes them. The built
-page sets a content security policy, so it can contact no other host.
-[`public/privacy.html`](public/privacy.html) says all this for visitors, and
-the footer and the panel link to it.
-
-## Data is the source of truth
-
-[`src/data/taxonomy.json`](src/data/taxonomy.json) mirrors **Table S2**: twelve
-cells, five-level maturity verdicts, rubric marks, failure modes, examples, and
-citation keys. Ten cells carry a task; the two structurally empty Structure cells
-do not.
-
-[`src/data/taxonomy.test.ts`](src/data/taxonomy.test.ts) enforces the invariants
-that break if the JSON drifts from the paper.
+Each scale scene can also **try a real model on one photo** of your own, in your
+browser: Tesseract 5 reads the label (about 7 MB, all from this site), and
+OWL-ViT finds parts and materials (about 165 MB, the weights from Hugging Face at
+a fixed commit). Both are Apache-2.0. Nothing runs until you press Run, the photo
+is not sent anywhere, and every result says it is one photo, not validation.
+**Remove downloaded models** clears the cached weights.
+[`public/privacy.html`](public/privacy.html) says what leaves the browser.
 
 ## Accessibility
 
-Maturity uses ink weight and letters, not colour: S is darkest, U is lightest,
-and A is hollow for no data.
-
-Textures preserve the ranks in `forced-colors` mode and print: solid = S, diagonal
-hatch = P, dots = E, ring = U, and dashed hollow = A. In `forced-colors` mode the
-drawing's lines follow the system text colour.
-
-Colour indicates physical scale. The triad uses the colourblind-safe Okabe–Ito
-palette, with material tints for copper, steel, ABS, and PCB.
-
-Segmentation masks and boxes include class labels, so identity does not depend on
-colour. Their hues follow COCO/YOLO conventions and adapt to the theme.
-
-The labels on the fan, the matrix cells and the phone's cell lists are buttons
-with accessible names. Their text, and all body text, is at least 13px. Only the
-simulated read-outs on the drawing scale down with it. The detail view closes
-with `Esc`.
-
-`prefers-reduced-motion` stops the idle spin, and the fan then jumps between its
-poses instead of moving with the scroll; only the read-outs fade. The page
-follows the colour scheme: paper white in light mode, the blue cyanotype sheet
-in dark mode. `?theme=dark|light` forces one.
+Maturity shows as ink weight, letters and, in `forced-colors` mode and print,
+textures, never colour alone. The three scale colours come from the
+colourblind-safe Okabe–Ito palette. Every label and cell is a button with an
+accessible name, and the detail view closes with `Esc`. `prefers-reduced-motion`
+stops the idle spin and swaps the scroll animation for jumps between poses.
 
 ## Develop
+
+Requires Node 26 or later.
 
 ```sh
 pnpm install
@@ -125,35 +72,20 @@ pnpm test        # data + interaction tests, jsdom (vitest)
 pnpm build       # typecheck + production build
 ```
 
-Tests split into two Vitest projects. `pnpm test` runs `unit` in jsdom, fast
-enough for the inner loop. `pnpm test:browser` runs `browser` in real
-Chromium, for the handful of contracts jsdom can't honour — a dialog's focus
-restore, `inert`, the top layer, real `ResizeObserver` layout. `pnpm
-test:all` runs both; CI does.
+`pnpm test:browser` runs the tests that need real Chromium (focus return,
+`inert`, the top layer, `ResizeObserver` layout); install it once with
+`pnpm exec playwright install chromium`. `pnpm test:all` runs both, and so does
+CI. CI also runs `pnpm check` (Biome) and `pnpm check:theme`, which fails if a
+surface colour in CSS or HTML differs from `src/theme.ts`.
 
-Demo deep links: `?cell=component-structure` opens a detail, `?theme=dark|light`
-forces a theme, and `?scene=2` pins a scene for screenshots (0 is the opening,
-4 the map). Cell ids are
-`<scale>-<information type>` in lower case, e.g. `material-quantity`; invalid
-values are ignored.
-
-Requires Node 26 or later. `pnpm test:browser` needs Chromium once:
-`pnpm exec playwright install chromium`. CI also runs `pnpm check` (Biome) and
-`pnpm check:theme`, which fails if a surface colour in CSS or HTML differs from `src/theme.ts`.
-
-## Assumptions
-
-- The desk fan is a representative WEEE product. The taxonomy is product-general,
-  with evidence from washing machines, laptops, smartphones, and vehicles.
-- Overlay numbers are **mock values** that illustrate each technique's output.
-  Verdict letters come from the paper.
-- The fan drawing is schematic, not to scale.
-- Verdicts are a **June 2026 snapshot**. The taxonomy structure is the durable
-  contribution.
+URL parameters: `?cell=component-structure` opens a detail (ids are
+`<scale>-<information type>` in lower case), `?theme=dark|light` forces a theme,
+and `?scene=2` pins a scene for screenshots (0 is the opening, 4 the map).
 
 ## License
 
-Split so the software is freely reusable while the research stays citable:
+The license is split so anyone can reuse the code, while the research stays
+citable:
 
 - **Code**: [MIT](LICENSE).
 - **Taxonomy data** (`src/data/taxonomy.json`, mirroring Table S2), **figures, and
