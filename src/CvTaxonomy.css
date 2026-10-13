@@ -928,6 +928,14 @@ html[data-theme="dark"] {
   flex-direction: column;
   justify-content: center;
 }
+/* On a laptop the hero is taller than the screen, so it starts at the very top,
+   under the sheet's mat (28px) and its fade (26px). The drawing keeps the same
+   62px clear (.cvt-sticky). */
+@container cvt (width >= 1180px) {
+  .cvt-hero {
+    padding-top: 62px;
+  }
+}
 .cvt-title {
   font-family: var(--cvt-display);
   font-size: var(--cvt-t-6);
