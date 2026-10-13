@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { Explorable } from "./Explorable";
 
 describe("Explorable", () => {
@@ -107,5 +107,156 @@ describe("Explorable", () => {
     await user.click(within(region).getByRole("button", { name: /close details/i }));
 
     expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
+  });
+});
+
+describe("What if?", () => {
+  const cell = () => document.getElementById("cvt-mx-product-identity") as HTMLElement;
+
+  it("re-derives a verdict from the reader's marks, keeps the paper's beside it, and resets", async () => {
+    const user = userEvent.setup();
+    render(<Explorable />);
+    await user.click(screen.getByRole("button", { name: "What if?" }));
+    expect(screen.getByRole("button", { name: "What if?" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+
+    await user.click(cell());
+    const detail = screen.getByRole("complementary", { name: /product · identity/i });
+    // B · ✗ᵐ · ✓: show it working on field photos and it reaches Strong
+    const field = within(detail).getByRole("group", { name: /shown to work on field photos/i });
+    await user.click(within(field).getByRole("radio", { name: "Yes" }));
+
+    expect(cell().getAttribute("aria-label")).toMatch(
+      /: Strong\. That is your marks' verdict; the paper's is Partial$/,
+    );
+    expect(cell().querySelector(".cvt-mx-ghost")).not.toBeNull();
+    expect(document.querySelector(".cvt-whatif-note")).toHaveTextContent(
+      "1 cell differs from the paper",
+    );
+
+    await user.click(screen.getByRole("button", { name: /reset to the paper/i }));
+    expect(cell().getAttribute("aria-label")).toMatch(/: Partial\./);
+    expect(cell().querySelector(".cvt-mx-ghost")).toBeNull();
+  });
+
+  it("shows the paper's map again when switched off, edits and all", async () => {
+    const user = userEvent.setup();
+    render(<Explorable />);
+    await user.click(screen.getByRole("button", { name: "What if?" }));
+    await user.click(cell());
+    const detail = screen.getByRole("complementary", { name: /product · identity/i });
+    const field = within(detail).getByRole("group", { name: /shown to work on field photos/i });
+    await user.click(within(field).getByRole("radio", { name: "Yes" }));
+
+    await user.click(screen.getByRole("button", { name: "What if?" }));
+    expect(cell().getAttribute("aria-label")).toMatch(/: Partial\./);
+    // the detail is the paper's again, not the editor
+    expect(within(detail).queryByRole("group", { name: /evidence/i })).toBeNull();
+  });
+
+  it("keeps the paper's cell selected, so switching off never shows the reader's marks", async () => {
+    const user = userEvent.setup();
+    render(<Explorable />);
+    await user.click(screen.getByRole("button", { name: "What if?" }));
+    await user.click(cell());
+    let detail = screen.getByRole("complementary", { name: /product · identity/i });
+    const evidence = within(detail).getByRole("group", { name: "Evidence" });
+    await user.click(within(evidence).getByRole("radio", { name: /^C,/ }));
+    // away and back, then off: the detail is the paper's again
+    await user.click(document.getElementById("cvt-mx-product-quantity") as HTMLElement);
+    await user.click(cell());
+    detail = screen.getByRole("complementary", { name: /product · identity/i });
+    expect(within(detail).getByRole("status")).toHaveTextContent("The paper’s: Partial");
+    await user.click(screen.getByRole("button", { name: "What if?" }));
+    expect(detail).toHaveTextContent("P: Partial");
+  });
+
+  it("draws the paper's outline when only a compound cell's weaker sub-verdict moves", async () => {
+    const user = userEvent.setup();
+    render(<Explorable />);
+    await user.click(screen.getByRole("button", { name: "What if?" }));
+    const structure = document.getElementById("cvt-mx-component-structure") as HTMLElement;
+    await user.click(structure);
+    const detail = screen.getByRole("complementary", { name: /component · structure/i });
+    const relations = within(detail).getByRole("group", { name: "BoC attachment relations" });
+    const evidence = within(relations).getByRole("group", { name: "Evidence" });
+    await user.click(within(evidence).getByRole("radio", { name: /^C,/ }));
+    expect(structure.querySelector(".cvt-mx-ghost")).not.toBeNull();
+    expect(structure.getAttribute("aria-label")).toMatch(
+      /the paper's is Partial and Emerging-but-narrow$/,
+    );
+  });
+
+  it("keeps focus on Reset after it is pressed", async () => {
+    const user = userEvent.setup();
+    render(<Explorable />);
+    await user.click(screen.getByRole("button", { name: "What if?" }));
+    await user.click(cell());
+    const detail = screen.getByRole("complementary", { name: /product · identity/i });
+    const field = within(detail).getByRole("group", { name: /shown to work on field photos/i });
+    await user.click(within(field).getByRole("radio", { name: "Yes" }));
+    const reset = screen.getByRole("button", { name: /reset to the paper/i });
+    await user.click(reset);
+    expect(reset).toHaveFocus();
+    expect(reset).toHaveAttribute("aria-disabled", "true");
+  });
+
+  it("does nothing when Reset is pressed with no marks changed", async () => {
+    const user = userEvent.setup();
+    render(<Explorable />);
+    await user.click(screen.getByRole("button", { name: "What if?" }));
+    await user.click(screen.getByRole("button", { name: /reset to the paper/i }));
+    expect(cell().getAttribute("aria-label")).toMatch(/: Partial\./);
+    expect(document.querySelector(".cvt-whatif-note")).toHaveTextContent("0 cells differ");
+  });
+
+  it("takes the deployment mark too", async () => {
+    const user = userEvent.setup();
+    render(<Explorable />);
+    await user.click(screen.getByRole("button", { name: "What if?" }));
+    await user.click(cell());
+    const detail = screen.getByRole("complementary", { name: /product · identity/i });
+    const field = within(detail).getByRole("group", { name: /shown to work on field photos/i });
+    await user.click(within(field).getByRole("radio", { name: "Yes" }));
+    expect(within(detail).getByRole("status")).toHaveTextContent(/^Your marks: Strong/);
+    const used = within(detail).getByRole("group", { name: /in use for this task/i });
+    await user.click(within(used).getByRole("radio", { name: "No" }));
+    expect(within(used).getByRole("radio", { name: "No" })).toBeChecked();
+    expect(within(detail).getByRole("status")).toHaveTextContent(/^Your marks: (?!Strong)/);
+  });
+
+  it("downloads the reader's marks as a CSV in the deposit's format", async () => {
+    const user = userEvent.setup();
+    const blobs: Blob[] = [];
+    URL.createObjectURL = vi.fn((b: Blob) => {
+      blobs.push(b);
+      return "blob:csv";
+    });
+    URL.revokeObjectURL = vi.fn();
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    try {
+      render(<Explorable />);
+      await user.click(screen.getByRole("button", { name: "What if?" }));
+      await user.click(cell());
+      const detail = screen.getByRole("complementary", { name: /product · identity/i });
+      const field = within(detail).getByRole("group", { name: /shown to work on field photos/i });
+      await user.click(within(field).getByRole("radio", { name: "Yes" }));
+      await user.click(screen.getByRole("button", { name: /export csv/i }));
+
+      expect(click).toHaveBeenCalledTimes(1);
+      expect(click.mock.contexts[0]).toHaveProperty("download", "rubric-marks-what-if.csv");
+      const [header, ...rows] = (await blobs[0]?.text())?.split("\n") ?? [];
+      expect(header).toBe(
+        "cell,sub_cell,evidence_mark,field_gate,field_gate_basis,deployment_gate,derived_verdict,evidence_citekeys",
+      );
+      expect(rows.find((r) => r.startsWith("Product · Identity,"))).toMatch(
+        /^[^,]*,[^,]*,B,✓,,✓,Strong,/,
+      );
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:csv");
+    } finally {
+      click.mockRestore();
+    }
   });
 });

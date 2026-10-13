@@ -56,3 +56,17 @@ describe("the layout seam, on real layout", () => {
     expect(document.querySelector(".cvt-cam")).toBe(camera);
   });
 });
+
+describe("the title on a laptop screen", () => {
+  it("starts below the sheet's mat and its fade, where the hero is taller than the screen", async () => {
+    await page.viewport(1280, 720);
+    render(<CvTaxonomy />);
+    await vi.waitFor(() => expect(layout()).toBe("sheet"));
+    const title = document.querySelector("h1") as HTMLElement;
+    const sheet = document.querySelector(".cvt-sheet") as HTMLElement;
+    // the mat is --cvt-edge thick and the fade under it is ::after's height
+    const fade = getComputedStyle(sheet, "::after");
+    const covered = Number.parseFloat(fade.top) + Number.parseFloat(fade.height);
+    expect(title.getBoundingClientRect().top).toBeGreaterThanOrEqual(covered);
+  });
+});

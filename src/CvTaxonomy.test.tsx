@@ -617,6 +617,18 @@ describe("what each cell is missing", () => {
   });
 });
 
+describe("real-model mode", () => {
+  it("offers one real-photo panel per scale scene, folded", () => {
+    render(<CvTaxonomy />);
+    for (const scale of ["Product", "Component", "Material"]) {
+      const scene = document.getElementById(`cvt-ch-${scale}`) as HTMLElement;
+      expect(
+        within(scene).getByRole("button", { name: /try a real model on one photo/i }),
+      ).toHaveAttribute("aria-expanded", "false");
+    }
+  });
+});
+
 describe("per-cell share", () => {
   it("copies a deep link to this cell to the clipboard", async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);

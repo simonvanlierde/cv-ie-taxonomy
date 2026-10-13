@@ -36,6 +36,7 @@ import {
   unionFrame,
   VIEW,
 } from "./frames";
+import { RealPhoto } from "./RealPhoto";
 import { Cite, CitedProse } from "./References";
 import { RubricCircuit } from "./RubricCircuit";
 import { gapsOf, gapText } from "./rubricMarks";
@@ -672,6 +673,12 @@ function SheetFooter({ inert }: { inert: boolean }) {
             </a>
           </dd>
         </div>
+        <div className="cvt-tb-row">
+          <dt>privacy</dt>
+          <dd>
+            <a href={`${import.meta.env.BASE_URL}privacy.html`}>No tracking</a>
+          </dd>
+        </div>
       </dl>
     </footer>
   );
@@ -773,6 +780,7 @@ const Rail = memo(function Rail({
               <h2>{copy.title}</h2>
               <p className="cvt-body">{copy.body}</p>
               {phone && <CellList scale={scale} onOpen={onOpen} />}
+              <RealPhoto scale={scale} />
             </div>
           </section>
         );

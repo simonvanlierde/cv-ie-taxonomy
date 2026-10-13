@@ -38,6 +38,21 @@ drifts from the paper's rules.
 - Verdicts are a **June 2026 snapshot**. The taxonomy's structure is the part
   meant to last.
 
+## What if? and real models
+
+**What if?**, above the map, lets you change any cell's rubric marks and see the
+verdict follow by the paper's own rules. The paper's verdict stays as a dashed
+outline, and **Export CSV** writes your marks in the deposit's `rubric-marks.csv`
+format.
+
+Each scale scene can also **try a real model on one photo** of your own, in your
+browser: Tesseract 5 reads the label (about 7 MB, all from this site), and
+OWL-ViT finds parts and materials (about 165 MB, the weights from Hugging Face at
+a fixed commit). Both are Apache-2.0. Nothing runs until you press Run, the photo
+is not sent anywhere, and every result says it is one photo, not validation.
+**Remove downloaded models** clears the cached weights.
+[`public/privacy.html`](public/privacy.html) says what leaves the browser.
+
 ## Accessibility
 
 Maturity shows as ink weight, letters and, in `forced-colors` mode and print,

@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="referrer" content="no-referrer" />
+    <title>Privacy · CV × industrial ecology</title>
+    <style>
+      :root { color-scheme: light dark; --ink: #1a1a1a; --paper: #fbfaf7; }
+      @media (prefers-color-scheme: dark) { :root { --ink: #e8eef6; --paper: #0d2240; } }
+      body { margin: 0 auto; max-width: 40rem; padding: 2rem 16px; font: 19px/1.55 system-ui, sans-serif; color: var(--ink); background: var(--paper); }
+      a { color: inherit; }
+      h1 { font-size: 1.6rem; line-height: 1.2; }
+      h2 { font-size: 1.1rem; margin-top: 2rem; }
+    </style>
+  </head>
+  <body>
+    <p><a href="./">Back to the map</a></p>
+    <h1>Privacy</h1>
+    <p>
+      This site has no cookies, no analytics and no tracking. GitHub Pages serves it, and
+      like any web server it sees your IP address and browser when you open the page.
+    </p>
+
+    <h2>The real models</h2>
+    <p>
+      Each scene has a folded panel, “Try a real model on one photo”. Nothing in it runs or
+      downloads until you press <b>Run the model</b>. Your photo stays on your device: the
+      model runs in your browser, and the photo is never uploaded.
+    </p>
+    <ul>
+      <li>
+        <b>Reading a label (Tesseract):</b> every file comes from this site. No other company is
+        contacted.
+      </li>
+      <li>
+        <b>Finding parts and materials (OWL-ViT):</b> the model’s files, about 150 MB, come from
+        Hugging Face, Inc., a company in the United States, through its Amazon CloudFront
+        servers. Hugging Face sees your IP address and browser, as any website does. This site
+        tells your browser not to send it the address of this page.
+      </li>
+    </ul>
+    <p>
+      The reason is the one you gave by pressing Run: the model can only run in your browser
+      if your browser downloads it. Hugging Face handles those requests under its own privacy
+      policy, at <a href="https://huggingface.co/privacy">huggingface.co/privacy</a>.
+    </p>
+
+    <h2>What stays in your browser</h2>
+    <p>
+      Your browser keeps the downloaded model files, so the next run is fast. They stay until
+      you press <b>Remove downloaded models</b> in the panel, or clear this site’s data in your
+      browser. Nothing is sent back to this site or anyone else.
+    </p>
+
+    <h2>Who is responsible, and your rights</h2>
+    <p>
+      Simon van Lierde runs this site. Under the GDPR you can ask what data about you is
+      processed, and have it corrected or deleted. This site itself stores none; for the
+      model downloads, Hugging Face is the one to ask. To reach me, open an issue at
+      <a href="https://github.com/simonvanlierde/cv-ie-taxonomy/issues">the site’s GitHub repository</a>.
+      You can also complain to your data protection authority; in the Netherlands, that is the
+      Autoriteit Persoonsgegevens.
+    </p>
+  </body>
+</html>
