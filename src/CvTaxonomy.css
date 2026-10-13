@@ -1394,9 +1394,11 @@ html[data-theme="dark"] {
   margin-top: 1.4rem;
   font-size: var(--cvt-t-3);
 }
+/* the pill buttons of the What if? bar and the real-photo panel */
 .cvt-real-toggle,
 .cvt-real-controls button,
-.cvt-real-own {
+.cvt-real-own,
+.cvt-whatif button {
   font-family: var(--cvt-mono);
   font-size: var(--cvt-t-2);
   letter-spacing: 0.04em;
@@ -1406,6 +1408,14 @@ html[data-theme="dark"] {
   border-radius: 999px;
   padding: 0.45rem 0.95rem;
   cursor: pointer;
+}
+:is(.cvt-real-controls, .cvt-whatif) button[aria-disabled="true"] {
+  color: var(--cvt-ink-dim);
+  cursor: default;
+}
+.cvt-real-own {
+  /* the hidden file input is placed against its own label */
+  position: relative;
 }
 .cvt-real-toggle[aria-expanded="true"] {
   background: var(--cvt-ink);
@@ -1501,23 +1511,8 @@ html[data-theme="dark"] {
   padding: 0 0 0.8rem;
   border-bottom: 1px solid var(--cvt-line);
 }
-.cvt-whatif button {
-  font-family: var(--cvt-mono);
-  font-size: var(--cvt-t-2);
-  letter-spacing: 0.06em;
-  color: var(--cvt-ink);
-  background: var(--cvt-card);
-  border: 1px solid var(--cvt-line);
-  border-radius: 999px;
-  padding: 0.4rem 0.9rem;
-  cursor: pointer;
-}
-.cvt-whatif button:hover:not(:disabled) {
+.cvt-whatif button:hover:not([aria-disabled="true"], [aria-pressed="true"]) {
   background: var(--cvt-card-hi);
-}
-.cvt-whatif button:disabled {
-  color: var(--cvt-ink-dim);
-  cursor: default;
 }
 .cvt-whatif .cvt-whatif-toggle[aria-pressed="true"] {
   background: var(--cvt-ink);
@@ -1559,9 +1554,12 @@ html[data-theme="dark"] {
   color: var(--cvt-ink-dim);
   font-size: var(--cvt-t-3);
 }
-.cvt-marks-run {
+/* two classes deep: a run is a fieldset too, and keeps none of a mark's rules */
+.cvt-marks .cvt-marks-run {
   display: grid;
   gap: 0.6rem;
+  padding: 0;
+  border: 0;
 }
 .cvt-marks fieldset {
   margin: 0;
@@ -2319,6 +2317,16 @@ html[data-theme="dark"] {
   .cvt-drop::before {
     forced-color-adjust: none;
     background: repeating-linear-gradient(-45deg, CanvasText 0 1.5px, transparent 1.5px 6px);
+  }
+  /* the paper's ghost must show on any block, a solid CanvasText one included */
+  .cvt-mx-ghost {
+    forced-color-adjust: none;
+    border-color: Highlight;
+    box-shadow: inset 0 0 0 2px Canvas;
+  }
+  .cvt-mx-cell[data-verdict="S"] .cvt-mx-letter {
+    forced-color-adjust: none;
+    color: Canvas;
   }
   /* the key's steps take the swatches' textures: hatch P, dots E, ring U */
   .cvt-rung i {

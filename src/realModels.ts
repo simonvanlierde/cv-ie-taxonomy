@@ -1,4 +1,13 @@
+import ortMjs from "onnxruntime-web/ort-wasm-simd-threaded.mjs?url";
+import ortWasm from "onnxruntime-web/ort-wasm-simd-threaded.wasm?url";
+import tesseractWorker from "tesseract.js/dist/worker.min.js?url";
+import tesseractCore from "tesseract.js-core/tesseract-core-simd-lstm.wasm.js?url";
 import type { Scale } from "./data/types";
+
+// Both libraries would load their runtime code from jsDelivr and run it with this
+// page's rights. These URLs point them at copies built into the site instead;
+// only data comes from elsewhere (the detector's weights from Hugging Face,
+// Tesseract's English data from jsDelivr).
 
 /**
  * Real-model mode: one model per scene, run in the reader's browser on one photo.
@@ -18,9 +27,8 @@ export interface RealModel {
   name: string;
   /** what it is asked to do, in plain words */
   task: string;
-  /** what the first run downloads, said plainly */
+  /** what the first run downloads and from where, said plainly */
   download: string;
-  licence: string;
   run(image: HTMLImageElement): Promise<Reading>;
 }
 
@@ -28,9 +36,12 @@ export interface RealModel {
 // family; Google's weights, Apache-2.0. The onnx-community export, because the
 // older Xenova one uses a Cast node this ONNX runtime cannot run. The first run
 // fetches the quantised weights (149 MB), the tokenizer (2 MB) and the
-// runtime's WebAssembly (13-27 MB by browser). One download serves both the
-// parts and the materials scene.
+// runtime's WebAssembly (14 MB, served by this site). One download serves both
+// the parts and the materials scene.
 const DETECTOR = "onnx-community/owlvit-base-patch32-ONNX";
+// a fixed commit, so the weights, and the size quoted to the reader, cannot change under us
+// biome-ignore lint/security/noSecrets: a public Hugging Face commit id, not a secret
+const DETECTOR_REVISION = "4cba1467c378f89779ae66c7eff8f0f64985a0e3";
 type Detection = {
   label: string;
   score: number;
@@ -56,7 +67,14 @@ export function toBoxes(found: Detection[], width: number, height: number): Box[
 async function detect(image: HTMLImageElement, labels: string[]): Promise<Reading> {
   // a failed load (offline, a blocked CDN) is not cached: the next press retries
   detector ??= import("@huggingface/transformers")
-    .then(({ pipeline }) => pipeline("zero-shot-object-detection", DETECTOR) as unknown as Detector)
+    .then(({ env, pipeline }) => {
+      // the plain SIMD build: this page runs the WASM backend only, and this build
+      // runs in every browser that has WebAssembly SIMD
+      if (env.backends.onnx.wasm) env.backends.onnx.wasm.wasmPaths = { mjs: ortMjs, wasm: ortWasm };
+      return pipeline("zero-shot-object-detection", DETECTOR, {
+        revision: DETECTOR_REVISION,
+      }) as unknown as Detector;
+    })
     .catch((error) => {
       detector = null;
       throw error;
@@ -66,8 +84,12 @@ async function detect(image: HTMLImageElement, labels: string[]): Promise<Readin
 }
 
 async function readText(image: HTMLImageElement): Promise<Reading> {
-  const { createWorker } = await import("tesseract.js");
-  const worker = await createWorker("eng");
+  const { createWorker, OEM } = await import("tesseract.js");
+  const worker = await createWorker("eng", OEM.LSTM_ONLY, {
+    workerPath: tesseractWorker,
+    corePath: tesseractCore,
+    workerBlobURL: false,
+  });
   try {
     const { data } = await worker.recognize(image);
     return { kind: "text", text: data.text.trim(), confidence: data.confidence };
@@ -78,8 +100,7 @@ async function readText(image: HTMLImageElement): Promise<Reading> {
 
 const owl = {
   name: "OWL-ViT (base, patch 32)",
-  download: "about 170 MB the first time",
-  licence: "Apache-2.0",
+  download: "about 165 MB, the model from huggingface.co and the rest from this site",
 };
 
 export const REAL_MODELS: Record<Scale, RealModel> = {
@@ -87,8 +108,7 @@ export const REAL_MODELS: Record<Scale, RealModel> = {
     name: "Tesseract 5 (tesseract.js), English",
     task: "read the text on the rating label",
     // the WebAssembly core (3.9 MB), English data (3.0 MB) and its worker
-    download: "about 7 MB the first time",
-    licence: "Apache-2.0",
+    download: "about 7 MB, its English data from cdn.jsdelivr.net and the rest from this site",
     run: readText,
   },
   Component: {
@@ -109,5 +129,4 @@ export const REAL_MODELS: Record<Scale, RealModel> = {
  * each scene offers the reader's own photo instead. Each entry will pair a clean
  * shot with a worn one, so a good result is never shown without its field case.
  */
-export const FAN_PHOTOS: Partial<Record<Scale, { src: string; alt: string; credit: string }[]>> =
-  {};
+export const FAN_PHOTOS: Partial<Record<Scale, { src: string; alt: string }[]>> = {};

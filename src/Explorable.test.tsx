@@ -128,9 +128,13 @@ describe("What if?", () => {
     const field = within(detail).getByRole("group", { name: /shown to work on field photos/i });
     await user.click(within(field).getByRole("radio", { name: "Yes" }));
 
-    expect(cell().getAttribute("aria-label")).toMatch(/: Strong\..*The paper's verdict: Partial$/);
+    expect(cell().getAttribute("aria-label")).toMatch(
+      /: Strong\. That is your marks' verdict; the paper's is Partial$/,
+    );
     expect(cell().querySelector(".cvt-mx-ghost")).not.toBeNull();
-    expect(screen.getByRole("status")).toHaveTextContent("1 cell differs from the paper");
+    expect(document.querySelector(".cvt-whatif-note")).toHaveTextContent(
+      "1 cell differs from the paper",
+    );
 
     await user.click(screen.getByRole("button", { name: /reset to the paper/i }));
     expect(cell().getAttribute("aria-label")).toMatch(/: Partial\./);
@@ -150,5 +154,52 @@ describe("What if?", () => {
     expect(cell().getAttribute("aria-label")).toMatch(/: Partial\./);
     // the detail is the paper's again, not the editor
     expect(within(detail).queryByRole("group", { name: /evidence/i })).toBeNull();
+  });
+
+  it("keeps the paper's cell selected, so switching off never shows the reader's marks", async () => {
+    const user = userEvent.setup();
+    render(<Explorable />);
+    await user.click(screen.getByRole("button", { name: "What if?" }));
+    await user.click(cell());
+    let detail = screen.getByRole("complementary", { name: /product · identity/i });
+    const evidence = within(detail).getByRole("group", { name: "Evidence" });
+    await user.click(within(evidence).getByRole("radio", { name: /^C,/ }));
+    // away and back, then off: the detail is the paper's again
+    await user.click(document.getElementById("cvt-mx-product-quantity") as HTMLElement);
+    await user.click(cell());
+    detail = screen.getByRole("complementary", { name: /product · identity/i });
+    expect(within(detail).getByRole("status")).toHaveTextContent("The paper’s: Partial");
+    await user.click(screen.getByRole("button", { name: "What if?" }));
+    expect(detail).toHaveTextContent("P: Partial");
+  });
+
+  it("draws the paper's outline when only a compound cell's weaker sub-verdict moves", async () => {
+    const user = userEvent.setup();
+    render(<Explorable />);
+    await user.click(screen.getByRole("button", { name: "What if?" }));
+    const structure = document.getElementById("cvt-mx-component-structure") as HTMLElement;
+    await user.click(structure);
+    const detail = screen.getByRole("complementary", { name: /component · structure/i });
+    const relations = within(detail).getByRole("group", { name: "BoC attachment relations" });
+    const evidence = within(relations).getByRole("group", { name: "Evidence" });
+    await user.click(within(evidence).getByRole("radio", { name: /^C,/ }));
+    expect(structure.querySelector(".cvt-mx-ghost")).not.toBeNull();
+    expect(structure.getAttribute("aria-label")).toMatch(
+      /the paper's is Partial and Emerging-but-narrow$/,
+    );
+  });
+
+  it("keeps focus on Reset after it is pressed", async () => {
+    const user = userEvent.setup();
+    render(<Explorable />);
+    await user.click(screen.getByRole("button", { name: "What if?" }));
+    await user.click(cell());
+    const detail = screen.getByRole("complementary", { name: /product · identity/i });
+    const field = within(detail).getByRole("group", { name: /shown to work on field photos/i });
+    await user.click(within(field).getByRole("radio", { name: "Yes" }));
+    const reset = screen.getByRole("button", { name: /reset to the paper/i });
+    await user.click(reset);
+    expect(reset).toHaveFocus();
+    expect(reset).toHaveAttribute("aria-disabled", "true");
   });
 });

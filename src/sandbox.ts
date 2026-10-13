@@ -94,7 +94,8 @@ export function toDepositCsv(edits: Edits): string {
       row.sub_cell ?? "",
       run.evidence,
       run.capture === "pass" ? "✓" : "✗",
-      run.capture === "fail" && run.basis ? DEPOSIT_BASIS[run.basis] : "",
+      // a derived row (–) has no method to fall short, so no basis, as in the deposit
+      run.capture === "fail" && run.basis && run.evidence !== "–" ? DEPOSIT_BASIS[run.basis] : "",
       run.deployed === "pass" ? "✓" : "✗",
       verdictOf(run),
       row.evidence_citekeys.join(";"),

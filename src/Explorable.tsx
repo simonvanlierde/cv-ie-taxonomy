@@ -8,11 +8,11 @@ import {
   useState,
 } from "react";
 import { DetailBody } from "./CvTaxonomy";
-import { cells, maturityName, VERDICT_LETTER } from "./data/taxonomy";
+import { cells, maturityName } from "./data/taxonomy";
 import type { Cell } from "./data/types";
 import { MiniMatrix } from "./MiniMatrix";
 import { RubricCircuit } from "./RubricCircuit";
-import { type Evidence, runsOf } from "./rubricMarks";
+import { runsOf } from "./rubricMarks";
 import { changedCount, type Edits, type Marks, toDepositCsv, withEdits } from "./sandbox";
 import { SCALE_VAR } from "./theme";
 import { useDialogRegion } from "./useDialogRegion";
@@ -188,33 +188,75 @@ function WhatIfBar({
       <button type="button" className="cvt-whatif-toggle" aria-pressed={on} onClick={onToggle}>
         What if?
       </button>
-      {on ? (
+      {/* always there, so turning the switch on is announced */}
+      <p className="cvt-whatif-note" role="status">
+        {on
+          ? `Your marks, not the paper’s. ${changed === 1 ? "1 cell differs" : `${changed} cells differ`} from the paper; each one shows the paper’s verdict as a dashed outline.`
+          : "Change a cell’s marks and see its verdict move."}
+      </p>
+      {on && (
         <>
-          <p className="cvt-whatif-note" role="status">
-            Your marks, not the paper&rsquo;s. {changed === 1 ? "1 cell" : `${changed} cells`}{" "}
-            {changed === 1 ? "differs" : "differ"} from the paper. A dashed outline is the
-            paper&rsquo;s verdict.
-          </p>
-          <button type="button" onClick={onReset} disabled={!edited}>
+          {/* aria-disabled, not disabled: a disabled button drops the focus it holds */}
+          <button
+            type="button"
+            aria-disabled={!edited}
+            onClick={() => {
+              if (edited) onReset();
+            }}
+          >
             Reset to the paper
           </button>
           <button type="button" onClick={download}>
             Export CSV
           </button>
         </>
-      ) : (
-        <p className="cvt-whatif-note">Change a cell&rsquo;s marks and see its verdict move.</p>
       )}
     </div>
   );
 }
 
-const EVIDENCE: { value: Evidence; label: string }[] = [
+const EVIDENCE: { value: Marks["evidence"]; label: string }[] = [
   { value: "B", label: "B, tested on these or similar products" },
   { value: "N", label: "N, one narrow kind of object only" },
   { value: "C", label: "C, an idea or a neighbouring field only" },
   { value: "–", label: "–, no method" },
 ];
+const GATE: { value: Marks["capture"]; label: string }[] = [
+  { value: "pass", label: "Yes" },
+  { value: "fail", label: "No" },
+];
+
+/** One mark as a native radio group. */
+function Radios<T extends string>({
+  name,
+  legend,
+  options,
+  value,
+  onPick,
+}: {
+  name: string;
+  legend: string;
+  options: { value: T; label: string }[];
+  value: T;
+  onPick: (value: T) => void;
+}) {
+  return (
+    <fieldset>
+      <legend>{legend}</legend>
+      {options.map((o) => (
+        <label key={o.value}>
+          <input
+            type="radio"
+            name={name}
+            checked={value === o.value}
+            onChange={() => onPick(o.value)}
+          />
+          {o.label}
+        </label>
+      ))}
+    </fieldset>
+  );
+}
 
 /** The marks of each run as radio groups; the verdict follows from them. */
 function MarksEditor({
@@ -237,74 +279,43 @@ function MarksEditor({
 
   return (
     <div className="cvt-marks">
-      <p className="cvt-marks-verdict">
-        <b>{VERDICT_LETTER[mine.maturity]}</b> {maturityName(mine)}
-        <span>{` · the paper’s: ${VERDICT_LETTER[paper.maturity]} ${maturityName(paper)}`}</span>
+      {/* announced as the reader changes a mark */}
+      <p className="cvt-marks-verdict" role="status">
+        Your marks: {maturityName(mine)}
+        <span>{`. The paper’s: ${maturityName(paper)}`}</span>
       </p>
       {runs.map((run, i) => {
         const m = current[i];
         if (!m) return null;
         const name = `${id}-${i}`;
+        const sub = paper.subVerdicts?.[i]?.label;
         return (
-          <div className="cvt-marks-run" key={run.label ?? i}>
-            {run.label && <p className="cvt-circuit-sub">{paper.subVerdicts?.[i]?.label}</p>}
-            <fieldset>
-              <legend>Evidence</legend>
-              {EVIDENCE.map((e) => (
-                <label key={e.value}>
-                  <input
-                    type="radio"
-                    name={`${name}-evidence`}
-                    checked={m.evidence === e.value}
-                    onChange={() => set(i, { evidence: e.value })}
-                  />
-                  {e.label}
-                </label>
-              ))}
-            </fieldset>
-            <fieldset>
-              <legend>Shown to work on field photos</legend>
-              <label>
-                <input
-                  type="radio"
-                  name={`${name}-field`}
-                  checked={m.capture === "pass"}
-                  onChange={() => set(i, { capture: "pass" })}
-                />
-                Yes
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  name={`${name}-field`}
-                  checked={m.capture === "fail"}
-                  onChange={() => set(i, { capture: "fail" })}
-                />
-                No
-              </label>
-            </fieldset>
-            <fieldset>
-              <legend>In use for this task</legend>
-              <label>
-                <input
-                  type="radio"
-                  name={`${name}-deployed`}
-                  checked={m.deployed === "pass"}
-                  onChange={() => set(i, { deployed: "pass" })}
-                />
-                Yes
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  name={`${name}-deployed`}
-                  checked={m.deployed === "fail"}
-                  onChange={() => set(i, { deployed: "fail" })}
-                />
-                No
-              </label>
-            </fieldset>
-          </div>
+          // a compound cell's two runs ask the same three questions; the group
+          // names which sub-task each set belongs to
+          <fieldset className="cvt-marks-run" key={run.label ?? i}>
+            {sub && <legend className="cvt-circuit-sub">{sub}</legend>}
+            <Radios
+              name={`${name}-evidence`}
+              legend="Evidence"
+              options={EVIDENCE}
+              value={m.evidence}
+              onPick={(evidence) => set(i, { evidence })}
+            />
+            <Radios
+              name={`${name}-field`}
+              legend="Shown to work on field photos"
+              options={GATE}
+              value={m.capture}
+              onPick={(capture) => set(i, { capture })}
+            />
+            <Radios
+              name={`${name}-deployed`}
+              legend="In use for this task"
+              options={GATE}
+              value={m.deployed}
+              onPick={(deployed) => set(i, { deployed })}
+            />
+          </fieldset>
         );
       })}
       <RubricCircuit cell={mine} />

@@ -49,18 +49,27 @@ function RealPhotoPanel({ scale, model }: { scale: Scale; model: RealModel }) {
   useEffect(() => () => (own ? URL.revokeObjectURL(own) : undefined), [own]);
 
   const src = own ?? fan?.src ?? null;
-  // a new photo clears the last photo's result
-  // biome-ignore lint/correctness/useExhaustiveDependencies: src is the trigger, not a value the effect reads
-  useEffect(() => setState({ status: "idle" }), [src]);
+  // Each run is tied to the photo it started on: a new photo, or a second run,
+  // makes an earlier run's answer stale, and a stale answer is dropped rather
+  // than drawn over the wrong photo.
+  const runId = useRef(0);
+  const choose = (file: File) => {
+    runId.current += 1;
+    setState({ status: "idle" });
+    setOwn(URL.createObjectURL(file));
+  };
   const run = async () => {
     const img = image.current;
-    if (!img) return;
+    if (!img || state.status === "running") return;
+    const id = ++runId.current;
     setState({ status: "running" });
     const start = performance.now();
     try {
       const reading = await model.run(img);
+      if (id !== runId.current) return;
       setState({ status: "done", reading, ms: Math.round(performance.now() - start) });
     } catch (error) {
+      if (id !== runId.current) return;
       setState({
         status: "error",
         message: error instanceof Error ? error.message : String(error),
@@ -71,8 +80,10 @@ function RealPhotoPanel({ scale, model }: { scale: Scale; model: RealModel }) {
   return (
     <div className="cvt-real-panel">
       <p className="cvt-real-what">
-        {model.name} will {model.task}. It runs in this browser and downloads {model.download}; your
-        photo is not sent anywhere.
+        {model.name} will {model.task}. It runs in this browser. The first run downloads{" "}
+        {model.download}; those servers see your IP address and browser, as any website does. The
+        files stay in this browser&rsquo;s storage for next time, until you clear this site&rsquo;s
+        data. Your photo is not sent anywhere.
       </p>
       {src ? (
         <div className="cvt-real-photo">
@@ -110,13 +121,14 @@ function RealPhotoPanel({ scale, model }: { scale: Scale; model: RealModel }) {
             accept="image/*"
             onChange={(e) => {
               const file = e.target.files?.[0];
-              if (file) setOwn(URL.createObjectURL(file));
+              if (file) choose(file);
             }}
           />
         </label>
         {src && (
-          <button type="button" onClick={run} disabled={state.status === "running"}>
-            {state.status === "running" ? "Running…" : "Run the model"}
+          // aria-disabled, not disabled: a disabled button drops the focus it holds
+          <button type="button" onClick={run} aria-disabled={state.status === "running"}>
+            Run the model
           </button>
         )}
       </div>
@@ -125,18 +137,28 @@ function RealPhotoPanel({ scale, model }: { scale: Scale; model: RealModel }) {
   );
 }
 
+/** The status region is always there, so what lands in it is announced. */
 function Result({ state, model }: { state: State; model: RealModel }) {
-  if (state.status === "error") {
-    return (
-      <p className="cvt-real-error" role="alert">
-        The model could not run here: {state.message}
-      </p>
-    );
-  }
-  if (state.status !== "done") return null;
-  const { reading, ms } = state;
   return (
     <div className="cvt-real-result" role="status">
+      {state.status === "running" && <p>Running {model.name}…</p>}
+      {state.status === "error" && (
+        <p className="cvt-real-error">The model could not run here: {state.message}</p>
+      )}
+      {state.status === "done" && <Answer state={state} model={model} />}
+    </div>
+  );
+}
+
+function Answer({
+  state: { reading, ms },
+  model,
+}: {
+  state: Extract<State, { status: "done" }>;
+  model: RealModel;
+}) {
+  return (
+    <>
       <p className="cvt-real-stamp">
         One photo, not validation · {model.name} · {(ms / 1000).toFixed(1)} s (a first run includes
         the download)
@@ -157,6 +179,6 @@ function Result({ state, model }: { state: State; model: RealModel }) {
           ))}
         </ul>
       )}
-    </div>
+    </>
   );
 }

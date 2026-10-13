@@ -90,4 +90,11 @@ describe("the What if? sandbox", () => {
     const named = new Set(deposit.map((d) => d.cell.replace(/\s*\(.*\)$/, "")));
     expect(named.size).toBe(populated);
   });
+
+  it("writes no basis for a row the reader marks as having no method", () => {
+    const [run] = marksOf("product-identity");
+    if (!run) throw new Error("no run");
+    const csv = toDepositCsv({ "product-identity": [{ ...run, evidence: "–" }] });
+    expect(csv.split("\n")[1]).toMatch(/^Product · Identity,,–,✗,,✓,Absent,/);
+  });
 });

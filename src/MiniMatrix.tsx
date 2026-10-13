@@ -1,4 +1,4 @@
-import { cellAt, INFO_TYPES, SCALES, splitOf, VERDICT_LETTER } from "./data/taxonomy";
+import { cellAt, INFO_TYPES, maturityName, SCALES, splitOf, VERDICT_LETTER } from "./data/taxonomy";
 import type { Cell, Scale, Verdict } from "./data/types";
 import { cellGapTexts } from "./rubricMarks";
 import { SCALE_VAR, VERDICT_HEIGHT, VERDICT_VAR } from "./theme";
@@ -71,14 +71,16 @@ function MiniMatrixRow({
         const cell = view(paper);
         // where the reader's verdict is not the paper's, the paper's stays drawn
         // as a ghost, so the sandbox can never pass for the paper's finding
-        const ghost = cell.maturity !== paper.maturity ? paper.maturity : null;
+        // compared as words, so a compound cell's weaker sub-verdict counts too
+        const differs = maturityName(cell) !== maturityName(paper);
+        const ghost = differs ? (splitOf(paper)?.[0] ?? paper.maturity) : null;
         // a compound cell shows both sub-task verdicts rather than flattening to one
         const split = splitOf(cell);
         const standsAt = split ? split[0] : cell.maturity;
         const missing = cellGapTexts(cell);
         const said =
           (missing.length > 0 ? `. Missing: ${missing.join(", ")}` : "") +
-          (ghost ? `. The paper's verdict: ${paper.maturity}` : "");
+          (differs ? `. That is your marks' verdict; the paper's is ${maturityName(paper)}` : "");
         // the name starts with the letter the cell shows, so a voice user can say it
         const letters = split
           ? split.map((s) => VERDICT_LETTER[s]).join(" / ")
@@ -99,7 +101,9 @@ function MiniMatrixRow({
                   ? `${letters} ${scale} · ${info}: ${cell.subVerdicts?.map((s) => `${s.label} ${s.maturity}`).join("; ")}${said}`
                   : `${letters} ${scale} · ${info}: ${cell.maturity}${said}`
             }
-            onClick={() => onSelect(cell)}
+            // the paper's cell, never the What if? copy: the detail and the editor
+            // both read their "paper's" verdict from what is selected
+            onClick={() => onSelect(paper)}
           >
             {/* a structurally empty bay is hatched, as a drawing hatches a void:
                 no block, no letter — it is not a short bar and not an Absent,
@@ -119,11 +123,7 @@ function MiniMatrixRow({
               {subRule(split)}
             </span>
             {ghost && (
-              <span
-                className="cvt-mx-ghost"
-                style={{ "--h": VERDICT_HEIGHT[splitOf(paper)?.[0] ?? ghost] }}
-                aria-hidden
-              />
+              <span className="cvt-mx-ghost" style={{ "--h": VERDICT_HEIGHT[ghost] }} aria-hidden />
             )}
             {!cell.structurallyEmpty && (
               <b className="cvt-mx-letter">

@@ -9,26 +9,25 @@ const fake = (run: RealModel["run"]): RealModel => ({
   name: "Fake detector",
   task: "find the parts",
   download: "nothing",
-  licence: "none",
   run,
 });
 
 // jsdom has no object URLs
 beforeEach(() => {
-  URL.createObjectURL = vi.fn(() => "blob:photo");
+  let n = 0;
+  URL.createObjectURL = vi.fn(() => `blob:photo-${++n}`);
   URL.revokeObjectURL = vi.fn();
 });
 afterEach(() => vi.restoreAllMocks());
 
+const photo = () => new File(["x"], "fan.jpg", { type: "image/jpeg" });
+
 async function openWithPhoto(model: RealModel) {
   const user = userEvent.setup();
-  render(<RealPhoto scale="Component" model={model} />);
+  const view = render(<RealPhoto scale="Component" model={model} />);
   await user.click(screen.getByRole("button", { name: /try a real model on one photo/i }));
-  await user.upload(
-    screen.getByLabelText(/use your own photo/i),
-    new File(["x"], "fan.jpg", { type: "image/jpeg" }),
-  );
-  return user;
+  await user.upload(screen.getByLabelText(/use your own photo/i), photo());
+  return { user, view };
 }
 
 describe("real-model mode", () => {
@@ -56,7 +55,7 @@ describe("real-model mode", () => {
       kind: "boxes" as const,
       boxes: [{ label: "an electric motor", score: 0.42, x: 0.1, y: 0.2, w: 0.3, h: 0.3 }],
     }));
-    const user = await openWithPhoto(fake(run));
+    const { user } = await openWithPhoto(fake(run));
     await user.click(screen.getByRole("button", { name: /run the model/i }));
 
     expect(run).toHaveBeenCalledWith(screen.getByAltText("Your photo"));
@@ -66,15 +65,59 @@ describe("real-model mode", () => {
   });
 
   it("says plainly when the model cannot run", async () => {
-    const user = await openWithPhoto(
+    const { user } = await openWithPhoto(
       fake(async () => {
         throw new Error("offline");
       }),
     );
     await user.click(screen.getByRole("button", { name: /run the model/i }));
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "The model could not run here: offline",
+    await vi.waitFor(() => expect(screen.getByRole("status")).toHaveTextContent(/offline/));
+  });
+});
+
+describe("a run belongs to its photo", () => {
+  /** a model whose answer the test releases by hand */
+  const deferred = () => {
+    let release: (r: Awaited<ReturnType<RealModel["run"]>>) => void = () => {};
+    const run = vi.fn(
+      () =>
+        new Promise<Awaited<ReturnType<RealModel["run"]>>>((resolve) => {
+          release = resolve;
+        }),
     );
+    return { run, release: (r: Awaited<ReturnType<RealModel["run"]>>) => release(r) };
+  };
+  const answer = { kind: "boxes" as const, boxes: [] };
+
+  it("drops an answer that arrives after the reader chose another photo", async () => {
+    const model = deferred();
+    const { user } = await openWithPhoto(fake(model.run));
+    await user.click(screen.getByRole("button", { name: /run the model/i }));
+    await user.upload(screen.getByLabelText(/use another photo/i), photo());
+    model.release(answer);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(screen.getByRole("status")).toBeEmptyDOMElement();
+  });
+
+  it("starts one run however often Run is pressed while it is running, and keeps focus", async () => {
+    const model = deferred();
+    const { user } = await openWithPhoto(fake(model.run));
+    const button = screen.getByRole("button", { name: /run the model/i });
+    await user.click(button);
+    await user.click(button);
+    expect(model.run).toHaveBeenCalledTimes(1);
+    expect(button).toHaveAttribute("aria-disabled", "true");
+    expect(button).toHaveFocus();
+    model.release(answer);
+    await vi.waitFor(() => expect(button).toHaveAttribute("aria-disabled", "false"));
+  });
+
+  it("frees each photo's object URL when it is replaced, and the last on close", async () => {
+    const { user, view } = await openWithPhoto(fake(vi.fn()));
+    await user.upload(screen.getByLabelText(/use another photo/i), photo());
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:photo-1");
+    view.unmount();
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:photo-2");
   });
 });
 

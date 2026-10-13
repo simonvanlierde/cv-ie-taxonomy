@@ -7,7 +7,51 @@ import { defineConfig } from "vite";
 export default defineConfig(({ command }) => ({
   // GitHub Pages serves project sites under /<repo>/; dev/preview stay at root.
   base: command === "build" ? "/cv-ie-taxonomy/" : "/",
-  plugins: [react()],
+  plugins: [
+    react(),
+    // transformers.js references its default (asyncify) ONNX runtime build, so
+    // Vite emits it; realModels.ts points the runtime at the plain build instead,
+    // and nothing ever loads this 27 MB file
+    // The built page's content security policy. GitHub Pages cannot send headers,
+    // so it is a <meta> tag, added at build only: the dev server injects inline
+    // scripts. Scripts and workers come only from this site (blob: is the ONNX
+    // runtime's factory and wasm needs 'wasm-unsafe-eval'); a reader's photo can
+    // only be fetched by the page itself, and the only hosts it may contact are
+    // the two that serve model data.
+    {
+      name: "content-security-policy",
+      apply: "build",
+      transformIndexHtml: () => [
+        {
+          tag: "meta",
+          injectTo: "head-prepend",
+          attrs: {
+            "http-equiv": "Content-Security-Policy",
+            content: [
+              "default-src 'self'",
+              "script-src 'self' blob: 'wasm-unsafe-eval'",
+              "worker-src 'self' blob:",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: blob:",
+              "font-src 'self'",
+              "connect-src 'self' blob: data: https://huggingface.co https://*.huggingface.co https://*.hf.co https://cdn.jsdelivr.net",
+              "object-src 'none'",
+              "base-uri 'self'",
+            ].join("; "),
+          },
+        },
+      ],
+    },
+    {
+      name: "drop-unused-onnx-runtime",
+      apply: "build",
+      generateBundle(_, bundle) {
+        for (const file of Object.keys(bundle)) {
+          if (/ort-wasm-simd-threaded\.asyncify-.*\.wasm$/.test(file)) delete bundle[file];
+        }
+      },
+    },
+  ],
   // transformers.js is one lazy 540 kB chunk, loaded only when a reader runs a
   // real model; the page's own bundle stays near 330 kB
   build: { chunkSizeWarningLimit: 600 },
