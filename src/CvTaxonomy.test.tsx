@@ -459,6 +459,28 @@ describe("withViewTransition", () => {
     expect(ran).toBe(true);
   });
 
+  it("swallows an aborted transition instead of leaving a rejected promise", async () => {
+    // The browser aborts a transition when, say, the viewport resizes mid-morph,
+    // and rejects its `ready` promise. The panel still opens, so that is not an error.
+    const unhandled: unknown[] = [];
+    const onUnhandled = (reason: unknown) => unhandled.push(reason);
+    process.on("unhandledRejection", onUnhandled);
+    (
+      document as unknown as { startViewTransition?: (cb: () => void) => unknown }
+    ).startViewTransition = (cb) => {
+      cb();
+      return { ready: Promise.reject(new DOMException("aborted", "InvalidStateError")) };
+    };
+    try {
+      withViewTransition(() => {}, true);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(unhandled).toEqual([]);
+    } finally {
+      process.off("unhandledRejection", onUnhandled);
+      (document as unknown as { startViewTransition?: unknown }).startViewTransition = undefined;
+    }
+  });
+
   it("runs the update through startViewTransition when the API exists", async () => {
     // openCell passes !reduceMotion, so the API path needs motion ON. The default
     // matchMedia stub (restored after every test) already returns matches:false.
