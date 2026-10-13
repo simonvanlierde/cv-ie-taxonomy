@@ -10,7 +10,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import { flushSync } from "react-dom";
-import { CHAPTER_COPY, FIELD_SPLIT } from "./chapters";
+import { CHAPTER_COPY, cap, FIELD_SPLIT } from "./chapters";
 import "./CvTaxonomy.css";
 import {
   cellAt,
@@ -1286,7 +1286,7 @@ function GapRow({ cell }: { cell: Cell }) {
     .map((r, i) => ({ ...r, name: cell.subVerdicts?.[i]?.label ?? r.label }))
     .filter((r) => r.gaps.length > 0);
   if (rows.length === 0) return null;
-  const text = (r: (typeof rows)[number]) => r.gaps.map(gapText).join(", then ");
+  const text = (r: (typeof rows)[number]) => r.gaps.map(gapText).join("; ");
   return (
     <Row
       label="What is missing"
@@ -1303,8 +1303,6 @@ function GapRow({ cell }: { cell: Cell }) {
     />
   );
 }
-
-const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 function Row({
   label,

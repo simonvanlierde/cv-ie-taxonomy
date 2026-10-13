@@ -314,8 +314,9 @@ function Callout({
   // has its opener to return to on close. Centre test, not bbox: a chip half in
   // frame is still a control.
   const plate = chipFrame(cell.id);
-  const cx = plate ? plate.x + plate.w / 2 : 0;
-  const cy = plate ? plate.y + plate.h / 2 : 0;
+  if (!plate) throw new Error(`no chip layout for ${cell.id}`);
+  const cx = plate.x + plate.w / 2;
+  const cy = plate.y + plate.h / 2;
   const inFrame =
     !frame ||
     (cx >= frame.x && cx <= frame.x + frame.w && cy >= frame.y && cy <= frame.y + frame.h);
@@ -814,8 +815,9 @@ export function Fan({
       {/* ---- the chips (the controls), one scene at a time ---- */}
       {compact ? null : (
         <div className="cvt-chips">
-          <Drop scale="Product" />
-          <Drop scale="Component" />
+          {(Object.keys(DROP_AT) as Scale[]).map((s) => (
+            <Drop key={s} scale={s} />
+          ))}
           {CHIP_LAYOUT.map(({ id, ...chip }) => (
             <Callout key={id} {...co(id)} {...chip} />
           ))}

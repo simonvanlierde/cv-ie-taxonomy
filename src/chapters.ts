@@ -38,7 +38,7 @@ export const SCENE_DROP: Partial<
   Component: { from: "~82%", fromLabel: "familiar objects", to: "~39%", toLabel: "new objects" },
 };
 
-const cap = (s = "") => s.charAt(0).toUpperCase() + s.slice(1);
+export const cap = (s = "") => s.charAt(0).toUpperCase() + s.slice(1);
 const NUMBER_WORD = [
   "no",
   "one",

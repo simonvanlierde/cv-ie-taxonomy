@@ -606,7 +606,7 @@ describe("what each cell is missing", () => {
     const row = within(compound).getByText("What is missing").nextElementSibling as HTMLElement;
     expect(row).toHaveTextContent("Detection / segmentation: likely short on field photos");
     expect(row).toHaveTextContent(
-      "BoC attachment relations: no shared taxonomy yet, then not tried on field photos",
+      "BoC attachment relations: no shared taxonomy yet; not tried on field photos",
     );
   });
 
