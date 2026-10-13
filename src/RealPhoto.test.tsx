@@ -73,6 +73,23 @@ describe("real-model mode", () => {
     await user.click(screen.getByRole("button", { name: /run the model/i }));
     await vi.waitFor(() => expect(screen.getByRole("status")).toHaveTextContent(/offline/));
   });
+
+  it("prints what Tesseract read with its confidence, and says when it read nothing", async () => {
+    const run = vi
+      .fn<RealModel["run"]>()
+      .mockResolvedValueOnce({ kind: "text", text: "TYP 4212/A", confidence: 76.4 })
+      .mockResolvedValueOnce({ kind: "text", text: "", confidence: 0 });
+    const { user } = await openWithPhoto(fake(run));
+    const button = screen.getByRole("button", { name: /run the model/i });
+    await user.click(button);
+    await vi.waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "Read: TYP 4212/A (Tesseract’s own confidence: 76%)",
+      ),
+    );
+    await user.click(button);
+    await vi.waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Read: nothing"));
+  });
 });
 
 describe("removing the downloaded models", () => {
@@ -87,6 +104,21 @@ describe("removing the downloaded models", () => {
       expect(del).toHaveBeenCalledWith("transformers-cache");
       await vi.waitFor(() =>
         expect(screen.getByRole("status")).toHaveTextContent(/removed from this browser/i),
+      );
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("says plainly when the browser refuses", async () => {
+    vi.stubGlobal("caches", { delete: vi.fn().mockRejectedValue(new Error("storage blocked")) });
+    try {
+      const user = userEvent.setup();
+      render(<RealPhoto scale="Product" model={fake(vi.fn())} />);
+      await user.click(screen.getByRole("button", { name: /try a real model/i }));
+      await user.click(screen.getByRole("button", { name: /remove downloaded models/i }));
+      await vi.waitFor(() =>
+        expect(screen.getByRole("status")).toHaveTextContent(/could not run here: storage blocked/),
       );
     } finally {
       vi.unstubAllGlobals();
@@ -114,6 +146,22 @@ describe("a run belongs to its photo", () => {
     await user.click(screen.getByRole("button", { name: /run the model/i }));
     await user.upload(screen.getByLabelText(/use another photo/i), photo());
     model.release(answer);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(screen.getByRole("status")).toBeEmptyDOMElement();
+  });
+
+  it("drops a failure that arrives after the reader chose another photo", async () => {
+    let fail: (e: Error) => void = () => {};
+    const run = vi.fn(
+      () =>
+        new Promise<never>((_, reject) => {
+          fail = reject;
+        }),
+    );
+    const { user } = await openWithPhoto(fake(run));
+    await user.click(screen.getByRole("button", { name: /run the model/i }));
+    await user.upload(screen.getByLabelText(/use another photo/i), photo());
+    fail(new Error("too late"));
     await new Promise((r) => setTimeout(r, 0));
     expect(screen.getByRole("status")).toBeEmptyDOMElement();
   });

@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { Explorable } from "./Explorable";
 
 describe("Explorable", () => {
@@ -201,5 +201,62 @@ describe("What if?", () => {
     await user.click(reset);
     expect(reset).toHaveFocus();
     expect(reset).toHaveAttribute("aria-disabled", "true");
+  });
+
+  it("does nothing when Reset is pressed with no marks changed", async () => {
+    const user = userEvent.setup();
+    render(<Explorable />);
+    await user.click(screen.getByRole("button", { name: "What if?" }));
+    await user.click(screen.getByRole("button", { name: /reset to the paper/i }));
+    expect(cell().getAttribute("aria-label")).toMatch(/: Partial\./);
+    expect(document.querySelector(".cvt-whatif-note")).toHaveTextContent("0 cells differ");
+  });
+
+  it("takes the deployment mark too", async () => {
+    const user = userEvent.setup();
+    render(<Explorable />);
+    await user.click(screen.getByRole("button", { name: "What if?" }));
+    await user.click(cell());
+    const detail = screen.getByRole("complementary", { name: /product · identity/i });
+    const field = within(detail).getByRole("group", { name: /shown to work on field photos/i });
+    await user.click(within(field).getByRole("radio", { name: "Yes" }));
+    expect(within(detail).getByRole("status")).toHaveTextContent(/^Your marks: Strong/);
+    const used = within(detail).getByRole("group", { name: /in use for this task/i });
+    await user.click(within(used).getByRole("radio", { name: "No" }));
+    expect(within(used).getByRole("radio", { name: "No" })).toBeChecked();
+    expect(within(detail).getByRole("status")).toHaveTextContent(/^Your marks: (?!Strong)/);
+  });
+
+  it("downloads the reader's marks as a CSV in the deposit's format", async () => {
+    const user = userEvent.setup();
+    const blobs: Blob[] = [];
+    URL.createObjectURL = vi.fn((b: Blob) => {
+      blobs.push(b);
+      return "blob:csv";
+    });
+    URL.revokeObjectURL = vi.fn();
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    try {
+      render(<Explorable />);
+      await user.click(screen.getByRole("button", { name: "What if?" }));
+      await user.click(cell());
+      const detail = screen.getByRole("complementary", { name: /product · identity/i });
+      const field = within(detail).getByRole("group", { name: /shown to work on field photos/i });
+      await user.click(within(field).getByRole("radio", { name: "Yes" }));
+      await user.click(screen.getByRole("button", { name: /export csv/i }));
+
+      expect(click).toHaveBeenCalledTimes(1);
+      expect(click.mock.contexts[0]).toHaveProperty("download", "rubric-marks-what-if.csv");
+      const [header, ...rows] = (await blobs[0]?.text())?.split("\n") ?? [];
+      expect(header).toBe(
+        "cell,sub_cell,evidence_mark,field_gate,field_gate_basis,deployment_gate,derived_verdict,evidence_citekeys",
+      );
+      expect(rows.find((r) => r.startsWith("Product · Identity,"))).toMatch(
+        /^[^,]*,[^,]*,B,✓,,✓,Strong,/,
+      );
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:csv");
+    } finally {
+      click.mockRestore();
+    }
   });
 });
