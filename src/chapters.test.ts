@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CHAPTER_COPY, FIELD_SPLIT } from "./chapters";
+import { CHAPTER_COPY, FIELD_SPLIT, SCENE_DROP } from "./chapters";
 import { cells, SCALES } from "./data/taxonomy";
 
 /**
@@ -28,6 +28,17 @@ describe("chapter prose is backed by taxonomy.json", () => {
         `${figure}%`,
       );
     }
+  });
+
+  it.each(SCALES)("every figure the %s scene draws on the fan appears in its notes", (scale) => {
+    const drop = SCENE_DROP[scale];
+    if (!drop) return;
+    const notes = cells
+      .filter((c) => c.scale === scale)
+      .map((c) => c.maturityNote)
+      .join(" ");
+    expect(notes).toContain(drop.from);
+    expect(notes).toContain(drop.to);
   });
 
   it("the Product chapter cites the label-read collapse, not a rounded version of it", () => {

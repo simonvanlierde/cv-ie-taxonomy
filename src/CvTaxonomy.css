@@ -221,7 +221,7 @@ html[data-theme="dark"] {
    instrument (below) can stop short of it without a second, driftable
    number of its own */
 .cvt-scroll {
-  --cvt-rail-max: 360px;
+  --cvt-rail-max: 440px;
   --cvt-rail-gap: clamp(1rem, 2.5vw, 2.5rem);
 
   display: grid;
@@ -274,6 +274,8 @@ html[data-theme="dark"] {
    the column, so the box always keeps the drawing's aspect ratio: the camera
    maths in cameraTransform assumes it. */
 .cvt-stage {
+  /* the chips size their text against the figure's width (cqw) */
+  container-type: inline-size;
   position: relative;
   aspect-ratio: 800 / 875;
   width: min(100%, calc(var(--cvt-stage-h) * 800 / 875));
@@ -297,12 +299,14 @@ html[data-theme="dark"] {
   display: block;
   overflow: visible;
 }
-/* the marks layer lets clicks through to nothing but its chips */
-.cvt-fan-marks {
+/* the read-outs take no clicks; the chips over them do */
+.cvt-fan-marks,
+.cvt-chips {
   pointer-events: none;
 }
-.cvt-fan-marks .cvt-co {
-  pointer-events: auto;
+.cvt-chips {
+  position: absolute;
+  inset: 0;
 }
 
 /* ---- scenes ---------------------------------------------------------------------
@@ -659,59 +663,103 @@ html[data-theme="dark"] {
   stroke-width: 1.2;
 }
 
-/* interactive callouts — compact read-outs, the controls themselves */
-.cvt-co {
+/* The chips: the controls, laid over the drawing. Their text is 14.5 viewBox
+   units, which is 1.8125% of the figure's width, and never under 13px however
+   small the figure gets. Fan.tsx places them; the camera scales them with the
+   drawing when it zooms. Two classes deep, to outrank the `.cvt button` font
+   reset. */
+.cvt-chips .cvt-co {
+  position: absolute;
+  translate: 0 -50%;
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  padding: 0.3em 0.75em 0.3em 0.45em;
+  font-family: var(--cvt-mono);
+  font-size: max(var(--cvt-t-2), 1.8125cqw);
+  line-height: 1.2;
+  white-space: nowrap;
+  color: var(--cvt-ink);
+  background: var(--cvt-panel);
+  border: 2px solid var(--hue);
+  border-radius: 8px;
   cursor: pointer;
-  /* No opacity transition. The scrub already drives this value every frame, and
-     a 0.25s ease meant the *computed* opacity lagged the floored one the
-     component renders: a chip became tabbable while still transitioning up from
-     0.2, so "operable implies visible" held in React and not on screen. The only
-     step change left is the hover dim, which is better instant anyway. */
 }
-.cvt-co-bg {
-  fill: var(--cvt-panel);
-  stroke: var(--hue);
-  stroke-width: 2;
-  transition: stroke-width 0.15s;
+.cvt-co:hover,
+.cvt-co[data-selected="true"] {
+  border-width: 3px;
+  padding: calc(0.3em - 1px) calc(0.75em - 1px) calc(0.3em - 1px) calc(0.45em - 1px);
 }
-.cvt-co:hover .cvt-co-bg,
-.cvt-co[data-selected="true"] .cvt-co-bg {
-  stroke-width: 3;
+.cvt-co .cvt-glyphbox {
+  width: 1.45em;
+  height: 1.45em;
 }
 .cvt-co-letter {
   font-family: var(--cvt-display);
-  font-size: 18px;
+  font-size: 1.24em;
   font-weight: 700;
-  fill: var(--cvt-ink);
 }
-/* font-size comes from CHIP_FONT in Fan.tsx, which also sizes the plate */
-.cvt-co-text {
-  font-family: var(--cvt-mono);
-  fill: var(--cvt-ink);
+.cvt-co-text[data-strike] {
+  text-decoration: line-through;
+  text-decoration-color: var(--cvt-warn);
 }
-.cvt-co[data-ghost="true"] .cvt-co-bg {
-  stroke-dasharray: 4 4;
+.cvt-co[data-ghost="true"] {
+  border-style: dashed;
 }
 .cvt-co[data-ghost="true"] .cvt-co-text {
-  fill: var(--cvt-ink-dim);
+  color: var(--cvt-ink-dim);
 }
 .cvt-co:focus {
   outline: none;
 }
-/* Hover already swaps the plate stroke, so a focused chip needs an indicator
-   hover does not use: the same ring the layer taps carry. A stroke-width change
-   alone was indistinguishable from hover and near-invisible in a screenshot.
-   The ring goes on the plate, not the group: the group's box takes in the
-   leader line, so an outline there drew a 250px empty rectangle across the
-   drawing. Engines that do not outline SVG shapes still get the heavier plate. */
 .cvt-co:focus-visible {
-  outline: none;
-}
-.cvt-co:focus-visible .cvt-co-bg {
-  stroke: var(--cvt-ink);
-  stroke-width: 2.4;
   outline: 2px solid var(--cvt-ink);
   outline-offset: 3px;
+}
+
+/* A scene's claim as a measuring scale (Drop in Fan.tsx): the rule is 0–100%,
+   each mark stands at its share, and the share lost between them is hatched. */
+.cvt-drop {
+  position: absolute;
+  width: 15%;
+  border-left: 2px solid var(--cvt-ink);
+  border-block: 1px solid var(--cvt-line);
+  font-size: max(var(--cvt-t-2), 1.6cqw);
+  line-height: 1.15;
+  color: var(--cvt-ink);
+}
+.cvt-drop::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 0.7em;
+  bottom: calc(var(--to) * 100%);
+  height: calc((var(--from) - var(--to)) * 100%);
+  background: repeating-linear-gradient(-45deg, var(--hue) 0 1.5px, transparent 1.5px 6px);
+}
+.cvt-drop-mark {
+  position: absolute;
+  left: -0.5em;
+  bottom: calc(var(--v) * 100%);
+  translate: 0 50%;
+  padding-left: 1.6em;
+  white-space: nowrap;
+}
+.cvt-drop-mark::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.75em;
+  width: 1.2em;
+  border-top: 2px solid var(--cvt-ink);
+}
+.cvt-drop-mark b {
+  display: block;
+  font-family: var(--cvt-display);
+  font-size: 1.7em;
+  font-weight: 800;
+  line-height: 1;
 }
 
 /* hidden until a keyboard reader lands on it */
@@ -879,9 +927,10 @@ html[data-theme="dark"] {
   line-height: 0.98;
   margin: 0 0 1.15rem;
 }
+/* body text at 19px (t-4): the page is read, not scanned */
 .cvt-sub {
-  font-size: var(--cvt-t-3);
-  line-height: 1.6;
+  font-size: var(--cvt-t-4);
+  line-height: 1.55;
   color: var(--cvt-ink-dim);
   margin: 0 0 1.4rem;
   max-width: 46ch;
@@ -894,15 +943,15 @@ html[data-theme="dark"] {
 .cvt-hero-split {
   margin: 0 0 1rem;
   max-width: 46ch;
-  font-size: var(--cvt-t-2);
-  line-height: 1.5;
+  font-size: var(--cvt-t-4);
+  line-height: 1.55;
   color: var(--cvt-ink);
 }
 .cvt-hero-contract {
   max-width: 46ch;
   margin: 0.75rem 0;
   color: var(--cvt-ink);
-  font-size: var(--cvt-t-3);
+  font-size: var(--cvt-t-4);
   line-height: 1.5;
 }
 .cvt-maturity-key {
@@ -999,8 +1048,8 @@ html[data-theme="dark"] {
   opacity: 1;
 }
 .cvt-body {
-  font-size: var(--cvt-t-3);
-  line-height: 1.6;
+  font-size: var(--cvt-t-4);
+  line-height: 1.55;
   color: var(--cvt-ink-dim);
   max-width: 46ch;
   margin: 0;

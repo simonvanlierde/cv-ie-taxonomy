@@ -133,9 +133,8 @@ describe("chip copy vs. verdict", () => {
 describe("mock overlays", () => {
   it("are hidden from assistive tech even while fully opaque", () => {
     const { container } = renderFan();
-    const layers = [...container.querySelectorAll(".ov-layer")];
-    expect(layers.length).toBe(9);
-    for (const layer of layers) expect(layer).toHaveAttribute("aria-hidden", "true");
+    expect(container.querySelectorAll(".cvt-fan-marks .ov-layer")).toHaveLength(9);
+    expect(container.querySelector(".cvt-fan-marks")).toHaveAttribute("aria-hidden", "true");
   });
 
   it("renders no NaN coordinates in any scene", () => {
@@ -163,11 +162,9 @@ describe("chip names", () => {
   it("start with the chip's visible text, so a voice user can say what they see", () => {
     const { container } = renderFan();
     const label = chip(container, "component-structure").getAttribute("aria-label") ?? "";
-    const texts = [...chip(container, "component-structure").querySelectorAll("text")].map(
-      (t) => t.textContent,
-    );
+    const shown = chip(container, "component-structure").textContent;
     // the letter and the read-out text, in the order they are drawn
-    expect(texts.join(" ")).toBe("P segment · attached-to? E");
+    expect(shown).toBe("Psegment · attached-to? E");
     expect(label.startsWith("P segment · attached-to? E.")).toBe(true);
   });
 });
