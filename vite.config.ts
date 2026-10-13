@@ -20,6 +20,13 @@ export default defineConfig(({ command }) => ({
     //
     // A test belongs in `browser` only if jsdom would make it a tautology.
     // Everything else stays in `unit`, where it costs milliseconds.
+    // Off unless run with --coverage; CI uploads coverage/lcov.info to Codecov.
+    coverage: {
+      provider: "v8",
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: ["src/test-helpers.ts"],
+      reporter: ["text", "lcov"],
+    },
     projects: [
       {
         extends: true,

@@ -20,6 +20,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write # Codecov upload via OIDC, no token secret
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/setup@v3
@@ -30,7 +33,11 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
       - run: pnpm check:theme
-      - run: pnpm test
+      - run: pnpm test --coverage
+      - uses: codecov/codecov-action@v7
+        with:
+          use_oidc: true
+          files: coverage/lcov.info
       - name: Resolve installed Playwright version
         id: playwright-version
         run: echo "version=$(node -e "console.log(require('playwright/package.json').version)")" >> "$GITHUB_OUTPUT"
