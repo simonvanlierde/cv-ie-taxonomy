@@ -69,11 +69,15 @@ Every result says it is one photo, not validation.
 | Scene | Model | Asked to | First download | Licence |
 |---|---|---|---|---|
 | Product | Tesseract 5 (tesseract.js) | read the rating label | about 7 MB | Apache-2.0 |
-| Component | OWL-ViT base/32 (onnx-community export) | find the blades, motor, grilles and base | about 170 MB | Apache-2.0 |
+| Component | OWL-ViT base/32 (onnx-community export) | find the blades, motor, grilles and base | about 165 MB | Apache-2.0 |
 | Material | the same OWL-ViT | find steel, plastic, copper and circuit boards | shared with Component | Apache-2.0 |
 
-The libraries load only when a model runs, so the page itself stays small. The
-weights come from Hugging Face and Tesseract's files from jsDelivr.
+The libraries load only when a model runs, so the page itself stays small. Their
+runtime code is built into the site; only data comes from elsewhere: the
+detector's weights from huggingface.co, at a fixed commit, and Tesseract's English
+data from cdn.jsdelivr.net. Those servers see your IP address and browser. The
+files stay in your browser's storage until you clear this site's data. The built
+page sets a content security policy, so it can contact no other host.
 
 ## Data is the source of truth
 
