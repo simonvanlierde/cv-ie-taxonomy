@@ -663,9 +663,9 @@ html[data-theme="dark"] {
   stroke-width: 1.2;
 }
 
-/* The chips: the controls, laid over the drawing. Their text is 14.5 viewBox
-   units, which is 1.8125% of the figure's width, and never under 13px however
-   small the figure gets. Fan.tsx places them; the camera scales them with the
+/* The chips are the controls, laid over the drawing. Their text is 14.5 viewBox
+   units (1.8125% of the figure's width), and never under 13px however small the
+   figure gets. Fan.tsx places them; the camera scales them with the
    drawing when it zooms. Two classes deep, to outrank the `.cvt button` font
    reset. */
 .cvt-chips .cvt-co {
@@ -2039,7 +2039,7 @@ html[data-theme="dark"] {
 
 /* ---- forced colours ---------------------------------------------------------------
    High-contrast modes force text and backgrounds but leave SVG fill and stroke
-   alone, so the drawing's pale-blue lines vanished on a white Canvas. Every
+   alone, so the drawing's ink lines would vanish against Canvas. Every
    line goes to CanvasText and every part to Canvas; the colour washes (masks,
    material tints) carry no meaning a two-colour drawing can show, so they go.
    The verdict swatches keep their own textures (`.v-tex`). */

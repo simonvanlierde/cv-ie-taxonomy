@@ -29,10 +29,10 @@ shows the kinds of output computer vision produces:
 - flags on possible damage, for Condition
 - material labels, at the Material scale
 
-These read-outs are simulated. No model was run on the drawing. The two real
-findings, the paper's own figures, are drawn as measuring scales beside the fan:
-label reading falls from 95.7% on repair photos to 39.7% at the recycler, and
-mapping how parts connect falls from ~82% to ~39% on new objects.
+These read-outs are simulated. No model was run on the drawing. Two scenes also
+draw a real finding from the paper, as a measuring scale beside the fan. Label
+reading falls from 95.7% on repair photos to 39.7% at the recycler. Mapping how
+parts connect falls from ~82% to ~39% on new objects.
 
 The page has five scenes: the opening, one per scale, and the map. The scroll
 moves the fan in CSS alone (scroll-driven animations). A browser without them,
@@ -79,8 +79,9 @@ Segmentation masks and boxes include class labels, so identity does not depend o
 colour. Their hues follow COCO/YOLO conventions and adapt to the theme.
 
 The labels on the fan, the matrix cells and the phone's cell lists are buttons
-with accessible names; no text that carries meaning is smaller than 13px. The
-detail view closes with `Esc`.
+with accessible names. Their text, and all body text, is at least 13px. Only the
+simulated read-outs on the drawing scale down with it. The detail view closes
+with `Esc`.
 
 `prefers-reduced-motion` stops the idle spin, and the fan then jumps between its
 poses instead of moving with the scroll; only the read-outs fade. The page
