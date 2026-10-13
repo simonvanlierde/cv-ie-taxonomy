@@ -105,3 +105,71 @@ export function verdictOf(run: Run): Verdict {
       return "Absent";
   }
 }
+
+/** One thing a row is missing, in the paper's terms (§2.3.2). */
+export type Gap =
+  | { kind: "ontology" }
+  | { kind: "method" }
+  | { kind: "field"; basis: NonNullable<Run["basis"]> }
+  | { kind: "derived" };
+
+/**
+ * What each row of a cell is missing, listed in the paper's fixed order:
+ * ontology-bound, method-bound, then field-bound with its basis. Field-bound is
+ * read off the marks — a method exists (B or N) but fails the field gate — so it
+ * cannot drift from them; the other two are stored, since no mark records them.
+ * A derived row (evidence `–`) inherits its gaps from the cells it is worked
+ * out from. Structurally empty cells have no rows, so no gaps.
+ */
+export function gapsOf(cell: Cell): { label: string | null; gaps: Gap[] }[] {
+  return runsOf(cell).map((run, i) => {
+    const stored = cell.subVerdicts ? (cell.subVerdicts[i]?.gaps ?? []) : (cell.gaps ?? []);
+    const gaps: Gap[] = [];
+    if (stored.includes("ontology-bound")) gaps.push({ kind: "ontology" });
+    if (stored.includes("method-bound")) gaps.push({ kind: "method" });
+    const hasMethod = run.evidence === "B" || run.evidence === "N";
+    if (hasMethod && run.capture === "fail" && run.basis) {
+      gaps.push({ kind: "field", basis: run.basis });
+    }
+    if (run.evidence === "–") gaps.push({ kind: "derived" });
+    return { label: run.label, gaps };
+  });
+}
+
+const GAP_TEXT: Record<Gap["kind"], string> = {
+  ontology: "no shared taxonomy yet",
+  method: "no method yet",
+  field: "",
+  derived: "worked out from other cells",
+};
+const FIELD_TEXT: Record<NonNullable<Run["basis"]>, string> = {
+  measured: "fell short on field photos",
+  inferred: "likely short on field photos",
+  untested: "not tried on field photos",
+};
+
+/** A gap in plain words, short enough for a matrix cell. */
+export const gapText = (g: Gap) => (g.kind === "field" ? FIELD_TEXT[g.basis] : GAP_TEXT[g.kind]);
+
+const SHORT_BASIS: Record<NonNullable<Run["basis"]>, string> = {
+  measured: "fell short",
+  inferred: "likely short",
+  untested: "not tried",
+};
+
+/** Every distinct gap a cell's rows carry, in plain words and the paper's order,
+ *  with the field gaps of a compound cell joined into one phrase so the matrix
+ *  cell can hold them ("likely short or not tried on field photos"). */
+export function cellGapTexts(cell: Cell): string[] {
+  const gaps = gapsOf(cell).flatMap((row) => row.gaps);
+  const has = (kind: Gap["kind"]) => gaps.some((g) => g.kind === kind);
+  const bases = [
+    ...new Set(gaps.flatMap((g) => (g.kind === "field" ? [SHORT_BASIS[g.basis]] : []))),
+  ];
+  return [
+    ...(has("ontology") ? [GAP_TEXT.ontology] : []),
+    ...(has("method") ? [GAP_TEXT.method] : []),
+    ...(bases.length > 0 ? [`${bases.join(" or ")} on field photos`] : []),
+    ...(has("derived") ? [GAP_TEXT.derived] : []),
+  ];
+}

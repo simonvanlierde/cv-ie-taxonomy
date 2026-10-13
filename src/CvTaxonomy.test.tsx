@@ -1,7 +1,14 @@
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { CvTaxonomy, cameraTransform, frameFor, Outro, withViewTransition } from "./CvTaxonomy";
+import {
+  CvTaxonomy,
+  cameraTransform,
+  flyIntoMap,
+  frameFor,
+  Outro,
+  withViewTransition,
+} from "./CvTaxonomy";
 import { cellById } from "./data/taxonomy";
 import { CHAPTER_FRAMES, VIEW } from "./frames";
 import { matchMediaStub } from "./test-helpers";
@@ -491,6 +498,34 @@ describe("withViewTransition", () => {
       await user.click(trigger("component-identity"));
       expect(await screen.findByRole("complementary")).toBeInTheDocument();
       expect(calls.length).toBeGreaterThan(0);
+    } finally {
+      (document as unknown as { startViewTransition?: unknown }).startViewTransition = undefined;
+    }
+  });
+});
+
+describe("flyIntoMap", () => {
+  it("names each chip for the old snapshot and its matrix cell for the new one", () => {
+    render(<CvTaxonomy debugChapter="Material" />);
+    const chip = document.getElementById("cvt-co-material-identity") as HTMLElement;
+    const cell = document.getElementById("cvt-mx-material-identity") as HTMLElement;
+    const seen: string[] = [];
+    (
+      document as unknown as { startViewTransition?: (cb: () => void) => unknown }
+    ).startViewTransition = (cb) => {
+      seen.push(`before: chip ${chip.style.viewTransitionName}`);
+      cb();
+      seen.push(
+        `after: cell ${cell.style.viewTransitionName}, chip ${chip.style.viewTransitionName || "none"}`,
+      );
+      return undefined;
+    };
+    try {
+      flyIntoMap(["material-identity"]);
+      expect(seen).toEqual([
+        "before: chip cvt-fly-material-identity",
+        "after: cell cvt-fly-material-identity, chip none",
+      ]);
     } finally {
       (document as unknown as { startViewTransition?: unknown }).startViewTransition = undefined;
     }

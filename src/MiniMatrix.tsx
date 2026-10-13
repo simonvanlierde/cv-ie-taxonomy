@@ -1,5 +1,6 @@
 import { cellAt, INFO_TYPES, SCALES, splitOf, VERDICT_LETTER } from "./data/taxonomy";
 import type { Cell, Scale, Verdict } from "./data/types";
+import { cellGapTexts } from "./rubricMarks";
 import { SCALE_VAR, VERDICT_HEIGHT, VERDICT_VAR } from "./theme";
 
 /**
@@ -65,6 +66,8 @@ function MiniMatrixRow({
         // a compound cell shows both sub-task verdicts rather than flattening to one
         const split = splitOf(cell);
         const standsAt = split ? split[0] : cell.maturity;
+        const missing = cellGapTexts(cell);
+        const said = missing.length > 0 ? `. Missing: ${missing.join(", ")}` : "";
         return (
           <button
             key={cell.id}
@@ -78,8 +81,8 @@ function MiniMatrixRow({
               cell.structurallyEmpty
                 ? `${scale} · ${info}: structurally empty, answered at the component scale`
                 : split
-                  ? `${scale} · ${info}: ${cell.subVerdicts?.map((s) => `${s.label} ${s.maturity}`).join("; ")}`
-                  : `${scale} · ${info}: ${cell.maturity}`
+                  ? `${scale} · ${info}: ${cell.subVerdicts?.map((s) => `${s.label} ${s.maturity}`).join("; ")}${said}`
+                  : `${scale} · ${info}: ${cell.maturity}${said}`
             }
             onClick={() => onSelect(cell)}
           >
@@ -107,12 +110,10 @@ function MiniMatrixRow({
                   : VERDICT_LETTER[cell.maturity]}
               </b>
             )}
+            {/* under the block, what it is missing; the verdict is in the letter
+                and the key above the matrix */}
             <span className="cvt-mx-name">
-              {cell.structurallyEmpty
-                ? "structurally empty"
-                : split
-                  ? split.map((v) => v.toLowerCase()).join(" · ")
-                  : cell.maturity.toLowerCase()}
+              {cell.structurallyEmpty ? "structurally empty" : missing.join(" · ")}
             </span>
           </button>
         );

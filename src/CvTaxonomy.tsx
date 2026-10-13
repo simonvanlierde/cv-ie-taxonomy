@@ -38,6 +38,7 @@ import {
 } from "./frames";
 import { Cite, CitedProse } from "./References";
 import { RubricCircuit } from "./RubricCircuit";
+import { gapsOf, gapText } from "./rubricMarks";
 import { BREAKPOINT_PX, SCALE_VAR, SURFACE, THEME_VARS, type Theme, VERDICT_VAR } from "./theme";
 import { useDialogRegion } from "./useDialogRegion";
 import { VerdictSwatch } from "./VerdictSwatch";
@@ -151,7 +152,9 @@ function useBodyScrollLock(locked: boolean) {
 }
 
 type ViewTransitionDocument = Document & {
-  startViewTransition?: (cb: () => void) => { ready?: Promise<unknown> } | undefined;
+  startViewTransition?: (
+    cb: () => void,
+  ) => { ready?: Promise<unknown>; finished?: Promise<unknown> } | undefined;
 };
 
 /** Run a DOM mutation inside a view transition when supported and enabled;
@@ -169,6 +172,45 @@ export function withViewTransition(run: () => void, enabled: boolean): void {
   } else {
     run();
   }
+}
+
+/**
+ * The closing move: each named cell's chip flies into its matrix cell. Each pair
+ * shares one view-transition-name, on the chip for the old snapshot and on the
+ * cell for the new one, so the browser animates the chip's box into the cell's.
+ * Nothing else changes, so a browser without view transitions loses nothing.
+ */
+export function flyIntoMap(ids: readonly string[]): void {
+  const doc = document as ViewTransitionDocument;
+  if (typeof doc.startViewTransition !== "function") return;
+  const pairs = ids.flatMap((id) => {
+    const chip = document.getElementById(`cvt-co-${id}`);
+    const cell = document.getElementById(`cvt-mx-${id}`);
+    return chip && cell ? [{ chip, cell, name: `cvt-fly-${id}` }] : [];
+  });
+  if (pairs.length === 0) return;
+  for (const p of pairs) {
+    p.chip.style.setProperty("view-transition-name", p.name);
+    // the class gives the flight its own timing (::view-transition-group in CSS)
+    p.chip.style.setProperty("view-transition-class", "cvt-fly");
+    p.cell.style.setProperty("view-transition-class", "cvt-fly");
+  }
+  const t = doc.startViewTransition(() => {
+    for (const p of pairs) {
+      p.chip.style.removeProperty("view-transition-name");
+      p.cell.style.setProperty("view-transition-name", p.name);
+    }
+  });
+  const clear = () => {
+    for (const p of pairs) {
+      p.cell.style.removeProperty("view-transition-name");
+      p.chip.style.removeProperty("view-transition-class");
+      p.cell.style.removeProperty("view-transition-class");
+    }
+  };
+  // aborted or done, the names come off so the next open-cell morph is clean
+  t?.ready?.catch(() => {});
+  t?.finished?.then(clear, clear);
 }
 
 // ---- main -------------------------------------------------------------------------
@@ -383,6 +425,16 @@ export function CvTaxonomy({
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, [closeCell]);
+
+  // Crossing from the last scene into the map, its chips fly into their cells.
+  // Only forwards, on the sheet, and with motion welcome: the phone has no chips.
+  const lastChapter = useRef(chapter);
+  useEffect(() => {
+    const from = lastChapter.current;
+    lastChapter.current = chapter;
+    if (from !== "Material" || chapter !== "outro" || reduceMotion || isMobile) return;
+    flyIntoMap(cells.filter((c) => c.scale === "Material").map((c) => c.id));
+  }, [chapter, reduceMotion, isMobile]);
 
   // The docked detail belongs to the drawing, so once the map arrives it would
   // sit over the matrix instead of leaving with the drawing. The map has its own
@@ -848,8 +900,8 @@ export const Outro = memo(function Outro() {
           <p>
             How mature ten vision tasks are, across twelve cells: physical scale by type of
             information. Each block is as tall as its verdict. The dashed line is Strong, and
-            nothing reaches it. Verdicts come from the paper&rsquo;s Table&nbsp;S2 and cover the
-            literature as of {taxonomy.meta.scanDate}.
+            nothing reaches it. The words under a block say what it is missing. Verdicts come from
+            the paper&rsquo;s Table&nbsp;S2 and cover the literature as of {taxonomy.meta.scanDate}.
           </p>
           <p>
             Hatched cells have no task of their own, because structure is a question for the
@@ -1161,6 +1213,7 @@ export function DetailBody({ cell }: { cell: Cell }) {
             mode="warn"
           />
         )}
+        <GapRow cell={cell} />
         {/* The run belongs where the panel opens, not folded into "More detail":
             it is the derivation of the verdict stated three lines above it, and
             behind a closed <details> nobody meets the mechanism at all. */}
@@ -1221,6 +1274,32 @@ export function DetailBody({ cell }: { cell: Cell }) {
     </>
   );
 }
+
+/** What the cell is missing, per row of a compound cell, in plain words. */
+function GapRow({ cell }: { cell: Cell }) {
+  // each row keeps its own index, so it pairs with its sub-verdict's name
+  const rows = gapsOf(cell)
+    .map((r, i) => ({ ...r, name: cell.subVerdicts?.[i]?.label ?? r.label }))
+    .filter((r) => r.gaps.length > 0);
+  if (rows.length === 0) return null;
+  const text = (r: (typeof rows)[number]) => r.gaps.map(gapText).join(", then ");
+  return (
+    <Row
+      label="What is missing"
+      value={
+        rows.length === 1 && rows[0]
+          ? cap(text(rows[0]))
+          : rows.map((r) => (
+              <span className="cvt-handling" key={r.name}>
+                {r.name}: {text(r)}
+              </span>
+            ))
+      }
+    />
+  );
+}
+
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 function Row({
   label,
