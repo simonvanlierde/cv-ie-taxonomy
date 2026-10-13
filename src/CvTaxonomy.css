@@ -2030,6 +2030,89 @@ html[data-theme="dark"] {
   }
 }
 
+/* ---- forced colours ---------------------------------------------------------------
+   High-contrast modes force text and backgrounds but leave SVG fill and stroke
+   alone, so the drawing's pale-blue lines vanished on a white Canvas. Every
+   line goes to CanvasText and every part to Canvas; the colour washes (masks,
+   material tints) carry no meaning a two-colour drawing can show, so they go.
+   The verdict swatches keep their own textures (`.v-tex`). */
+@media (forced-colors: active) {
+  :where(.fan-part rect, .fan-part circle, .fan-part path),
+  .fan-ring,
+  .fan-ring-thin,
+  .fan-spokes line,
+  .fan-winding,
+  .fan-label rect,
+  .fan-label line,
+  .ov-bbox-r,
+  .ov-leader,
+  .ov-dim line,
+  .ov-blob,
+  .ov-rel,
+  .ov-strike {
+    stroke: CanvasText;
+    opacity: 1;
+  }
+  :where(.fan-part rect, .fan-part circle, .fan-part path),
+  .fan-hub,
+  .fan-label rect {
+    fill: Canvas;
+  }
+  .fan-ring,
+  .fan-ring-thin {
+    fill: none;
+  }
+  .fan-dot,
+  .ov-dim text,
+  .ov-tag text,
+  .ov-caret {
+    fill: CanvasText;
+  }
+  .ov-tag rect {
+    fill: Canvas;
+    stroke: CanvasText;
+    filter: none;
+  }
+  .ov-segfill,
+  .mat-tint {
+    display: none;
+  }
+  .cvt-fan-parts {
+    filter: none;
+  }
+  .cvt-chips .cvt-co {
+    border-color: ButtonText;
+  }
+  .cvt-co:focus-visible {
+    outline-color: Highlight;
+  }
+  .cvt-drop,
+  .cvt-drop-mark::before {
+    border-color: CanvasText;
+  }
+  .cvt-drop::before {
+    forced-color-adjust: none;
+    background: repeating-linear-gradient(-45deg, CanvasText 0 1.5px, transparent 1.5px 6px);
+  }
+  /* the key's steps take the swatches' textures: hatch P, dots E, ring U */
+  .cvt-rung i {
+    forced-color-adjust: none;
+    border-color: CanvasText;
+  }
+  .cvt-rung[data-verdict="P"] i {
+    background: repeating-linear-gradient(45deg, CanvasText 0 1px, Canvas 1px 4px);
+  }
+  .cvt-rung[data-verdict="E"] i {
+    background: radial-gradient(CanvasText 1px, Canvas 1.5px) 0 0 / 5px 5px;
+  }
+  .cvt-rung[data-verdict="U"] i {
+    background: Canvas;
+    box-shadow:
+      inset 0 0 0 2px Canvas,
+      inset 0 0 0 3px CanvasText;
+  }
+}
+
 /* ---- reduced motion --------------------------------------------------------------------------- */
 /* The accessibility kill-switch, and the one place !important earns its keep: it
    must beat every animating rule whatever its specificity — including ones added
@@ -2287,6 +2370,7 @@ html[data-theme="dark"] {
   width: 26px;
   height: 12px;
   flex: 0 0 26px;
+  background: var(--fill, none);
   /* holds 3:1 against the ground, whatever the fill inside it */
   border: 1px solid var(--cvt-ink-dim);
 }

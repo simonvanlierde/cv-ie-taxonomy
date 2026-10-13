@@ -651,7 +651,7 @@ const MaturityInstrument = memo(function MaturityInstrument({
           <i
             style={
               live.has(level.verdict)
-                ? { background: VERDICT_VAR[level.verdict] ?? "none" }
+                ? { "--fill": VERDICT_VAR[level.verdict] ?? "none" }
                 : undefined
             }
           />
