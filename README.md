@@ -29,14 +29,15 @@ shows the kinds of output computer vision produces:
 - flags on possible damage, for Condition
 - material labels, at the Material scale
 
-These read-outs are simulated. No model was run on the drawing. Two scenes also
-draw a real finding from the paper, as a measuring scale beside the fan. Label
-reading falls from 95.7% on repair photos to 39.7% at the recycler. Mapping how
-parts connect falls from ~82% to ~39% on new objects.
+These read-outs are simulated: I didn't run a model on the drawing. Two scenes
+also show a real finding from the paper, drawn as a measuring scale beside the
+fan. Label reading falls from 95.7% on repair photos to 39.7% at the recycler.
+Mapping how parts connect falls from ~82% to ~39% on new objects.
 
-The page has five scenes: the opening, one per scale, and the map. The scroll
-moves the fan in CSS alone (scroll-driven animations). A browser without them,
-or a reader who asks for reduced motion, sees each scene's finished state.
+The page has five scenes: the opening, one per scale, and the map. The fan
+moves with the scroll in plain CSS, using scroll-driven animations. A browser
+without them, or a reader who asks for reduced motion, sees each scene's
+finished state.
 
 Each label on the fan opens one cell of the map. Hover over a label to pick out
 its cell. Click it to see the task, the verdict, where it fails, an example, the
@@ -50,9 +51,9 @@ buttons.
 The last screen shows all twelve cells as a 3 × 4 grid. Every cell can be
 clicked, and a **Plain table** button shows the same data as a table. Hatching
 marks the two structurally empty cells, which have no verdict. No task reaches
-Strong on field photos. Under each block, the cell says what it is missing, in
-the paper's three kinds: no shared taxonomy yet, no method yet, or short on field
-photos.
+Strong on field photos. Under each block, the cell says what it is missing,
+using the paper's three kinds of gap: no shared taxonomy yet, no method yet, or
+too few field photos.
 
 ## Data is the source of truth
 
@@ -61,23 +62,24 @@ cells, five-level maturity verdicts, rubric marks, failure modes, examples, and
 citation keys. Ten cells carry a task; the two structurally empty Structure cells
 do not.
 
-[`src/data/taxonomy.test.ts`](src/data/taxonomy.test.ts) enforces the invariants
-that break if the JSON drifts from the paper.
+[`src/data/taxonomy.test.ts`](src/data/taxonomy.test.ts) checks the rules the
+JSON has to follow, so a test fails if it drifts from the paper.
 
 ## Accessibility
 
-Maturity uses ink weight and letters, not colour: S is darkest, U is lightest,
-and A is hollow for no data.
+Maturity shows as ink weight and letters, not colour: S is darkest, U is
+lightest, and A is hollow for no data.
 
-Textures preserve the ranks in `forced-colors` mode and print: solid = S, diagonal
-hatch = P, dots = E, ring = U, and dashed hollow = A. In `forced-colors` mode the
-drawing's lines follow the system text colour.
+In `forced-colors` mode and in print, textures keep the ranks apart: solid = S,
+diagonal hatch = P, dots = E, ring = U, and dashed hollow = A. In
+`forced-colors` mode the drawing's lines also follow the system text colour.
 
-Colour indicates physical scale. The triad uses the colourblind-safe Okabe–Ito
-palette, with material tints for copper, steel, ABS, and PCB.
+Colour shows the physical scale. The three scale colours come from the
+colourblind-safe Okabe–Ito palette, with material tints for copper, steel, ABS,
+and PCB.
 
-Segmentation masks and boxes include class labels, so identity does not depend on
-colour. Their hues follow COCO/YOLO conventions and adapt to the theme.
+Segmentation masks and boxes carry class labels, so you can tell parts apart
+without colour. Their hues follow COCO/YOLO conventions and adapt to the theme.
 
 The labels on the fan, the matrix cells and the phone's cell lists are buttons
 with accessible names. Their text, and all body text, is at least 13px. Only the
@@ -98,17 +100,17 @@ pnpm test        # data + interaction tests, jsdom (vitest)
 pnpm build       # typecheck + production build
 ```
 
-Tests split into two Vitest projects. `pnpm test` runs `unit` in jsdom, fast
-enough for the inner loop. `pnpm test:browser` runs `browser` in real
-Chromium, for the handful of contracts jsdom can't honour — a dialog's focus
-restore, `inert`, the top layer, real `ResizeObserver` layout. `pnpm
-test:all` runs both; CI does.
+The tests are split into two Vitest projects. `pnpm test` runs `unit` in
+jsdom, which is fast enough to run on every change. `pnpm test:browser` runs
+`browser` in real Chromium, for the few behaviours jsdom can't fake: a dialog
+handing focus back when it closes, `inert`, the top layer, and real
+`ResizeObserver` layout. `pnpm test:all` runs both, and so does CI.
 
-Demo deep links: `?cell=component-structure` opens a detail, `?theme=dark|light`
-forces a theme, and `?scene=2` pins a scene for screenshots (0 is the opening,
-4 the map). Cell ids are
-`<scale>-<information type>` in lower case, e.g. `material-quantity`; invalid
-values are ignored.
+The demo takes a few URL parameters. `?cell=component-structure` opens a
+detail, `?theme=dark|light` forces a theme, and `?scene=2` pins a scene for
+screenshots (0 is the opening, 4 the map). Cell ids are
+`<scale>-<information type>` in lower case, for example `material-quantity`.
+The page ignores values it doesn't know.
 
 Requires Node 26 or later. `pnpm test:browser` needs Chromium once:
 `pnpm exec playwright install chromium`. CI also runs `pnpm check` (Biome) and
@@ -116,17 +118,19 @@ Requires Node 26 or later. `pnpm test:browser` needs Chromium once:
 
 ## Assumptions
 
-- The desk fan is a representative WEEE product. The taxonomy is product-general,
-  with evidence from washing machines, laptops, smartphones, and vehicles.
-- Overlay numbers are **mock values** that illustrate each technique's output.
-  Verdict letters come from the paper.
+- The desk fan stands in for any WEEE product (waste electrical and electronic
+  equipment). The taxonomy isn't tied to one product: its evidence comes from
+  washing machines, laptops, smartphones, and vehicles.
+- Overlay numbers are **mock values** that show what each technique outputs.
+  The verdict letters come from the paper.
 - The fan drawing is schematic, not to scale.
-- Verdicts are a **June 2026 snapshot**. The taxonomy structure is the durable
-  contribution.
+- Verdicts are a **June 2026 snapshot**. The taxonomy's structure is the part
+  meant to last.
 
 ## License
 
-Split so the software is freely reusable while the research stays citable:
+The license is split so anyone can reuse the code, while the research stays
+citable:
 
 - **Code**: [MIT](LICENSE).
 - **Taxonomy data** (`src/data/taxonomy.json`, mirroring Table S2), **figures, and
