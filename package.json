@@ -24,8 +24,10 @@
     "test:watch": "vitest --project unit"
   },
   "dependencies": {
+    "@huggingface/transformers": "4.3.0",
     "react": "^19.3.0",
-    "react-dom": "^19.3.0"
+    "react-dom": "^19.3.0",
+    "tesseract.js": "7.0.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.15",

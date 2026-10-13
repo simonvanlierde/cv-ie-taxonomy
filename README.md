@@ -54,6 +54,27 @@ Strong on field photos. Under each block, the cell says what it is missing, in
 the paper's three kinds: no shared taxonomy yet, no method yet, or short on field
 photos.
 
+### What if? and real photos
+
+**What if?**, above the map, lets you change any cell's rubric marks. The
+verdict, the block and the words under it follow from your marks by the paper's
+own rules. The paper's verdict stays drawn as a dashed outline, and **Export
+CSV** writes your marks in the deposit's `rubric-marks.csv` format.
+
+Each scale scene can also **try a real model on one photo**, in your browser.
+Nothing runs until you press the button, and your photo is not sent anywhere.
+No photo of the paper's fan exists yet, so for now each scene takes your own.
+Every result says it is one photo, not validation.
+
+| Scene | Model | Asked to | First download | Licence |
+|---|---|---|---|---|
+| Product | Tesseract 5 (tesseract.js) | read the rating label | about 7 MB | Apache-2.0 |
+| Component | OWL-ViT base/32 (onnx-community export) | find the blades, motor, grilles and base | about 170 MB | Apache-2.0 |
+| Material | the same OWL-ViT | find steel, plastic, copper and circuit boards | shared with Component | Apache-2.0 |
+
+The libraries load only when a model runs, so the page itself stays small. The
+weights come from Hugging Face and Tesseract's files from jsDelivr.
+
 ## Data is the source of truth
 
 [`src/data/taxonomy.json`](src/data/taxonomy.json) mirrors **Table S2**: twelve

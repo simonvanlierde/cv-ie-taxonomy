@@ -8,6 +8,9 @@ export default defineConfig(({ command }) => ({
   // GitHub Pages serves project sites under /<repo>/; dev/preview stay at root.
   base: command === "build" ? "/cv-ie-taxonomy/" : "/",
   plugins: [react()],
+  // transformers.js is one lazy 540 kB chunk, loaded only when a reader runs a
+  // real model; the page's own bundle stays near 330 kB
+  build: { chunkSizeWarningLimit: 600 },
   test: {
     // Two projects, because two different things are worth proving.
     //
