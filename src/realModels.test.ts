@@ -74,8 +74,10 @@ describe("the real models", () => {
       confidence: 76,
     });
     const options = createWorker.mock.calls[0]?.[2];
+    expect(options.cacheMethod).toBe("none");
     expect(options.workerPath).not.toMatch(/^https?:/);
     expect(options.corePath).not.toMatch(/^https?:/);
+    expect(options.langPath).not.toMatch(/^https?:/);
     expect(detector).not.toHaveBeenCalled();
 
     worker.recognize.mockRejectedValueOnce(new Error("bad image"));

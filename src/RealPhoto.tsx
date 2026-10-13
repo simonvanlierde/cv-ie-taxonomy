@@ -88,9 +88,8 @@ function RealPhotoPanel({ scale, model }: { scale: Scale; model: RealModel }) {
     <div className="cvt-real-panel">
       <p className="cvt-real-what">
         {model.name} will {model.task}. It runs in this browser. The first run downloads{" "}
-        {model.download}; those servers see your IP address and browser, as any website does. The
-        files stay in this browser&rsquo;s storage for next time; the button below removes them.
-        Your photo is not sent anywhere.
+        {model.download}. Your browser keeps the files for next time. Your photo is not sent
+        anywhere. <a href={`${import.meta.env.BASE_URL}privacy.html`}>Privacy</a>
       </p>
       {src ? (
         <div className="cvt-real-photo">

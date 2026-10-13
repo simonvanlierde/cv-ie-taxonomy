@@ -4,10 +4,9 @@ import tesseractWorker from "tesseract.js/dist/worker.min.js?url";
 import tesseractCore from "tesseract.js-core/tesseract-core-simd-lstm.wasm.js?url";
 import type { Scale } from "./data/types";
 
-// Both libraries would load their runtime code from jsDelivr and run it with this
-// page's rights. These URLs point them at copies built into the site instead;
-// only data comes from elsewhere (the detector's weights from Hugging Face,
-// Tesseract's English data from jsDelivr).
+// Both libraries would load their runtime code and data from jsDelivr. These URLs
+// point them at copies built into the site instead; only the detector's weights
+// come from elsewhere (Hugging Face).
 
 /**
  * Real-model mode: one model per scene, run in the reader's browser on one photo.
@@ -85,10 +84,14 @@ async function detect(image: HTMLImageElement, labels: string[]): Promise<Readin
 
 async function readText(image: HTMLImageElement): Promise<Reading> {
   const { createWorker, OEM } = await import("tesseract.js");
+  // langPath: the English data, served under a fixed name by vite.config.ts;
+  // "none" keeps it out of IndexedDB, leaving only the browser's normal file cache
   const worker = await createWorker("eng", OEM.LSTM_ONLY, {
+    langPath: `${import.meta.env.BASE_URL}tesseract`,
     workerPath: tesseractWorker,
     corePath: tesseractCore,
     workerBlobURL: false,
+    cacheMethod: "none",
   });
   try {
     const { data } = await worker.recognize(image);
@@ -100,15 +103,16 @@ async function readText(image: HTMLImageElement): Promise<Reading> {
 
 const owl = {
   name: "OWL-ViT (base, patch 32)",
-  download: "about 165 MB, the model from huggingface.co and the rest from this site",
+  download:
+    "about 165 MB: the model from Hugging Face, a US company, through its Amazon CloudFront servers, and the rest from this site. Hugging Face sees your IP address and browser, as any website does",
 };
 
 export const REAL_MODELS: Record<Scale, RealModel> = {
   Product: {
     name: "Tesseract 5 (tesseract.js), English",
     task: "read the text on the rating label",
-    // the WebAssembly core (3.9 MB), English data (3.0 MB) and its worker
-    download: "about 7 MB, its English data from cdn.jsdelivr.net and the rest from this site",
+    // the WebAssembly core (3.9 MB), English data (2.8 MB) and its worker
+    download: "about 7 MB, all from this site",
     run: readText,
   },
   Component: {
@@ -125,23 +129,12 @@ export const REAL_MODELS: Record<Scale, RealModel> = {
 };
 
 /**
- * Removes what the models downloaded from this browser's storage: transformers.js
- * keeps the weights and its runtime in the Cache Storage "transformers-cache",
- * tesseract.js its English data in the IndexedDB "keyval-store" (idb-keyval's
- * default, which nothing else on this site uses). A model already loaded in this
- * tab keeps working until the page is closed.
+ * Removes the detector's files from this browser: transformers.js keeps the
+ * weights and its runtime in the Cache Storage "transformers-cache". A model
+ * already loaded in this tab keeps working until the page is closed.
  */
 export async function removeDownloads(): Promise<void> {
-  await Promise.all([
-    typeof caches === "undefined" ? undefined : caches.delete("transformers-cache"),
-    new Promise<void>((resolve, reject) => {
-      const request = indexedDB.deleteDatabase("keyval-store");
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-      // an open connection only defers the delete until it closes
-      request.onblocked = () => resolve();
-    }),
-  ]);
+  if (typeof caches !== "undefined") await caches.delete("transformers-cache");
 }
 
 /**

@@ -1,23 +1,24 @@
 /// <reference types="vitest/config" />
 
+import { readFileSync } from "node:fs";
 import react from "@vitejs/plugin-react";
 import { playwright } from "@vitest/browser-playwright";
 import { defineConfig } from "vite";
+
+const TESSERACT_ENG = "tesseract/eng.traineddata.gz";
+const ENG_SOURCE = "node_modules/@tesseract.js-data/eng/4.0.0_best_int/eng.traineddata.gz";
 
 export default defineConfig(({ command }) => ({
   // GitHub Pages serves project sites under /<repo>/; dev/preview stay at root.
   base: command === "build" ? "/cv-ie-taxonomy/" : "/",
   plugins: [
     react(),
-    // transformers.js references its default (asyncify) ONNX runtime build, so
-    // Vite emits it; realModels.ts points the runtime at the plain build instead,
-    // and nothing ever loads this 27 MB file
     // The built page's content security policy. GitHub Pages cannot send headers,
     // so it is a <meta> tag, added at build only: the dev server injects inline
     // scripts. Scripts and workers come only from this site (blob: is the ONNX
     // runtime's factory and wasm needs 'wasm-unsafe-eval'); a reader's photo can
-    // only be fetched by the page itself, and the only hosts it may contact are
-    // the two that serve model data.
+    // only be fetched by the page itself, and the only host it may contact is
+    // Hugging Face, which serves the detector's weights.
     {
       name: "content-security-policy",
       apply: "build",
@@ -34,7 +35,7 @@ export default defineConfig(({ command }) => ({
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob:",
               "font-src 'self'",
-              "connect-src 'self' blob: data: https://huggingface.co https://*.huggingface.co https://*.hf.co https://cdn.jsdelivr.net",
+              "connect-src 'self' blob: data: https://huggingface.co https://*.huggingface.co https://*.hf.co",
               "object-src 'none'",
               "base-uri 'self'",
             ].join("; "),
@@ -42,6 +43,9 @@ export default defineConfig(({ command }) => ({
         },
       ],
     },
+    // transformers.js references its default (asyncify) ONNX runtime build, so
+    // Vite emits it; realModels.ts points the runtime at the plain build instead,
+    // and nothing ever loads this 27 MB file
     {
       name: "drop-unused-onnx-runtime",
       apply: "build",
@@ -49,6 +53,17 @@ export default defineConfig(({ command }) => ({
         for (const file of Object.keys(bundle)) {
           if (/ort-wasm-simd-threaded\.asyncify-.*\.wasm$/.test(file)) delete bundle[file];
         }
+      },
+    },
+    // tesseract.js fetches `${langPath}/eng.traineddata.gz`, so the English data
+    // needs a fixed name; a hashed asset would not match it
+    {
+      name: "tesseract-english-data",
+      configureServer(server) {
+        server.middlewares.use(`/${TESSERACT_ENG}`, (_, res) => res.end(readFileSync(ENG_SOURCE)));
+      },
+      generateBundle() {
+        this.emitFile({ type: "asset", fileName: TESSERACT_ENG, source: readFileSync(ENG_SOURCE) });
       },
     },
   ],

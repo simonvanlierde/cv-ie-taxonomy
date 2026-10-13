@@ -72,13 +72,14 @@ Every result says it is one photo, not validation.
 | Component | OWL-ViT base/32 (onnx-community export) | find the blades, motor, grilles and base | about 165 MB | Apache-2.0 |
 | Material | the same OWL-ViT | find steel, plastic, copper and circuit boards | shared with Component | Apache-2.0 |
 
-The libraries load only when a model runs, so the page itself stays small. Their
-runtime code is built into the site; only data comes from elsewhere: the
-detector's weights from huggingface.co, at a fixed commit, and Tesseract's English
-data from cdn.jsdelivr.net. Those servers see your IP address and browser. The
-files stay in your browser's storage for next time; **Remove downloaded models**
-in the panel deletes them. The built
+The libraries load only when a model runs, so the page itself stays small.
+Tesseract's runtime and English data are built into the site. OWL-ViT's runtime
+is too, but its weights come from Hugging Face (US), at a fixed commit. Hugging
+Face sees your IP address and browser. The weights stay in your browser's cache
+for next time; **Remove downloaded models** in the panel deletes them. The built
 page sets a content security policy, so it can contact no other host.
+[`public/privacy.html`](public/privacy.html) says all this for visitors, and
+the footer and the panel link to it.
 
 ## Data is the source of truth
 

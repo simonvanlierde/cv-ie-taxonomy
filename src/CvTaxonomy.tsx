@@ -673,6 +673,12 @@ function SheetFooter({ inert }: { inert: boolean }) {
             </a>
           </dd>
         </div>
+        <div className="cvt-tb-row">
+          <dt>privacy</dt>
+          <dd>
+            <a href={`${import.meta.env.BASE_URL}privacy.html`}>No tracking</a>
+          </dd>
+        </div>
       </dl>
     </footer>
   );
