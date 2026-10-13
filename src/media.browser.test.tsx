@@ -63,6 +63,8 @@ function systemColour(keyword: string): string {
 describe("forced colours", () => {
   it("draws the fan's lines and the read-outs in the system text colour", async () => {
     await commands.emulateMedia({ forcedColors: "active" });
+    // a failed emulation would otherwise read as a colour bug
+    expect(matchMedia("(forced-colors: active)").matches).toBe(true);
     render(<CvTaxonomy debugChapter="Component" />);
     const text = systemColour("CanvasText");
 
@@ -75,5 +77,17 @@ describe("forced colours", () => {
     expect(getComputedStyle(document.querySelector(".ov-segfill") as SVGElement).display).toBe(
       "none",
     );
+  });
+
+  it("keeps the matrix blocks solid and marks the open chip", async () => {
+    await commands.emulateMedia({ forcedColors: "active" });
+    render(<CvTaxonomy debugChapter="Component" initialCell="component-identity" />);
+    const block = document.querySelector(
+      '.cvt-mx-cell:not([data-ghost="true"]) .cvt-mx-block',
+    ) as HTMLElement;
+    expect(getComputedStyle(block).backgroundColor).toBe(systemColour("CanvasText"));
+    const open = document.getElementById("cvt-co-component-identity") as HTMLElement;
+    await vi.waitFor(() => expect(open).toHaveAttribute("data-selected", "true"));
+    expect(getComputedStyle(open).outlineColor).toBe(systemColour("Highlight"));
   });
 });

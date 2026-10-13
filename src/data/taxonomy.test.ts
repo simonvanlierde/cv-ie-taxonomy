@@ -48,6 +48,11 @@ describe("taxonomy data layer (mirrors the review article's Table S2)", () => {
     for (const m of taxonomy.meta.maturityLevels) expect(VERDICT_LETTER[m.verdict]).toBe(m.letter);
   });
 
+  it("a compound cell keeps its gap kinds on its sub-verdicts, where they are read", () => {
+    // gapsOf reads sub-verdict gaps for a compound cell and ignores the cell's own
+    for (const c of cells) if (c.subVerdicts) expect(c.gaps, c.id).toBeUndefined();
+  });
+
   it("the two Structure cells at Product and Material scale are structurally empty", () => {
     expect(cellAt("Product", "Structure")?.structurallyEmpty).toBe(true);
     expect(cellAt("Material", "Structure")?.structurallyEmpty).toBe(true);

@@ -68,6 +68,10 @@ function MiniMatrixRow({
         const standsAt = split ? split[0] : cell.maturity;
         const missing = cellGapTexts(cell);
         const said = missing.length > 0 ? `. Missing: ${missing.join(", ")}` : "";
+        // the name starts with the letter the cell shows, so a voice user can say it
+        const letters = split
+          ? split.map((s) => VERDICT_LETTER[s]).join(" / ")
+          : VERDICT_LETTER[cell.maturity];
         return (
           <button
             key={cell.id}
@@ -81,8 +85,8 @@ function MiniMatrixRow({
               cell.structurallyEmpty
                 ? `${scale} · ${info}: structurally empty, answered at the component scale`
                 : split
-                  ? `${scale} · ${info}: ${cell.subVerdicts?.map((s) => `${s.label} ${s.maturity}`).join("; ")}${said}`
-                  : `${scale} · ${info}: ${cell.maturity}${said}`
+                  ? `${letters} ${scale} · ${info}: ${cell.subVerdicts?.map((s) => `${s.label} ${s.maturity}`).join("; ")}${said}`
+                  : `${letters} ${scale} · ${info}: ${cell.maturity}${said}`
             }
             onClick={() => onSelect(cell)}
           >

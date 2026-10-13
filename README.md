@@ -43,8 +43,9 @@ its cell. Click it to see the task, the verdict, where it fails, an example, the
 rubric marks and the sources. With a detail open, the arrow keys step to the
 next cell: within the scale on the fan, or across the whole map at the end.
 
-On a phone, the drawing stays at the top of the screen while the text scrolls
-under it, and each scene lists its cells as buttons.
+On a phone or tablet (a page under 1180px wide), the drawing stays at the top of
+the screen while the text scrolls under it, and each scene lists its cells as
+buttons.
 
 The last screen shows all twelve cells as a 3 × 4 grid. Every cell can be
 clicked, and a **Plain table** button shows the same data as a table. Hatching

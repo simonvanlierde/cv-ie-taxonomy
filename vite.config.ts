@@ -71,7 +71,7 @@ export default defineConfig(({ command }) => ({
             instances: [
               {
                 browser: "chromium",
-                // Wider than the 881px seam, so the desktop tree is the default
+                // Wider than the 1180px seam, so the desktop tree is the default
                 // and only the seam test resizes away from it.
                 viewport: { width: 1280, height: 900 },
               },

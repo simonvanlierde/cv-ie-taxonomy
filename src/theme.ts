@@ -6,9 +6,11 @@ export type Theme = "light" | "dark";
 /** The one layout fork, shared by the JS layout switch and the CSS container
  *  queries: below this width the page is a phone (figure over text, detail as a
  *  sheet), at or above it the drawing sheet. Container queries cannot read a TS
- *  constant, so CvTaxonomy.css hard-codes it as `(width < 881px)` /
- *  `(width >= 881px)`; scripts/check-theme.ts fails CI if the two drift. */
-export const BREAKPOINT_PX = 881;
+ *  constant, so CvTaxonomy.css hard-codes it as `(width < 1180px)` /
+ *  `(width >= 1180px)`; scripts/check-theme.ts fails CI if the two drift.
+ *  Below 1180px the sheet's figure column falls under about 600px, where the
+ *  13px chips would cover each other and the drawing. */
+export const BREAKPOINT_PX = 1180;
 
 // Colourblind-safe (Okabe–Ito) hue per physical scale. Maturity is NEVER colour.
 // One set per ground, each held at 3:1 against its own surface (theme.test.ts).

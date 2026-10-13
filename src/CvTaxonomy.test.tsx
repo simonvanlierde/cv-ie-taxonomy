@@ -1,6 +1,6 @@
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   CvTaxonomy,
   cameraTransform,
@@ -529,6 +529,91 @@ describe("flyIntoMap", () => {
     } finally {
       (document as unknown as { startViewTransition?: unknown }).startViewTransition = undefined;
     }
+  });
+
+  it("does nothing where the browser has no view transitions", () => {
+    render(<CvTaxonomy debugChapter="Material" />);
+    expect(() => flyIntoMap(["material-identity"])).not.toThrow();
+  });
+});
+
+describe("the closing flight", () => {
+  // counts the transitions started, without running any
+  const spy = () => {
+    const calls: number[] = [];
+    (document as unknown as { startViewTransition?: () => unknown }).startViewTransition = () => {
+      calls.push(1);
+      return undefined;
+    };
+    return calls;
+  };
+  afterEach(() => {
+    (document as unknown as { startViewTransition?: unknown }).startViewTransition = undefined;
+  });
+
+  it("starts once, crossing from the Material scene into the map", () => {
+    const calls = spy();
+    const { rerender } = render(<CvTaxonomy debugChapter="Material" />);
+    rerender(<CvTaxonomy debugChapter="outro" />);
+    expect(calls).toHaveLength(1);
+  });
+
+  it("stays put on any other step, and backwards", () => {
+    const calls = spy();
+    const { rerender } = render(<CvTaxonomy debugChapter="Component" />);
+    rerender(<CvTaxonomy debugChapter="Material" />);
+    rerender(<CvTaxonomy debugChapter="Component" />);
+    expect(calls).toHaveLength(0);
+  });
+
+  it("stays put with reduced motion", () => {
+    forceReducedMotion();
+    const calls = spy();
+    const { rerender } = render(<CvTaxonomy debugChapter="Material" />);
+    rerender(<CvTaxonomy debugChapter="outro" />);
+    expect(calls).toHaveLength(0);
+  });
+
+  it("stays put on a phone, which has no chips", () => {
+    window.matchMedia = matchMediaStub((q) => q.includes("max-width"));
+    const calls = spy();
+    const { rerender } = render(<CvTaxonomy debugChapter="Material" />);
+    rerender(<CvTaxonomy debugChapter="outro" />);
+    expect(calls).toHaveLength(0);
+  });
+});
+
+describe("what each cell is missing", () => {
+  it("is in each matrix cell's name, after the letter it shows", () => {
+    render(<CvTaxonomy debugChapter="outro" />);
+    const cell = document.getElementById("cvt-mx-component-structure") as HTMLElement;
+    expect(cell.getAttribute("aria-label")).toMatch(/^P \/ E Component · Structure: /);
+    expect(cell.getAttribute("aria-label")).toMatch(
+      /Missing: no shared taxonomy yet, likely short or not tried on field photos$/,
+    );
+  });
+
+  it("is a row in the detail, named per sub-task in a compound cell", async () => {
+    const { unmount } = render(<CvTaxonomy initialCell="product-identity" />);
+    const plain = await screen.findByRole("complementary");
+    expect(within(plain).getByText("What is missing").nextElementSibling).toHaveTextContent(
+      "Fell short on field photos",
+    );
+    unmount();
+
+    render(<CvTaxonomy initialCell="component-structure" />);
+    const compound = await screen.findByRole("complementary");
+    const row = within(compound).getByText("What is missing").nextElementSibling as HTMLElement;
+    expect(row).toHaveTextContent("Detection / segmentation: likely short on field photos");
+    expect(row).toHaveTextContent(
+      "BoC attachment relations: no shared taxonomy yet, then not tried on field photos",
+    );
+  });
+
+  it("has no row when the cell is structurally empty", async () => {
+    render(<CvTaxonomy initialCell="product-structure" />);
+    const detail = await screen.findByRole("complementary");
+    expect(within(detail).queryByText("What is missing")).toBeNull();
   });
 });
 

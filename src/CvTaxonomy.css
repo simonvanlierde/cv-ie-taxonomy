@@ -236,7 +236,7 @@ html[data-theme="dark"] {
   margin: 0 auto;
 }
 /* on the sheet, content starts clear of the row references in the left band */
-@container cvt (width >= 881px) {
+@container cvt (width >= 1180px) {
   .cvt-scroll {
     padding-left: max(3rem, 2.5vw);
     padding-right: max(3rem, 2.5vw);
@@ -658,10 +658,6 @@ html[data-theme="dark"] {
   stroke-width: 2;
   stroke-dasharray: 6 5;
 }
-.ov-strike {
-  stroke: var(--cvt-warn);
-  stroke-width: 1.2;
-}
 
 /* The chips are the controls, laid over the drawing. Their text is 14.5 viewBox
    units (1.8125% of the figure's width), and never under 13px however small the
@@ -690,6 +686,9 @@ html[data-theme="dark"] {
 .cvt-co[data-selected="true"] {
   border-width: 3px;
   padding: calc(0.3em - 1px) calc(0.75em - 1px) calc(0.3em - 1px) calc(0.45em - 1px);
+}
+.cvt-co > * {
+  opacity: var(--dim, 1);
 }
 .cvt-co .cvt-glyphbox {
   width: 1.45em;
@@ -743,8 +742,12 @@ html[data-theme="dark"] {
   left: -0.5em;
   bottom: calc(var(--v) * 100%);
   translate: 0 50%;
-  padding-left: 1.6em;
+  padding: 0.1em 0.3em 0.15em 1.6em;
   white-space: nowrap;
+}
+/* the label sits on its own patch of ground, never on the drawing's lines */
+.cvt-drop-mark > * {
+  background: var(--cvt-bg);
 }
 .cvt-drop-mark::before {
   content: "";
@@ -1021,10 +1024,10 @@ html[data-theme="dark"] {
 /* Desktop only: pin the prose while its chapter's overlays hold the stage, so the
    reader is not asked to remember the paragraph they scrolled past. On mobile the
    stage is already pinned to the top and a second sticky layer would fight it. */
-/* 881 = theme.ts BREAKPOINT_PX. Range syntax, not min-/max-width: the JS tree
+/* 1180 = theme.ts BREAKPOINT_PX. Range syntax, not min-/max-width: the JS tree
    swap compares the same fractional ResizeObserver width against the same
    boundary, so no width falls between the two. check-theme.ts guards the sync. */
-@container cvt (width >= 881px) {
+@container cvt (width >= 1180px) {
   .cvt-chapter-inner {
     position: sticky;
     top: 28vh;
@@ -1453,7 +1456,7 @@ html[data-theme="dark"] {
   letter-spacing: 0.08em;
   color: var(--cvt-ink-dim);
 }
-@container cvt (width >= 881px) {
+@container cvt (width >= 1180px) {
   .cvt-footer {
     padding-left: max(3rem, 2.5vw);
     padding-right: max(3rem, 2.5vw);
@@ -1840,7 +1843,7 @@ html[data-theme="dark"] {
 /* ---- mobile --------------------------------------------------------------------------------- */
 /* On a phone the figure sticks to the top of the screen and the scenes' text
    scrolls up under it, with each scene's cells listed as buttons. */
-@container cvt (width < 881px) {
+@container cvt (width < 1180px) {
   .cvt-scroll {
     grid-template-columns: minmax(0, 1fr);
     padding: 0 1rem;
@@ -2012,7 +2015,7 @@ html[data-theme="dark"] {
 
 /* A phone on its side has no height for a figure over the text, so the two sit
    side by side, as on the sheet. */
-@container cvt (width < 881px) {
+@container cvt (width < 1180px) {
   @media (orientation: landscape) and (max-height: 500px) {
     .cvt-scroll {
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -2055,8 +2058,7 @@ html[data-theme="dark"] {
   .ov-leader,
   .ov-dim line,
   .ov-blob,
-  .ov-rel,
-  .ov-strike {
+  .ov-rel {
     stroke: CanvasText;
     opacity: 1;
   }
@@ -2093,6 +2095,11 @@ html[data-theme="dark"] {
   .cvt-co:focus-visible {
     outline-color: Highlight;
   }
+  /* the open chip: its heavier border alone is lost when all borders are one colour */
+  .cvt-chips .cvt-co[data-selected="true"] {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
   .cvt-drop,
   .cvt-drop-mark::before {
     border-color: CanvasText;
@@ -2106,13 +2113,13 @@ html[data-theme="dark"] {
     forced-color-adjust: none;
     border-color: CanvasText;
   }
-  .cvt-rung[data-verdict="P"] i {
+  .cvt-rung[data-claimed="true"][data-verdict="P"] i {
     background: repeating-linear-gradient(45deg, CanvasText 0 1px, Canvas 1px 4px);
   }
-  .cvt-rung[data-verdict="E"] i {
+  .cvt-rung[data-claimed="true"][data-verdict="E"] i {
     background: radial-gradient(CanvasText 1px, Canvas 1.5px) 0 0 / 5px 5px;
   }
-  .cvt-rung[data-verdict="U"] i {
+  .cvt-rung[data-claimed="true"][data-verdict="U"] i {
     background: Canvas;
     box-shadow:
       inset 0 0 0 2px Canvas,
@@ -2614,7 +2621,7 @@ html[data-theme="dark"] {
 }
 
 /* the drawing sheet's frame is a desktop conceit: a phone has no margins for it */
-@container cvt (width < 881px) {
+@container cvt (width < 1180px) {
   .cvt-sheet {
     display: none;
   }

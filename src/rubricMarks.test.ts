@@ -100,5 +100,10 @@ describe("the matrix's gap words", () => {
     ]);
     expect(cellGapTexts(byId("product-identity"))).toEqual(["fell short on field photos"]);
     expect(cellGapTexts(byId("product-structure"))).toEqual([]);
+    // the paper's method gap is only the composition a camera cannot see
+    expect(cellGapTexts(byId("material-identity"))).toEqual([
+      "no method for what's hidden",
+      "likely short on field photos",
+    ]);
   });
 });

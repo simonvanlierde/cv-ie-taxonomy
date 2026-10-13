@@ -310,8 +310,8 @@ export function CvTaxonomy({
       if (!target) return;
       const landOn = () => {
         const chip = document.getElementById(`cvt-co-${target.id}`);
-        // only once the chapter is actually on stage; before that it is aria-hidden
-        if (chip?.getAttribute("tabindex") === "0") chip.focus();
+        // only once the chapter is actually on stage; before that it is inert
+        if (chip && !chip.inert) chip.focus();
       };
       // scrollend fires when the smooth scroll settles; the timeout covers engines
       // without it, and landing twice is harmless. Both are cancellable: a pending
@@ -432,9 +432,13 @@ export function CvTaxonomy({
   useEffect(() => {
     const from = lastChapter.current;
     lastChapter.current = chapter;
-    if (from !== "Material" || chapter !== "outro" || reduceMotion || isMobile) return;
+    // an open detail closes on the same step, in a view transition of its own;
+    // a second transition at once would cancel the first, so the flight gives way
+    if (from !== "Material" || chapter !== "outro" || reduceMotion || isMobile || selected) {
+      return;
+    }
     flyIntoMap(cells.filter((c) => c.scale === "Material").map((c) => c.id));
-  }, [chapter, reduceMotion, isMobile]);
+  }, [chapter, reduceMotion, isMobile, selected]);
 
   // The docked detail belongs to the drawing, so once the map arrives it would
   // sit over the matrix instead of leaving with the drawing. The map has its own
@@ -1287,7 +1291,8 @@ function GapRow({ cell }: { cell: Cell }) {
     <Row
       label="What is missing"
       value={
-        rows.length === 1 && rows[0]
+        // a compound cell names the sub-task even when only one of them has gaps
+        rows.length === 1 && rows[0] && !cell.subVerdicts
           ? cap(text(rows[0]))
           : rows.map((r) => (
               <span className="cvt-handling" key={r.name}>

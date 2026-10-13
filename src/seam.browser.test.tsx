@@ -4,7 +4,7 @@ import { page } from "vitest/browser";
 import { CvTaxonomy } from "./CvTaxonomy";
 
 /**
- * The 881px layout seam, measured rather than declared.
+ * The layout seam (BREAKPOINT_PX), measured rather than declared.
  *
  * `useContainerSize` reads the page's own width through a ResizeObserver. jsdom
  * reports every box as 0×0 and never fires the observer, which leaves the unit

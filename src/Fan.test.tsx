@@ -49,7 +49,8 @@ describe("chip operability", () => {
       frame: FRAMES["component-quantity"],
     });
     expect(chip(container, "component-identity")).toHaveAttribute("tabindex", "-1");
-    expect(chip(container, "component-identity")).toHaveAttribute("aria-hidden", "true");
+    // still on screen and clickable, so still announced
+    expect(chip(container, "component-identity")).not.toHaveAttribute("aria-hidden");
     expect(chip(container, "component-quantity")).toHaveAttribute("tabindex", "0");
     // camera home: the whole chapter is back in the ring
     rerender(
@@ -70,7 +71,7 @@ describe("chip operability", () => {
     for (const id of COMPONENT_CHIPS) {
       const g = chip(container, id);
       expect(g, id).toHaveAttribute("tabindex", "0");
-      expect(g, id).toHaveAttribute("aria-hidden", "false");
+      expect(g, id).not.toHaveAttribute("inert");
     }
   });
 
@@ -83,18 +84,17 @@ describe("chip operability", () => {
     for (const id of COMPONENT_CHIPS.filter((c) => c !== focused.id)) {
       const g = chip(container, id);
       expect(g, `${id} is visible but unreachable`).toHaveAttribute("tabindex", "0");
-      expect(g, `${id} is visible but unannounced`).toHaveAttribute("aria-hidden", "false");
-      // dimmed below its scene's full presence, but not hidden
-      expect(g.style.opacity, `${id} should be dimmed`).not.toBe(
-        chip(container, focused.id).style.opacity,
-      );
+      expect(g, `${id} is visible but unannounced`).not.toHaveAttribute("inert");
+      // its contents are dimmed, its plate is not (so the leader stays hidden)
+      expect(Number(g.style.getPropertyValue("--dim")), `${id} should be dimmed`).toBeLessThan(1);
+      expect(g.style.opacity).toBe(chip(container, focused.id).style.opacity);
     }
   });
 
-  it("takes chips of an off-stage chapter out of the tab order", () => {
+  it("makes chips of an off-stage chapter inert: not seen, operable or announced", () => {
     const { container } = renderFan();
     for (const id of ["material-identity", "product-identity"]) {
-      expect(chip(container, id), id).toHaveAttribute("tabindex", "-1");
+      expect(chip(container, id), id).toHaveAttribute("inert");
     }
   });
 });
@@ -133,7 +133,10 @@ describe("chip copy vs. verdict", () => {
 describe("mock overlays", () => {
   it("are hidden from assistive tech even while fully opaque", () => {
     const { container } = renderFan();
-    expect(container.querySelectorAll(".cvt-fan-marks .ov-layer")).toHaveLength(9);
+    const layers = container.querySelectorAll(".ov-layer");
+    expect(layers).toHaveLength(9);
+    // every one of them inside the hidden svg
+    expect(container.querySelectorAll(".cvt-fan-marks .ov-layer")).toHaveLength(layers.length);
     expect(container.querySelector(".cvt-fan-marks")).toHaveAttribute("aria-hidden", "true");
   });
 
@@ -162,10 +165,9 @@ describe("chip names", () => {
   it("start with the chip's visible text, so a voice user can say what they see", () => {
     const { container } = renderFan();
     const label = chip(container, "component-structure").getAttribute("aria-label") ?? "";
-    const shown = chip(container, "component-structure").textContent;
-    // the letter and the read-out text, in the order they are drawn
-    expect(shown).toBe("Psegment · attached-to? E");
-    expect(label.startsWith("P segment · attached-to? E.")).toBe(true);
+    // the letter, then the read-out text, in the order they are drawn
+    const parts = [...chip(container, "component-structure").children].map((el) => el.textContent);
+    expect(label.startsWith(`${parts.filter(Boolean).join(" ")}.`)).toBe(true);
   });
 });
 
@@ -179,5 +181,19 @@ describe("chip read-outs", () => {
     );
     expect(text.includes("(narrow class)"), text).toBe(cell.maturity === "Emerging-but-narrow");
     expect(Boolean(strike), text).toBe(cell.maturity === "Absent" && !cell.structurallyEmpty);
+  });
+});
+
+describe("the scene claims drawn on the fan", () => {
+  it("draws one measuring scale per scene that has a drop, hidden from assistive tech", () => {
+    const { container } = renderFan();
+    const drops = container.querySelectorAll(".cvt-drop");
+    expect(drops).toHaveLength(2);
+    for (const d of drops) expect(d).toHaveAttribute("aria-hidden", "true");
+  });
+
+  it("leaves them off the phone, where the headings carry the claims", () => {
+    const { container } = renderFan({ compact: true });
+    expect(container.querySelectorAll(".cvt-drop")).toHaveLength(0);
   });
 });

@@ -136,26 +136,22 @@ export function gapsOf(cell: Cell): { label: string | null; gaps: Gap[] }[] {
   });
 }
 
-const GAP_TEXT: Record<Gap["kind"], string> = {
+const GAP_TEXT: Record<Exclude<Gap["kind"], "field">, string> = {
   ontology: "no shared taxonomy yet",
-  method: "no method yet",
-  field: "",
+  // the paper's one method-bound gap is the composition a camera cannot see
+  // (§3.2.3, §5), so the words say so rather than "no method" for the cell
+  method: "no method for what's hidden",
   derived: "worked out from other cells",
 };
-const FIELD_TEXT: Record<NonNullable<Run["basis"]>, string> = {
-  measured: "fell short on field photos",
-  inferred: "likely short on field photos",
-  untested: "not tried on field photos",
-};
-
-/** A gap in plain words, short enough for a matrix cell. */
-export const gapText = (g: Gap) => (g.kind === "field" ? FIELD_TEXT[g.basis] : GAP_TEXT[g.kind]);
-
 const SHORT_BASIS: Record<NonNullable<Run["basis"]>, string> = {
   measured: "fell short",
   inferred: "likely short",
   untested: "not tried",
 };
+
+/** A gap in plain words, short enough for a matrix cell. */
+export const gapText = (g: Gap) =>
+  g.kind === "field" ? `${SHORT_BASIS[g.basis]} on field photos` : GAP_TEXT[g.kind];
 
 /** Every distinct gap a cell's rows carry, in plain words and the paper's order,
  *  with the field gaps of a compound cell joined into one phrase so the matrix

@@ -44,10 +44,9 @@ const PETAL =
   "M300 400 C318 390 332 372 336 342 C339 316 324 300 306 309 C290 318 283 352 287 384 Z";
 const BLADES = [0, 120, 240]; // blade rotations about the hub (300 400)
 
-// Both plates size themselves from the real advance of the mono face
-// (0.616em per glyph), so a label can never outrun its own box. The <text>
-// elements take their font-size from these same constants, so the plate math
-// and the rendered glyphs cannot drift apart. Labels stay within the shipped
+// The read-out tags size their plates from the real advance of the mono face
+// (0.616em per glyph), so a label can never outrun its own box; their <text>
+// takes its font-size from the same constant. Labels stay within the shipped
 // Overpass Mono subset (ASCII + · × Ø …), so every glyph really advances
 // 0.616em — a symbol outside it would fall back to a differently-spaced face.
 const MONO_ADVANCE = 0.616;
@@ -57,7 +56,10 @@ const monoWidth = (label: string, fontSize: number) => label.length * fontSize *
 
 const TAG_H = 21; // class-tag plate height, sized to TAG_FONT
 
-// chip plate: [swatch | letter | text], padded
+// The chip's box in viewBox units, estimated at its nominal 14.5-unit font: the
+// camera frames a chip with it (chipFrame) and the tab ring tests its centre.
+// The button itself is laid out by CSS (`.cvt-chips .cvt-co`), and its 13px
+// floor makes it wider than this on a small figure.
 const CHIP_TEXT_X = 54;
 const CHIP_PAD_R = 12;
 const CHIP_H = 34;
@@ -305,18 +307,18 @@ function Callout({
   onHover: (cell: Cell | null) => void;
 }) {
   const letter = VERDICT_LETTER[cell.maturity];
-  const w = chipWidth(text);
-  const X = x ?? CHIP_RIGHT_EDGE - w;
   // The zoom frames are tighter than the chip ring by construction, so while a
   // detail is open most sibling chips sit outside the drawing's frame. A chip the
-  // reader cannot see is not a tab stop: operable implies visible. Its visible
-  // fragment stays clickable, and the selected chip stays focusable so focus has
-  // its opener to return to on close. Centre test, not bbox: a chip half in
+  // reader cannot see is not a tab stop. Its visible fragment stays clickable, so
+  // it stays in the accessibility tree; the selected chip stays focusable so focus
+  // has its opener to return to on close. Centre test, not bbox: a chip half in
   // frame is still a control.
-  const cx = X + w / 2;
+  const plate = chipFrame(cell.id);
+  const cx = plate ? plate.x + plate.w / 2 : 0;
+  const cy = plate ? plate.y + plate.h / 2 : 0;
   const inFrame =
-    !frame || (cx >= frame.x && cx <= frame.x + frame.w && y >= frame.y && y <= frame.y + frame.h);
-  const focusable = active && (selected || inFrame);
+    !frame ||
+    (cx >= frame.x && cx <= frame.x + frame.w && cy >= frame.y && cy <= frame.y + frame.h);
   const hid = `cvt-co-${cell.id}`;
   return (
     <button
@@ -325,17 +327,20 @@ function Callout({
       className="cvt-co"
       data-ghost={!!cell.structurallyEmpty}
       data-selected={selected}
-      tabIndex={focusable ? 0 : -1}
+      // another scene's chip is faded out: neither seen, operable nor announced
+      inert={!active}
+      tabIndex={selected || inFrame ? 0 : -1}
       // starts with what the chip shows, so a voice user can say what they see
       aria-label={`${letter} ${text}. ${cell.scale} · ${cell.informationType}: ${taskName(cell)}. Maturity: ${maturityName(cell)}. Open details.`}
-      aria-hidden={!focusable}
       style={{
         top: pctY(y - 6),
         ...(x === undefined
           ? { right: `${((VIEW.x + VIEW.w - CHIP_RIGHT_EDGE) / VIEW.w) * 100}%` }
           : { left: pctX(x) }),
-        opacity: `calc(${PRESENCE[cell.scale]} * ${dim})`,
-        pointerEvents: active ? undefined : "none",
+        // the plate stays opaque over its leader; a sibling's dimming fades only
+        // what is on the plate (`--dim` in CSS)
+        opacity: PRESENCE[cell.scale],
+        "--dim": dim,
         "--hue": SCALE_VAR[cell.scale],
       }}
       onClick={() => onSelect(cell, hid)}
@@ -357,7 +362,7 @@ function Callout({
  *  units, clear of the scene's chips and read-outs. */
 const DROP_AT: Partial<Record<Scale, { x: number; y: number; h: number }>> = {
   Product: { x: -95, y: 230, h: 290 },
-  Component: { x: 545, y: 420, h: 280 },
+  Component: { x: 470, y: 420, h: 280 },
 };
 
 /** "~82%" → 0.82 */
@@ -800,7 +805,7 @@ export function Fan({
                   y1={lead[1]}
                   x2={x ?? CHIP_RIGHT_EDGE - 4}
                   y2={y - 6}
-                  style={{ opacity: `calc(${PRESENCE[c.scale]} * ${chipDim(c)})` }}
+                  style={{ opacity: PRESENCE[c.scale] }}
                 />
               );
             })}
