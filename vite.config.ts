@@ -55,10 +55,14 @@ export default defineConfig(({ command }) => ({
             enabled: true,
             provider: playwright(),
             headless: true,
-            // the reduced-motion test flips the media query on the real page
+            // the reduced-motion and forced-colours tests flip those media
+            // queries on the real page
             commands: {
-              reduceMotion: async ({ page }, on: boolean) => {
-                await page.emulateMedia({ reducedMotion: on ? "reduce" : "no-preference" });
+              emulateMedia: async (
+                { page },
+                media: { reducedMotion?: "reduce" | null; forcedColors?: "active" | null },
+              ) => {
+                await page.emulateMedia(media);
               },
             },
             // Chromium alone. These tests assert spec'd platform behaviour, not
@@ -67,7 +71,7 @@ export default defineConfig(({ command }) => ({
             instances: [
               {
                 browser: "chromium",
-                // Wider than the 881px seam, so the desktop tree is the default
+                // Wider than the 1180px seam, so the desktop tree is the default
                 // and only the seam test resizes away from it.
                 viewport: { width: 1280, height: 900 },
               },

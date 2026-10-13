@@ -1,4 +1,5 @@
 import { type ReactNode, useId } from "react";
+import { SCENE_DROP } from "./chapters";
 import { cellById as cell, maturityName, taskName, VERDICT_LETTER } from "./data/taxonomy";
 import type { Cell, Scale } from "./data/types";
 import { type Chapter, type Frame, frameToViewBox, VIEW } from "./frames";
@@ -43,10 +44,9 @@ const PETAL =
   "M300 400 C318 390 332 372 336 342 C339 316 324 300 306 309 C290 318 283 352 287 384 Z";
 const BLADES = [0, 120, 240]; // blade rotations about the hub (300 400)
 
-// Both plates size themselves from the real advance of the mono face
-// (0.616em per glyph), so a label can never outrun its own box. The <text>
-// elements take their font-size from these same constants, so the plate math
-// and the rendered glyphs cannot drift apart. Labels stay within the shipped
+// The read-out tags size their plates from the real advance of the mono face
+// (0.616em per glyph), so a label can never outrun its own box; their <text>
+// takes its font-size from the same constant. Labels stay within the shipped
 // Overpass Mono subset (ASCII + · × Ø …), so every glyph really advances
 // 0.616em — a symbol outside it would fall back to a differently-spaced face.
 const MONO_ADVANCE = 0.616;
@@ -56,7 +56,10 @@ const monoWidth = (label: string, fontSize: number) => label.length * fontSize *
 
 const TAG_H = 21; // class-tag plate height, sized to TAG_FONT
 
-// chip plate: [swatch | letter | text], padded
+// The chip's box in viewBox units, estimated at its nominal 14.5-unit font: the
+// camera frames a chip with it (chipFrame) and the tab ring tests its centre.
+// The button itself is laid out by CSS (`.cvt-chips .cvt-co`), and its 13px
+// floor makes it wider than this on a small figure.
 const CHIP_TEXT_X = 54;
 const CHIP_PAD_R = 12;
 const CHIP_H = 34;
@@ -82,27 +85,26 @@ export const CHIP_LAYOUT: {
   x?: number;
   y: number;
   text: string;
-  leadEdge?: "right" | "left";
   strike?: boolean;
 }[] = [
   // product (assembled fan)
   { id: "product-identity", x: CHIP_LEFT_EDGE, y: 770, text: "OCR + db-match ok" },
-  { id: "product-quantity", y: 430, text: "H ~ 430 · Ø ~ 300", leadEdge: "left" },
+  { id: "product-quantity", y: 430, text: "H ~ 430 · Ø ~ 300" },
   { id: "product-condition", x: CHIP_LEFT_EDGE, y: 580, text: "wear? (narrow class)" },
   // clear of the HUD's scale indicator, which owns the bottom-left corner
   { id: "product-structure", x: CHIP_LEFT_EDGE, y: 676, text: "structure -> component" },
   // component (exploded fan)
   { id: "component-identity", x: CHIP_LEFT_EDGE, y: 140, text: "detect > 6 parts" },
-  { id: "component-structure", y: 300, text: "segment · attached-to? E", leadEdge: "left" },
+  { id: "component-structure", y: 300, text: "segment · attached-to? E" },
   { id: "component-quantity", x: CHIP_LEFT_EDGE, y: 560, text: "dims > motor ~ 135 mm" },
   { id: "component-condition", x: CHIP_LEFT_EDGE, y: 690, text: "bearing wear? (unvalidated)" },
   // material (drifted parts)
-  { id: "material-identity", y: 170, text: "steel · ABS · Cu · PCB", leadEdge: "left" },
+  { id: "material-identity", y: 170, text: "steel · ABS · Cu · PCB" },
   { id: "material-quantity", x: CHIP_LEFT_EDGE, y: 140, text: "mass (derived only)", strike: true },
   // the left gutter, under the mass chip: in the right gutter it sat on the
   // drifted motor's corrosion tag
   { id: "material-structure", x: CHIP_LEFT_EDGE, y: 250, text: "structure -> component" },
-  { id: "material-condition", y: 640, text: "corrosion? (unvalidated)", leadEdge: "left" },
+  { id: "material-condition", y: 640, text: "corrosion? (unvalidated)" },
 ];
 
 /** A chip's plate as a frame in viewBox units, or null for an unknown id. The
@@ -179,21 +181,16 @@ function BBox({
 /**
  * One cell's CV annotations, painted on the fan.
  *
- * Every number these draw is illustrative, not a model result, so the whole
- * layer is hidden from the accessibility tree. Fading a group to opacity 0 does
- * not remove it, and a screen reader would otherwise read every chapter's
+ * Every number these draw is illustrative, not a model result, so the svg that
+ * holds them is hidden from the accessibility tree. Fading a group to opacity 0
+ * does not remove it, and a screen reader would otherwise read every chapter's
  * read-outs at once, out of order. The chips carry the real, sourced content.
  * Opacity is the scene's presence (CSS) times `focus`, which isolates the
  * hovered or selected cell.
  */
 function Layer({ scale, focus, children }: { scale: Scale; focus: number; children: ReactNode }) {
   return (
-    // biome-ignore lint/a11y/noAriaHiddenOnFocusable: a plain <g> is not focusable, and these layers hold only decorative shapes and text — the operable chips live outside them
-    <g
-      className="ov-layer"
-      aria-hidden="true"
-      style={{ opacity: `calc(${PRESENCE[scale]} * ${focus})` }}
-    >
+    <g className="ov-layer" style={{ opacity: `calc(${PRESENCE[scale]} * ${focus})` }}>
       {children}
     </g>
   );
@@ -268,13 +265,21 @@ const spokes = (n: number, r0: number, r1: number, cx = 300, cy = 400) =>
   });
 
 // ---- interactive info chip (the control) --------------------------------------------
+/** a viewBox x or y as a percentage of the drawing's box */
+const pctX = (x: number) => `${((x - VIEW.x) / VIEW.w) * 100}%`;
+const pctY = (y: number) => `${((y - VIEW.y) / VIEW.h) * 100}%`;
+
+/**
+ * One cell's chip: a real button laid over the drawing at its viewBox position,
+ * so its text keeps a 13px floor however small the figure gets (see `.cvt-co`).
+ * Left-gutter chips anchor their left edge at `x`; right-gutter chips omit `x`
+ * and anchor their right edge to CHIP_RIGHT_EDGE.
+ */
 function Callout({
   cell,
   x,
   y,
   text,
-  lead,
-  leadEdge = "right",
   strike,
   dim,
   active,
@@ -284,12 +289,10 @@ function Callout({
   onHover,
 }: {
   cell: Cell;
-  /** left edge; omit and the chip anchors its right edge to CHIP_RIGHT_EDGE */
   x?: number;
+  /** the chip's text baseline in viewBox units; the plate is centred 6 above it */
   y: number;
   text: string;
-  lead?: readonly [number, number];
-  leadEdge?: "right" | "left";
   strike?: boolean;
   /** 1, or less while a sibling has focus; times the scene's presence (CSS) */
   dim: number;
@@ -304,63 +307,98 @@ function Callout({
   onHover: (cell: Cell | null) => void;
 }) {
   const letter = VERDICT_LETTER[cell.maturity];
-  const w = chipWidth(text);
-  const X = x ?? CHIP_RIGHT_EDGE - w;
   // The zoom frames are tighter than the chip ring by construction, so while a
   // detail is open most sibling chips sit outside the drawing's frame. A chip the
-  // reader cannot see is not a tab stop: operable implies visible. Its visible
-  // fragment stays clickable, and the selected chip stays focusable so focus has
-  // its opener to return to on close. Centre test, not bbox: a chip half in
+  // reader cannot see is not a tab stop. Its visible fragment stays clickable, so
+  // it stays in the accessibility tree; the selected chip stays focusable so focus
+  // has its opener to return to on close. Centre test, not bbox: a chip half in
   // frame is still a control.
-  const cx = X + w / 2;
+  const plate = chipFrame(cell.id);
+  if (!plate) throw new Error(`no chip layout for ${cell.id}`);
+  const cx = plate.x + plate.w / 2;
+  const cy = plate.y + plate.h / 2;
   const inFrame =
-    !frame || (cx >= frame.x && cx <= frame.x + frame.w && y >= frame.y && y <= frame.y + frame.h);
-  const focusable = active && (selected || inFrame);
+    !frame ||
+    (cx >= frame.x && cx <= frame.x + frame.w && cy >= frame.y && cy <= frame.y + frame.h);
   const hid = `cvt-co-${cell.id}`;
-  const start: readonly [number, number] = leadEdge === "right" ? [w, -6] : [0, -6];
   return (
-    // biome-ignore lint/a11y/useSemanticElements: SVG has no <button>; a role on <g> is the only way to make an in-drawing hotspot operable
-    <g
+    <button
+      type="button"
       id={hid}
       className="cvt-co"
       data-ghost={!!cell.structurallyEmpty}
       data-selected={selected}
-      role="button"
-      tabIndex={focusable ? 0 : -1}
+      // another scene's chip is faded out: neither seen, operable nor announced
+      inert={!active}
+      tabIndex={selected || inFrame ? 0 : -1}
       // starts with what the chip shows, so a voice user can say what they see
       aria-label={`${letter} ${text}. ${cell.scale} · ${cell.informationType}: ${taskName(cell)}. Maturity: ${maturityName(cell)}. Open details.`}
-      aria-hidden={!focusable}
-      transform={`translate(${X} ${y})`}
       style={{
-        opacity: `calc(${PRESENCE[cell.scale]} * ${dim})`,
-        pointerEvents: active ? undefined : "none",
+        top: pctY(y - 6),
+        ...(x === undefined
+          ? { right: `${((VIEW.x + VIEW.w - CHIP_RIGHT_EDGE) / VIEW.w) * 100}%` }
+          : { left: pctX(x) }),
+        // the plate stays opaque over its leader; a sibling's dimming fades only
+        // what is on the plate (`--dim` in CSS)
+        opacity: PRESENCE[cell.scale],
+        "--dim": dim,
         "--hue": SCALE_VAR[cell.scale],
       }}
       onClick={() => onSelect(cell, hid)}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onSelect(cell, hid);
-        }
-      }}
       onMouseEnter={() => onHover(cell)}
       onMouseLeave={() => onHover(null)}
       onFocus={() => onHover(cell)}
       onBlur={() => onHover(null)}
     >
-      {lead && (
-        <line className="ov-leader" x1={start[0]} y1={start[1]} x2={lead[0] - X} y2={lead[1] - y} />
-      )}
-      <rect className="cvt-co-bg" x="0" y="-23" width={w} height={CHIP_H} rx="8" />
-      <VerdictSwatch verdict={cell.maturity} size={21} x={9} y={-17} />
-      <text className="cvt-co-letter" x="35" y="1">
-        {letter}
-      </text>
-      <text className="cvt-co-text" x={CHIP_TEXT_X} y="0" fontSize={CHIP_FONT}>
+      <VerdictSwatch verdict={cell.maturity} />
+      <b className="cvt-co-letter">{letter}</b>
+      <span className="cvt-co-text" data-strike={strike || undefined}>
         {text}
-      </text>
-      {strike && <line className="ov-strike" x1={CHIP_TEXT_X - 2} y1="-5" x2={w - 9} y2="-5" />}
-    </g>
+      </span>
+    </button>
+  );
+}
+
+/** Where each scene's drop stands: its top-left corner and height, in viewBox
+ *  units, clear of the scene's chips and read-outs. */
+const DROP_AT: Partial<Record<Scale, { x: number; y: number; h: number }>> = {
+  Product: { x: -95, y: 230, h: 290 },
+  Component: { x: 470, y: 420, h: 280 },
+};
+
+/** "~82%" → 0.82 */
+const share = (pct: string) => Number.parseFloat(pct.replace("~", "")) / 100;
+
+/**
+ * A scene's claim drawn on the fan: a 0–100% scale with the share that worked
+ * before and after, and the lost share hatched between them. The claim is the
+ * scene's heading too, so this is hidden from assistive tech.
+ */
+function Drop({ scale }: { scale: Scale }) {
+  const d = SCENE_DROP[scale];
+  const at = DROP_AT[scale];
+  if (!d || !at) return null;
+  return (
+    <div
+      className="cvt-drop"
+      aria-hidden="true"
+      style={{
+        left: pctX(at.x),
+        top: pctY(at.y),
+        height: `${(at.h / VIEW.h) * 100}%`,
+        opacity: PRESENCE[scale],
+        "--from": share(d.from),
+        "--to": share(d.to),
+        "--hue": SCALE_VAR[scale],
+      }}
+    >
+      <span className="cvt-drop-mark" style={{ "--v": share(d.from) }}>
+        <b>{d.from}</b> {d.fromLabel}
+      </span>
+      <span className="cvt-drop-mark" style={{ "--v": share(d.to) }}>
+        <b>{d.to}</b> {d.toLabel}
+      </span>
+    </div>
   );
 }
 
@@ -586,17 +624,14 @@ export function Fan({
         </g>
       </svg>
 
-      {/* biome-ignore lint/a11y/noSvgWithoutTitle: named by aria-label; on the phone it holds only hidden read-outs */}
       <svg
         className="cvt-fan-marks"
         viewBox={viewBox}
         preserveAspectRatio="xMidYMid meet"
-        role={compact ? undefined : "group"}
-        aria-label={compact ? undefined : "Task chips"}
-        aria-hidden={compact || undefined}
+        aria-hidden="true"
       >
         {/* ---- CV annotations painted on the product. Every read-out here is a
-               mock, kept out of the accessibility tree by <Layer>. ---- */}
+               mock, so the whole svg is out of the accessibility tree. ---- */}
         {/* product · identity: whole-object detection box + OCR read-out on the label */}
         <Layer scale="Product" focus={deco("product-identity")}>
           <BBox
@@ -754,15 +789,40 @@ export function Fan({
           />
         </Layer>
 
-        {/* ---- floating info chips (the controls), one chapter at a time.
-               Left-gutter chips anchor to CHIP_LEFT_EDGE, right-gutter chips omit
-               `x` and anchor to CHIP_RIGHT_EDGE. ---- */}
+        {/* each chip's leader runs from its part to the chip's anchored edge,
+            under the chip's opaque plate, so it meets the chip wherever the
+            plate ends at the chip's font size */}
         {compact
           ? null
-          : CHIP_LAYOUT.map(({ id, ...chip }) => (
-              <Callout key={id} {...co(id)} {...chip} lead={LEADS[id]} />
-            ))}
+          : CHIP_LAYOUT.map(({ id, x, y }) => {
+              const lead = LEADS[id];
+              if (!lead) return null;
+              const c = cell(id);
+              return (
+                <line
+                  key={id}
+                  className="ov-leader"
+                  x1={lead[0]}
+                  y1={lead[1]}
+                  x2={x ?? CHIP_RIGHT_EDGE - 4}
+                  y2={y - 6}
+                  style={{ opacity: PRESENCE[c.scale] }}
+                />
+              );
+            })}
       </svg>
+
+      {/* ---- the chips (the controls), one scene at a time ---- */}
+      {compact ? null : (
+        <div className="cvt-chips">
+          {(Object.keys(DROP_AT) as Scale[]).map((s) => (
+            <Drop key={s} scale={s} />
+          ))}
+          {CHIP_LAYOUT.map(({ id, ...chip }) => (
+            <Callout key={id} {...co(id)} {...chip} />
+          ))}
+        </div>
+      )}
     </figure>
   );
 }

@@ -29,7 +29,10 @@ shows the kinds of output computer vision produces:
 - flags on possible damage, for Condition
 - material labels, at the Material scale
 
-These read-outs are simulated. No model was run on the drawing.
+These read-outs are simulated. No model was run on the drawing. Two scenes also
+draw a real finding from the paper, as a measuring scale beside the fan. Label
+reading falls from 95.7% on repair photos to 39.7% at the recycler. Mapping how
+parts connect falls from ~82% to ~39% on new objects.
 
 The page has five scenes: the opening, one per scale, and the map. The scroll
 moves the fan in CSS alone (scroll-driven animations). A browser without them,
@@ -40,13 +43,16 @@ its cell. Click it to see the task, the verdict, where it fails, an example, the
 rubric marks and the sources. With a detail open, the arrow keys step to the
 next cell: within the scale on the fan, or across the whole map at the end.
 
-On a phone, the drawing stays at the top of the screen while the text scrolls
-under it, and each scene lists its cells as buttons.
+On a phone or tablet (a page under 1180px wide), the drawing stays at the top of
+the screen while the text scrolls under it, and each scene lists its cells as
+buttons.
 
 The last screen shows all twelve cells as a 3 × 4 grid. Every cell can be
 clicked, and a **Plain table** button shows the same data as a table. Hatching
 marks the two structurally empty cells, which have no verdict. No task reaches
-Strong on field photos.
+Strong on field photos. Under each block, the cell says what it is missing, in
+the paper's three kinds: no shared taxonomy yet, no method yet, or short on field
+photos.
 
 ## Data is the source of truth
 
@@ -64,7 +70,8 @@ Maturity uses ink weight and letters, not colour: S is darkest, U is lightest,
 and A is hollow for no data.
 
 Textures preserve the ranks in `forced-colors` mode and print: solid = S, diagonal
-hatch = P, dots = E, ring = U, and dashed hollow = A.
+hatch = P, dots = E, ring = U, and dashed hollow = A. In `forced-colors` mode the
+drawing's lines follow the system text colour.
 
 Colour indicates physical scale. The triad uses the colourblind-safe Okabe–Ito
 palette, with material tints for copper, steel, ABS, and PCB.
@@ -72,8 +79,10 @@ palette, with material tints for copper, steel, ABS, and PCB.
 Segmentation masks and boxes include class labels, so identity does not depend on
 colour. Their hues follow COCO/YOLO conventions and adapt to the theme.
 
-SVG read-outs, matrix cells, and mobile rows are keyboard-operable controls with
-accessible labels. The detail view is a dialog that closes with `Esc`.
+The labels on the fan, the matrix cells and the phone's cell lists are buttons
+with accessible names. Their text, and all body text, is at least 13px. Only the
+simulated read-outs on the drawing scale down with it. The detail view closes
+with `Esc`.
 
 `prefers-reduced-motion` stops the idle spin, and the fan then jumps between its
 poses instead of moving with the scroll; only the read-outs fade. The page

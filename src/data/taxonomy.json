@@ -137,7 +137,8 @@
         "liEnhancedAutomaticCosmetic2021",
         "ctiacertificationWirelessDeviceGrading2019"
       ],
-      "sourceStatus": "Published"
+      "sourceStatus": "Published",
+      "gaps": ["ontology-bound"]
     },
     {
       "id": "component-identity",
@@ -191,7 +192,8 @@
         {
           "label": "BoC attachment relations",
           "maturity": "Emerging-but-narrow",
-          "rubricMarks": "N · ✗ᵘ · ✗"
+          "rubricMarks": "N · ✗ᵘ · ✗",
+          "gaps": ["ontology-bound"]
         }
       ],
       "rubricMarks": "detect/seg B · ✗ᵃ · ✗; relations N · ✗ᵘ · ✗",
@@ -228,7 +230,8 @@
         "ishikuraIndustrialGradeRobustRobot2026",
         "sutradharComputerComponentDisassembly2025"
       ],
-      "sourceStatus": "Mixed"
+      "sourceStatus": "Mixed",
+      "gaps": ["ontology-bound"]
     },
     {
       "id": "material-identity",
@@ -250,7 +253,8 @@
         "vogelgesangAutomatedMaterialFlow2025",
         "chedotelAutomatingInventoryLife2026"
       ],
-      "sourceStatus": "Mixed"
+      "sourceStatus": "Mixed",
+      "gaps": ["method-bound"]
     },
     {
       "id": "material-quantity",
@@ -296,7 +300,8 @@
       "failureMode": "Domain shift (a change of setting) and clutter hurt. No method grades the condition of each region with validation.",
       "example": "Surface segmentation (Li et al. 2024, MaterialSeg3D); particle segmentation for size monitoring of crushed aggregates, on simulated images (Y. Zhou et al. 2025, ParticleSAM).",
       "citations": ["liMaterialSeg3DSegmentingDense2024", "zhouParticleSAMSmallParticle2025"],
-      "sourceStatus": "Preprint"
+      "sourceStatus": "Preprint",
+      "gaps": ["ontology-bound"]
     }
   ]
 }

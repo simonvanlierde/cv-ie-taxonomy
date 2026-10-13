@@ -28,7 +28,17 @@ export const CHAPTER_COPY: Record<Scale, { title: string; body: string }> = {
   },
 };
 
-const cap = (s = "") => s.charAt(0).toUpperCase() + s.slice(1);
+/** The drop a scale scene draws on the fan as a measuring scale, from its claim.
+ *  Like the prose, every figure must appear in that scale's cell notes
+ *  (chapters.test.ts). */
+export const SCENE_DROP: Partial<
+  Record<Scale, { from: string; fromLabel: string; to: string; toLabel: string }>
+> = {
+  Product: { from: "95.7%", fromLabel: "repair photos", to: "39.7%", toLabel: "at the recycler" },
+  Component: { from: "~82%", fromLabel: "familiar objects", to: "~39%", toLabel: "new objects" },
+};
+
+export const cap = (s = "") => s.charAt(0).toUpperCase() + s.slice(1);
 const NUMBER_WORD = [
   "no",
   "one",

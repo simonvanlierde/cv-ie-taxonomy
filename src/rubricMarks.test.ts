@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { cells, splitOf } from "./data/taxonomy";
-import { runsOf } from "./rubricMarks";
+import { cellGapTexts, gapsOf, runsOf } from "./rubricMarks";
 
 const byId = (id: string) => {
   const c = cells.find((x) => x.id === id);
@@ -62,5 +62,48 @@ describe("edge cases", () => {
     const base = byId("component-structure");
     const reversed = { ...base, subVerdicts: [...(base.subVerdicts ?? [])].reverse() };
     expect(splitOf(reversed)).toEqual(["Partial", "Emerging-but-narrow"]);
+  });
+});
+
+// Every row's gap kinds as the paper states them (§3.2.1–3.2.3 and Table 2), in
+// the paper's own order. A change to the marks or the stored kinds that moves
+// any row away from the paper fails here.
+const PAPER_GAPS: Record<string, string[][]> = {
+  "product-identity": [["field:measured"]],
+  "product-quantity": [["field:untested"]],
+  "product-structure": [],
+  "product-condition": [["ontology", "field:untested"]],
+  "component-identity": [["field:inferred"]],
+  "component-quantity": [["field:untested"]],
+  "component-structure": [["field:inferred"], ["ontology", "field:untested"]],
+  "component-condition": [["ontology"]],
+  "material-identity": [["method", "field:inferred"]],
+  "material-quantity": [["derived"]],
+  "material-structure": [],
+  "material-condition": [["ontology"]],
+};
+
+describe("gap kinds", () => {
+  it.each(Object.entries(PAPER_GAPS))("%s carries the paper's gaps", (id, expected) => {
+    const got = gapsOf(byId(id)).map((row) =>
+      row.gaps.map((g) => (g.kind === "field" ? `field:${g.basis}` : g.kind)),
+    );
+    expect(got).toEqual(expected);
+  });
+});
+
+describe("the matrix's gap words", () => {
+  it("joins a compound cell's field gaps into one phrase, after the other kinds", () => {
+    expect(cellGapTexts(byId("component-structure"))).toEqual([
+      "no shared taxonomy yet",
+      "likely short or not tried on field photos",
+    ]);
+    expect(cellGapTexts(byId("product-identity"))).toEqual(["fell short on field photos"]);
+    expect(cellGapTexts(byId("product-structure"))).toEqual([]);
+    // the paper's method gap is only the composition a camera cannot see
+    expect(cellGapTexts(byId("material-identity"))).toEqual([
+      "no method for what's hidden",
+      "likely short on field photos",
+    ]);
   });
 });

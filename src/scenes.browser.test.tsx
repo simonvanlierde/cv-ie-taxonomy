@@ -79,3 +79,50 @@ describe("the scenes, on real scrolling", () => {
     });
   });
 });
+
+describe("the chips on the sheet", () => {
+  // what is on screen: the scene's chips and its drop, once the fades settle
+  const boxes = async () => {
+    await Promise.all(
+      document
+        .getAnimations()
+        .filter(
+          (a) => a.timeline === document.timeline && a.effect?.getTiming().iterations !== Infinity,
+        )
+        .map((a) => a.finished.catch(() => undefined)),
+    );
+    return [...document.querySelectorAll<HTMLElement>(".cvt-chips .cvt-co, .cvt-drop")]
+      .filter((el) => Number(getComputedStyle(el).opacity) > 0.5)
+      .map((el) => ({ el, r: el.getBoundingClientRect() }));
+  };
+  const overlap = (a: DOMRect, b: DOMRect) =>
+    a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+
+  it.each([
+    [1200, 800],
+    [1440, 900],
+  ])("keep a 13px floor and stay clear of each other at %ipx", async (w, h) => {
+    await page.viewport(w, h);
+    for (const chapter of ["Product", "Component", "Material"] as const) {
+      const { unmount } = render(<CvTaxonomy debugChapter={chapter} />);
+      await vi.waitFor(() => expect(scroller().dataset.layout).toBe("sheet"));
+      const shown = await boxes();
+      expect(shown.length, chapter).toBeGreaterThan(0);
+      // the chip font follows the figure (14.5 of its 800 units) with a 13px floor;
+      // a stray `font: inherit` that beat the rule would give the page's 15px
+      const figure = (document.querySelector(".cvt-stage") as HTMLElement).clientWidth;
+      const expected = Math.max(13, (figure * 14.5) / 800);
+      for (const { el } of shown.filter(({ el }) => el.matches(".cvt-co"))) {
+        expect(Number.parseFloat(getComputedStyle(el).fontSize), el.id).toBeCloseTo(expected, 0);
+      }
+      for (const [i, a] of shown.entries()) {
+        for (const b of shown.slice(i + 1)) {
+          expect(overlap(a.r, b.r), `${chapter}: ${a.el.id || "drop"} × ${b.el.id || "drop"}`).toBe(
+            false,
+          );
+        }
+      }
+      unmount();
+    }
+  });
+});

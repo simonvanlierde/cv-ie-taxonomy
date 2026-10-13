@@ -14,10 +14,16 @@ export type Verdict =
 
 export type SourceStatus = "Published" | "Preprint" | "Mixed" | "n/a";
 
+/** The gap kinds the paper names but the rubric marks cannot show (§2.3.2):
+ *  no shared vocabulary to label or score against, or no method family at all.
+ *  Field-bound gaps are read off the marks (see gapsOf in rubricMarks.ts). */
+export type StoredGap = "ontology-bound" | "method-bound";
+
 export interface SubVerdict {
   label: string;
   maturity: Verdict;
   rubricMarks: string;
+  gaps?: StoredGap[];
 }
 
 export interface Cell {
@@ -38,6 +44,8 @@ export interface Cell {
   sourceStatus: SourceStatus;
   /** Product·Structure and Material·Structure: resolved at component scale. */
   structurallyEmpty?: boolean;
+  /** for a cell without sub-verdicts; a compound cell keeps them per sub-verdict */
+  gaps?: StoredGap[];
 }
 
 export interface MaturityLevel {

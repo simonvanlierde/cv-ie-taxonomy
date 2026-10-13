@@ -21,7 +21,7 @@ must("../src/CvTaxonomy.css", `background-color: ${SURFACE.light};`);
 must("../src/CvTaxonomy.css", `background-color: ${SURFACE.dark};`);
 
 // the layout fork: container queries cannot read the TS constant, so the CSS
-// hard-codes it — fail if either side of the 881px seam drifts from theme.ts
+// hard-codes it — fail if either side of the layout seam drifts from theme.ts
 must("../src/CvTaxonomy.css", `(width >= ${BREAKPOINT_PX}px)`);
 must("../src/CvTaxonomy.css", `(width < ${BREAKPOINT_PX}px)`);
 

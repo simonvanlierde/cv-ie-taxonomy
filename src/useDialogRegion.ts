@@ -156,9 +156,10 @@ export function useDialogRegion({
       document.removeEventListener("click", onOutsideClick);
       document.removeEventListener("focusin", onFocusIn);
       const opener = returnTo.current ? document.getElementById(returnTo.current) : null;
-      // a callout that has since left the stage is tabindex -1 and aria-hidden;
-      // focusing it would put a screen reader on nothing
-      const operable = opener && opener.getAttribute("tabindex") !== "-1";
+      // a callout that has since left the stage is inert or out of the tab
+      // order; focusing it would put a screen reader on nothing
+      const operable =
+        opener && !opener.closest("[inert]") && opener.getAttribute("tabindex") !== "-1";
       // Restore when focus was ours to give back: either still inside the region,
       // or already dropped to <body> because the region has just been removed
       // from the DOM. If the reader has moved focus somewhere else entirely,

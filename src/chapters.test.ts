@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CHAPTER_COPY, FIELD_SPLIT } from "./chapters";
+import { CHAPTER_COPY, FIELD_SPLIT, SCENE_DROP } from "./chapters";
 import { cells, SCALES } from "./data/taxonomy";
 
 /**
@@ -29,6 +29,24 @@ describe("chapter prose is backed by taxonomy.json", () => {
       );
     }
   });
+
+  it("draws a drop for the Product and Component scenes only", () => {
+    expect(Object.keys(SCENE_DROP).sort()).toEqual(["Component", "Product"]);
+  });
+
+  it.each(["Product", "Component"] as const)(
+    "every figure the %s scene draws appears in its notes",
+    (scale) => {
+      const drop = SCENE_DROP[scale];
+      if (!drop) throw new Error(`no drop for ${scale}`);
+      const notes = cells
+        .filter((c) => c.scale === scale)
+        .map((c) => c.maturityNote)
+        .join(" ");
+      expect(notes).toContain(drop.from);
+      expect(notes).toContain(drop.to);
+    },
+  );
 
   it("the Product chapter cites the label-read collapse, not a rounded version of it", () => {
     // 95.7 → 39.7 is the paper's repair-to-recycler drop; 96 → 40 would be a
