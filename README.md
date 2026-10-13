@@ -12,9 +12,6 @@ et al., [citation: forthcoming]). It shows what cameras and image software
 (computer vision) can tell about a used product, and how far you can trust each
 answer.
 
-The page is a self-contained React and TypeScript component. It runs on its own
-or inside an Astro or Next site.
-
 ![A desk fan drawn as a cyanotype teardown, ringed by computer-vision read-outs](public/screenshot.png)
 
 **[▶ Open the live demo](https://simonvanlierde.github.io/cv-ie-taxonomy/)**
@@ -34,17 +31,22 @@ shows the kinds of output computer vision produces:
 
 These read-outs are simulated. No model was run on the drawing.
 
+The page has five scenes: the opening, one per scale, and the map. The scroll
+moves the fan in CSS alone (scroll-driven animations). A browser without them,
+or a reader who asks for reduced motion, sees each scene's finished state.
+
 Each label on the fan opens one cell of the map. Hover over a label to pick out
 its cell. Click it to see the task, the verdict, where it fails, an example, the
 rubric marks and the sources. With a detail open, the arrow keys step to the
 next cell: within the scale on the fan, or across the whole map at the end.
 
-On a phone, the story runs as full-screen pages with a sheet that folds away.
+On a phone, the drawing stays at the top of the screen while the text scrolls
+under it, and each scene lists its cells as buttons.
 
 The last screen shows all twelve cells as a 3 × 4 grid. Every cell can be
 clicked, and a **Plain table** button shows the same data as a table. Hatching
 marks the two structurally empty cells, which have no verdict. No task reaches
-Strong under end-of-life capture.
+Strong on field photos.
 
 ## Data is the source of truth
 
@@ -73,8 +75,10 @@ colour. Their hues follow COCO/YOLO conventions and adapt to the theme.
 SVG read-outs, matrix cells, and mobile rows are keyboard-operable controls with
 accessible labels. The detail view is a dialog that closes with `Esc`.
 
-`prefers-reduced-motion` disables the idle spin and scroll smoothing. The island
-follows the colour scheme, or the host can force a theme.
+`prefers-reduced-motion` stops the idle spin, and the fan then jumps between its
+poses instead of moving with the scroll; only the read-outs fade. The page
+follows the colour scheme: paper white in light mode, the blue cyanotype sheet
+in dark mode. `?theme=dark|light` forces one.
 
 ## Develop
 
@@ -92,30 +96,14 @@ restore, `inert`, the top layer, real `ResizeObserver` layout. `pnpm
 test:all` runs both; CI does.
 
 Demo deep links: `?cell=component-structure` opens a detail, `?theme=dark|light`
-forces a theme, and `?p=0.56` pins scroll progress for screenshots. Cell ids are
+forces a theme, and `?scene=2` pins a scene for screenshots (0 is the opening,
+4 the map). Cell ids are
 `<scale>-<information type>` in lower case, e.g. `material-quantity`; invalid
 values are ignored.
 
 Requires Node 26 or later. `pnpm test:browser` needs Chromium once:
 `pnpm exec playwright install chromium`. CI also runs `pnpm check` (Biome) and
 `pnpm check:theme`, which fails if a surface colour in CSS or HTML differs from `src/theme.ts`.
-
-## Embed as an island
-
-The package is not published. Copy `src/` (without the tests) into the host
-project and import the component; it imports its own stylesheet and fonts, so the
-host bundler needs to handle CSS and `.woff2` imports.
-
-```astro
----
-import { CvTaxonomy } from "../cv-ie-taxonomy/CvTaxonomy";
----
-<CvTaxonomy client:visible />
-```
-
-Optional props: `theme: "light" | "dark"` forces a theme over the media-query
-default; `initialCell: string` opens a cell's detail on load. `debugProgress` is
-for development only.
 
 ## Assumptions
 

@@ -1,18 +1,13 @@
 /** Demo-shell URL params. Kept out of main.tsx so they can be tested. */
 
-import { clamp01 } from "./timeline";
+import type { Chapter } from "./frames";
 
-/**
- * `?p=0.5` pins scroll progress for screenshots.
- *
- * `?p=abc` is NaN, and `NaN ?? scrollP` keeps the NaN (?? only guards null and
- * undefined) — it then flows through every SVG transform and blanks the fan with
- * no error. Only a finite value, clamped to the 0..1 the timeline expects, passes.
- */
-export function parseProgress(raw: string | null): number | undefined {
-  // `?p=` with no value: Number("") is 0, which would silently pin the fan at
-  // the hero rather than scrolling. An empty param means "not set".
-  if (raw === null || raw.trim() === "") return undefined;
-  const p = Number(raw);
-  return Number.isFinite(p) ? clamp01(p) : undefined;
+/** The five scenes in reading order: `?scene=0` is the opening, `?scene=4` the map. */
+export const SCENES: readonly Chapter[] = ["hero", "Product", "Component", "Material", "outro"];
+
+/** `?scene=2` pins the page to a scene for screenshots. Anything but a whole
+ *  number 0–4 is ignored, so a typo leaves the page scrolling normally. */
+export function parseScene(raw: string | null): Chapter | undefined {
+  if (raw === null || !/^[0-4]$/.test(raw.trim())) return undefined;
+  return SCENES[Number(raw)];
 }

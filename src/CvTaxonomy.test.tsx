@@ -1,11 +1,10 @@
-import { act, render, screen, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { CvTaxonomy, frameFor, Outro, withViewTransition } from "./CvTaxonomy";
+import { CvTaxonomy, cameraTransform, frameFor, Outro, withViewTransition } from "./CvTaxonomy";
 import { cellById } from "./data/taxonomy";
-import { CHAPTER_FRAMES, frameToViewBox, VIEW } from "./frames";
+import { CHAPTER_FRAMES, VIEW } from "./frames";
 import { matchMediaStub } from "./test-helpers";
-import { plateauCentre } from "./timeline";
 
 /**
  * The detail is an enlargement drawn on the sheet, not a <dialog>: on desktop it
@@ -16,17 +15,16 @@ import { plateauCentre } from "./timeline";
  */
 
 /** the fan's callout chips are the desktop controls, id `cvt-co-<cellId>`; a chip is
- *  operable only while its scale's chapter is on stage, so tests that click one
- *  pin the scroll to that chapter's plateau via `debugProgress` */
+ *  operable only while its scale's scene is on stage, so tests that click one
+ *  pin that scene via `debugChapter` */
 const trigger = (cellId: string) => document.getElementById(`cvt-co-${cellId}`) as HTMLElement;
-const onStage = (scale: "Product" | "Component" | "Material") => plateauCentre(scale);
 
 describe("detail on the sheet (desktop)", () => {
   const detail = () => screen.findByRole("complementary", { name: /component · identity/i });
 
   it("opens on a cell click, and shows that cell's verdict", async () => {
     const user = userEvent.setup();
-    render(<CvTaxonomy debugProgress={onStage("Component")} />);
+    render(<CvTaxonomy debugChapter="Component" />);
 
     expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
 
@@ -39,7 +37,7 @@ describe("detail on the sheet (desktop)", () => {
 
   it("moves focus into the detail when it opens", async () => {
     const user = userEvent.setup();
-    render(<CvTaxonomy debugProgress={onStage("Component")} />);
+    render(<CvTaxonomy debugChapter="Component" />);
 
     await user.click(trigger("component-identity"));
     expect(await detail()).toHaveFocus();
@@ -47,7 +45,7 @@ describe("detail on the sheet (desktop)", () => {
 
   it("does not trap focus: the sheet it is drawn on stays usable", async () => {
     const user = userEvent.setup();
-    render(<CvTaxonomy debugProgress={onStage("Component")} />);
+    render(<CvTaxonomy debugChapter="Component" />);
 
     await user.click(trigger("component-identity"));
     const region = await detail();
@@ -64,7 +62,7 @@ describe("detail on the sheet (desktop)", () => {
 
   it("ignores Esc while focus is elsewhere on the sheet: two details can be open at once, and one keypress must not close both", async () => {
     const user = userEvent.setup();
-    render(<CvTaxonomy debugProgress={onStage("Component")} />);
+    render(<CvTaxonomy debugChapter="Component" />);
 
     await user.click(trigger("component-identity"));
     await detail();
@@ -75,7 +73,7 @@ describe("detail on the sheet (desktop)", () => {
 
   it("closes on Esc, landing focus back on the cell that opened it", async () => {
     const user = userEvent.setup();
-    render(<CvTaxonomy debugProgress={onStage("Component")} />);
+    render(<CvTaxonomy debugChapter="Component" />);
 
     await user.click(trigger("component-identity"));
     await detail();
@@ -91,7 +89,7 @@ describe("detail on the sheet (desktop)", () => {
 
   it("closes on the detail's own close button", async () => {
     const user = userEvent.setup();
-    render(<CvTaxonomy debugProgress={onStage("Material")} />);
+    render(<CvTaxonomy debugChapter="Material" />);
 
     await user.click(trigger("material-identity"));
     const region = await screen.findByRole("complementary", { name: /material · identity/i });
@@ -103,7 +101,7 @@ describe("detail on the sheet (desktop)", () => {
 
   it("steps to a sibling cell of the same chapter on ArrowRight while the detail has focus", async () => {
     const user = userEvent.setup();
-    render(<CvTaxonomy debugProgress={onStage("Material")} />);
+    render(<CvTaxonomy debugChapter="Material" />);
 
     await user.click(trigger("material-identity"));
     const region = await screen.findByRole("complementary", { name: /material · identity/i });
@@ -118,7 +116,7 @@ describe("detail on the sheet (desktop)", () => {
 
   it("closes on the browser's Back", async () => {
     const user = userEvent.setup();
-    render(<CvTaxonomy debugProgress={onStage("Material")} />);
+    render(<CvTaxonomy debugChapter="Material" />);
 
     await user.click(trigger("material-identity"));
     await screen.findByRole("complementary", { name: /material · identity/i });
@@ -135,7 +133,7 @@ describe("detail on the sheet (desktop)", () => {
 
   it("keeps one history entry however many details are opened and closed with ×", async () => {
     const user = userEvent.setup();
-    render(<CvTaxonomy debugProgress={onStage("Material")} />);
+    render(<CvTaxonomy debugChapter="Material" />);
     const lengths: number[] = [];
 
     for (let i = 0; i < 3; i++) {
@@ -150,13 +148,13 @@ describe("detail on the sheet (desktop)", () => {
 
   it("closes on a press on the sheet outside it, but not on a press on a control", async () => {
     const user = userEvent.setup();
-    const { container } = render(<CvTaxonomy debugProgress={onStage("Material")} />);
+    const { container } = render(<CvTaxonomy debugChapter="Material" />);
 
     await user.click(trigger("material-identity"));
     const region = await screen.findByRole("complementary", { name: /material · identity/i });
 
     // a control outside is that control's business: a chapter stop navigates
-    const chapters = screen.getByRole("list", { name: /physical scale chapters/i });
+    const chapters = screen.getByRole("navigation", { name: "Scenes" });
     await user.click(within(chapters).getByRole("button", { name: /^component$/i }));
     expect(screen.getByRole("complementary")).toBeInTheDocument();
 
@@ -172,7 +170,7 @@ describe("detail on the sheet (desktop)", () => {
     // Act one's docked detail and act two's inline one can be open together, so
     // a background press must be scoped the way Esc is: one press, one close.
     const user = userEvent.setup();
-    const { container } = render(<CvTaxonomy debugProgress={onStage("Material")} />);
+    const { container } = render(<CvTaxonomy debugChapter="Material" />);
 
     await user.click(trigger("material-identity"));
     await screen.findByRole("complementary", { name: /material · identity/i });
@@ -195,7 +193,7 @@ describe("detail on the sheet (desktop)", () => {
   });
 
   it("defines EoL before source copy uses the abbreviation", async () => {
-    render(<CvTaxonomy initialCell="product-identity" debugProgress={onStage("Product")} />);
+    render(<CvTaxonomy initialCell="product-identity" debugChapter="Product" />);
 
     const region = await screen.findByRole("complementary", { name: /product · identity/i });
     expect(region.querySelector(".cvt-term-note")).toHaveTextContent(
@@ -220,7 +218,7 @@ describe("detail on the sheet (desktop)", () => {
     // a deep link has no opener to return to; the cell's chip stands in, and
     // the link has scrolled its chapter on stage so the chip is operable
     const user = userEvent.setup();
-    render(<CvTaxonomy initialCell="material-quantity" debugProgress={onStage("Material")} />);
+    render(<CvTaxonomy initialCell="material-quantity" debugChapter="Material" />);
     const region = await screen.findByRole("complementary", { name: /material · quantity/i });
     region.focus();
     await user.keyboard("{Escape}");
@@ -252,39 +250,30 @@ describe("detail as a sheet (mobile)", () => {
     expect(dialog.contains(document.activeElement)).toBe(true);
   });
 
-  it("keeps the reader's step across the layout seam", async () => {
-    // The seam unmounts the stepper on an ordinary resize — a desktop window
-    // dragged narrow and back, a tablet turned mid-read. The position is the
-    // parent's, so re-crossing restores it instead of restarting at step 0.
+  it("lists each scene's cells as buttons, since the phone's fan has no chips", async () => {
     mobile();
     const user = userEvent.setup();
-    const { container, rerender } = render(<CvTaxonomy />);
+    const { container } = render(<CvTaxonomy />);
+    expect(container.querySelector(".cvt-co")).toBeNull();
 
-    await user.click(container.querySelector(".cvt-stepper-next") as HTMLButtonElement);
-    expect(screen.getByRole("status")).toHaveTextContent("Product · 2/5");
-
-    window.matchMedia = matchMediaStub(() => false); // widened past the seam
-    rerender(<CvTaxonomy />);
-    expect(container.querySelector(".cvt-stepper")).toBeNull();
-
-    mobile(); // and back
-    rerender(<CvTaxonomy />);
-    expect(screen.getByRole("status")).toHaveTextContent("Product · 2/5");
+    const product = container.querySelector("#cvt-ch-Product") as HTMLElement;
+    await user.click(within(product).getByRole("button", { name: /^Product · Identity/ }));
+    expect(await screen.findByRole("dialog", { name: /product · identity/i })).toBeInTheDocument();
   });
 
-  it("takes the stepper behind it out of the accessibility tree while it is open", async () => {
+  it("takes the scenes behind it out of the accessibility tree while it is open", async () => {
     // The trap only catches Tab and focus; a browse cursor walks the DOM. `inert`
-    // is what actually removes the stepper's controls from behind the sheet.
+    // is what actually removes the scenes' controls from behind the sheet.
     mobile();
     const user = userEvent.setup();
     const { container } = render(<CvTaxonomy initialCell="component-identity" />);
-    const stepper = container.querySelector(".cvt-stepper") as HTMLElement;
+    const scenes = container.querySelector(".cvt-scroll") as HTMLElement;
 
     const dialog = await screen.findByRole("dialog");
-    expect(stepper).toHaveAttribute("inert");
+    expect(scenes).toHaveAttribute("inert");
 
     await user.click(within(dialog).getByRole("button", { name: /close details/i }));
-    expect(stepper).not.toHaveAttribute("inert");
+    expect(scenes).not.toHaveAttribute("inert");
   });
 
   it("pulls focus back when something outside it takes focus", async () => {
@@ -298,7 +287,7 @@ describe("detail as a sheet (mobile)", () => {
 });
 
 describe("theme has a single owner", () => {
-  it("follows the host prop, and keeps following it when the host changes it", () => {
+  it("follows the theme prop, and keeps following it when it changes", () => {
     const { container, rerender } = render(<CvTaxonomy theme="light" />);
     const island = () => container.querySelector(".cvt");
 
@@ -334,9 +323,8 @@ describe("theme has a single owner", () => {
     expect(document.documentElement).not.toHaveAttribute("data-theme");
   });
 
-  // There is no in-page theme control: both grounds are the same cyanotype, one
-  // printed and one nearly burnt out, so there is nothing for a reader to choose
-  // between. The host's prop wins, and without one the OS decides.
+  // There is no in-page theme control: `?theme=` wins, and without it the OS
+  // decides.
   it("offers no theme control", () => {
     render(<CvTaxonomy theme="light" />);
     expect(screen.queryByRole("button", { name: /theme/i })).not.toBeInTheDocument();
@@ -349,73 +337,78 @@ function forceReducedMotion() {
   window.matchMedia = matchMediaStub((query) => query.includes("prefers-reduced-motion"));
 }
 
+/** the camera, as the transform it sets on the drawing's box */
+const camera = (container: HTMLElement) =>
+  (container.querySelector(".cvt-cam") as HTMLElement).style.transform;
+
 describe("camera framing (desktop)", () => {
   // The camera holds the chapter's own frame, not the envelope of every chapter:
   // the hero's fan is assembled and unannotated, so VIEW drew it small inside a
   // frame sized for parts that have not moved yet.
-  it("starts framed on the product itself, not on the whole envelope", () => {
+  it("starts framed on the product itself, not on the whole envelope", async () => {
     forceReducedMotion();
     const { container } = render(<CvTaxonomy />);
-    const fan = container.querySelector(".cvt-fan:not(.cvt-fan-compact)") as SVGSVGElement;
-    expect(fan).toHaveAttribute("viewBox", frameToViewBox(CHAPTER_FRAMES.hero));
+    await waitFor(() => expect(camera(container)).toBe(cameraTransform(CHAPTER_FRAMES.hero)));
   });
 
   it("zooms to a cell's frame when its panel opens, and back home on close", async () => {
     forceReducedMotion();
     const user = userEvent.setup();
     // the zoom holds while the reader is in the cell's own chapter
-    const { container } = render(<CvTaxonomy debugProgress={plateauCentre("Component")} />);
-    const fan = () => container.querySelector(".cvt-fan:not(.cvt-fan-compact)") as SVGSVGElement;
+    const { container } = render(<CvTaxonomy debugChapter="Component" />);
 
     await user.click(trigger("component-quantity"));
     await screen.findByRole("complementary");
-    expect(fan()).toHaveAttribute("viewBox", frameToViewBox(frameFor("component-quantity")));
+    await waitFor(() =>
+      expect(camera(container)).toBe(cameraTransform(frameFor("component-quantity"))),
+    );
 
     await user.keyboard("{Escape}");
-    expect(fan()).toHaveAttribute("viewBox", frameToViewBox(CHAPTER_FRAMES.Component));
+    expect(camera(container)).toBe(cameraTransform(CHAPTER_FRAMES.Component));
   });
 
   it("pulls the camera home once the reader scrolls on to another chapter", async () => {
     forceReducedMotion();
     const user = userEvent.setup();
-    const { container, rerender } = render(
-      <CvTaxonomy debugProgress={plateauCentre("Component")} />,
-    );
-    const fan = () => container.querySelector(".cvt-fan:not(.cvt-fan-compact)") as SVGSVGElement;
+    const { container, rerender } = render(<CvTaxonomy debugChapter="Component" />);
     await user.click(trigger("component-quantity"));
     await screen.findByRole("complementary");
-    expect(fan()).toHaveAttribute("viewBox", frameToViewBox(frameFor("component-quantity")));
+    await waitFor(() =>
+      expect(camera(container)).toBe(cameraTransform(frameFor("component-quantity"))),
+    );
 
     // the sheet is not locked: the next chapter arrives under the docked detail,
     // and its frame would point at parts that have since drifted
-    rerender(<CvTaxonomy debugProgress={plateauCentre("Material")} />);
-    expect(fan()).toHaveAttribute("viewBox", frameToViewBox(CHAPTER_FRAMES.Material));
+    rerender(<CvTaxonomy debugChapter="Material" />);
+    expect(camera(container)).toBe(cameraTransform(CHAPTER_FRAMES.Material));
     expect(screen.getByRole("complementary")).toBeInTheDocument();
   });
 
-  it("mounts a deep link with the camera at home, so the whole drawing is seen first", () => {
-    // not reduced motion: the camera then dives to the part from here
+  it("mounts a deep link with the camera at home, then dives to the part", async () => {
     const { container } = render(
-      <CvTaxonomy initialCell="material-condition" debugProgress={plateauCentre("Material")} />,
+      <CvTaxonomy initialCell="material-condition" debugChapter="Material" />,
     );
-    const fan = container.querySelector(".cvt-fan:not(.cvt-fan-compact)") as SVGSVGElement;
-    expect(fan).toHaveAttribute("viewBox", frameToViewBox(VIEW));
+    expect(camera(container)).toBe(cameraTransform(VIEW));
+    await waitFor(() =>
+      expect(camera(container)).toBe(cameraTransform(frameFor("material-condition"))),
+    );
   });
 
-  it("frames the fan on a cell opened via the initialCell deep link", () => {
+  it("frames the fan on a cell opened via the initialCell deep link", async () => {
     forceReducedMotion();
     const { container } = render(
-      <CvTaxonomy initialCell="material-condition" debugProgress={plateauCentre("Material")} />,
+      <CvTaxonomy initialCell="material-condition" debugChapter="Material" />,
     );
-    const fan = container.querySelector(".cvt-fan:not(.cvt-fan-compact)") as SVGSVGElement;
-    expect(fan).toHaveAttribute("viewBox", frameToViewBox(frameFor("material-condition")));
+    await waitFor(() =>
+      expect(camera(container)).toBe(cameraTransform(frameFor("material-condition"))),
+    );
   });
 });
 
 describe("body scroll lock", () => {
   it("leaves the sheet scrollable under a desktop detail: non-modal in ARIA, non-modal in behaviour", async () => {
     const user = userEvent.setup();
-    render(<CvTaxonomy debugProgress={onStage("Component")} />);
+    render(<CvTaxonomy debugChapter="Component" />);
     await user.click(trigger("component-identity"));
     await screen.findByRole("complementary");
     expect(document.body.style.overflow).toBe("");
@@ -494,7 +487,7 @@ describe("withViewTransition", () => {
     };
     try {
       const user = userEvent.setup();
-      render(<CvTaxonomy debugProgress={onStage("Component")} />);
+      render(<CvTaxonomy debugChapter="Component" />);
       await user.click(trigger("component-identity"));
       expect(await screen.findByRole("complementary")).toBeInTheDocument();
       expect(calls.length).toBeGreaterThan(0);
@@ -561,7 +554,7 @@ describe("the chapter rail is navigation, not decoration", () => {
   it("gives every scale a real control, and the closing figure a link", () => {
     window.matchMedia = matchMediaStub(() => false); // desktop
     render(<CvTaxonomy />);
-    const rail = screen.getByLabelText("Physical scale chapters");
+    const rail = screen.getByRole("navigation", { name: "Scenes" });
     for (const scale of ["Product", "Component", "Material"]) {
       expect(within(rail).getByRole("button", { name: scale })).toBeInTheDocument();
     }
@@ -571,18 +564,34 @@ describe("the chapter rail is navigation, not decoration", () => {
     );
   });
 
-  it("scrolls to a scale's plateau when its stop is activated", async () => {
+  it("marks the current scene, the map included", () => {
     window.matchMedia = matchMediaStub(() => false);
-    const scrollTo = vi.fn();
-    vi.stubGlobal("scrollTo", scrollTo);
-    // jsdom lays everything out at zero, so give the narrative a scrollable span
-    vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockReturnValue(5000);
-    render(<CvTaxonomy />);
-    const rail = screen.getByLabelText("Physical scale chapters");
-    await userEvent.click(within(rail).getByRole("button", { name: "Material" }));
-    expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ behavior: "smooth" }));
-    vi.unstubAllGlobals();
-    vi.restoreAllMocks();
+    render(<CvTaxonomy debugChapter="outro" />);
+    const rail = screen.getByRole("navigation", { name: "Scenes" });
+    expect(within(rail).getByRole("link", { name: /the map/i })).toHaveAttribute(
+      "aria-current",
+      "true",
+    );
+    expect(within(rail).getByRole("button", { name: "Material" })).not.toHaveAttribute(
+      "aria-current",
+    );
+  });
+
+  it("scrolls to a scale's scene when its stop is activated", async () => {
+    window.matchMedia = matchMediaStub(() => false);
+    // jsdom has no scrollIntoView
+    const scrolled: Element[] = [];
+    Element.prototype.scrollIntoView = function (this: Element) {
+      scrolled.push(this);
+    };
+    try {
+      render(<CvTaxonomy />);
+      const rail = screen.getByRole("navigation", { name: "Scenes" });
+      await userEvent.click(within(rail).getByRole("button", { name: "Material" }));
+      expect(scrolled.at(-1)).toHaveAttribute("id", "cvt-ch-Material");
+    } finally {
+      delete (Element.prototype as { scrollIntoView?: unknown }).scrollIntoView;
+    }
   });
 });
 

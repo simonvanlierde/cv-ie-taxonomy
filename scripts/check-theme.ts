@@ -1,6 +1,6 @@
 // CI guard: the surface colour has one source (theme.ts). Fail if a literal
-// that cannot read the token (the stylesheet, the HTML theme-color metas,
-// demo.css's over-scroll shim) has drifted from it.
+// that cannot read the token (the stylesheet, its <html> over-scroll rules,
+// the HTML theme-color metas) has drifted from it.
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { BREAKPOINT_PX, SURFACE } from "../src/theme.ts";
@@ -16,9 +16,9 @@ const must = (file: string, needle: string) => {
 must("../src/CvTaxonomy.css", `--cvt-bg: light-dark(${SURFACE.light}, ${SURFACE.dark});`);
 must("../index.html", `content="${SURFACE.light}"`);
 must("../index.html", `content="${SURFACE.dark}"`);
-must("../src/demo.css", `light-dark(${SURFACE.light}, ${SURFACE.dark})`);
-must("../src/demo.css", `background-color: ${SURFACE.light}`);
-must("../src/demo.css", `background-color: ${SURFACE.dark}`);
+must("../src/CvTaxonomy.css", `background-color: light-dark(${SURFACE.light}, ${SURFACE.dark});`);
+must("../src/CvTaxonomy.css", `background-color: ${SURFACE.light};`);
+must("../src/CvTaxonomy.css", `background-color: ${SURFACE.dark};`);
 
 // the layout fork: container queries cannot read the TS constant, so the CSS
 // hard-codes it — fail if either side of the 881px seam drifts from theme.ts

@@ -19,7 +19,7 @@
         "verdict": "Partial",
         "letter": "P",
         "gloss": "The method exists, but it needs tuning or checking, or it gets worse outside the setting it was tested in.",
-        "handling": "A person checks every value. Record a higher uncertainty, and flag photos degraded by end-of-life conditions."
+        "handling": "A person checks every value. Record a higher uncertainty, and flag that the value came from a field photo."
       },
       {
         "verdict": "Emerging-but-narrow",
@@ -61,7 +61,7 @@
       "task": "Identify the product and read its label details",
       "methodFamily": "Reading the label's text (OCR) and matching it to a database; matching the photo against reference images (retrieval, one-shot recognition)",
       "maturity": "Partial",
-      "maturityNote": "Tested and in use in the setting it was built for, but it gets much worse on end-of-life (EoL) photos. Model numbers were read from 95.7% of label-visible images at repair, 90.8% at reuse and 39.7% at recycler intake. Both datasets come from one research group (the end-of-life read-rate drop and the collection-site pilot), so this is not independent replication.",
+      "maturityNote": "Tested and in use in the setting it was built for, but it gets much worse toward end of life. Model numbers were read from 95.7% of label-visible images at repair, 90.8% at reuse and 39.7% at recycler intake. Both datasets come from one research group (the end-of-life read-rate drop and the collection-site pilot), so this is not independent replication.",
       "rubricMarks": "B · ✗ᵐ · ✓",
       "hardware": "Photos are taken on the device; recognition is better run on a server.",
       "failureMode": "End-of-life labels are damaged, dirty, skewed or too far away. The database may not cover the product. It is not automatic: a person picks the final match.",
@@ -124,10 +124,10 @@
       "task": "Judge wear and damage, to decide between repair, reuse and recycling",
       "methodFamily": "Detecting known defects with trained models; flagging unusual areas without examples (zero-shot anomaly detection: WinCLIP / AnomalyCLIP); describing the product in words (vision-language models, VLMs). Triage in use today sorts by value or material.",
       "maturity": "Emerging-but-narrow",
-      "maturityNote": "Grading has been shown only for one product class at a time, on fixed camera rigs (instrumented capture). Nothing has been tested under contributor-grade capture. Peer-reviewed tests on single classes now exist. Laptop covers were graded A to E at 86.7% end-to-end on unseen models. Smartphone screens were graded by severity. Researchers ran both, and both are sensitive to lighting.",
+      "maturityNote": "Grading has been shown only for one product class at a time, on fixed camera rigs (instrumented capture). Nothing has been tested on field photos. Peer-reviewed tests on single classes now exist. Laptop covers were graded A to E at 86.7% end-to-end on unseen models. Smartphone screens were graded by severity. Researchers ran both, and both are sensitive to lighting.",
       "rubricMarks": "N · ✗ᵘ · ✗",
       "hardware": "Could run on a phone in principle; the tested systems are tied to a fixed rig.",
-      "failureMode": "Not tested under realistic capture, and known to be sensitive to lighting. Works for one product class only. Triage in use today still sorts by value or material.",
+      "failureMode": "Not tested on field photos, and known to be sensitive to lighting. Works for one product class only. Triage in use today still sorts by value or material.",
       "example": "Laptop-cover grading from A to E on an instrumented rig, 86.7% end-to-end (Wu et al. 2026). Smartphone screens graded by severity (Mohandas et al. 2025). Kiosk device grading, a narrow class with instrumented capture (Bowles et al. 2012; Li & Huang 2021). Exterior vehicle damage assessment (Hasan et al. 2025) remains the closest example from a neighbouring field. An industry grading scale for phones and tablets sets defect levels in millimeters (CTIA Certification 2019).",
       "citations": [
         "wuSCESSurfaceCondition2026",

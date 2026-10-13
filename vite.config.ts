@@ -55,6 +55,12 @@ export default defineConfig(({ command }) => ({
             enabled: true,
             provider: playwright(),
             headless: true,
+            // the reduced-motion test flips the media query on the real page
+            commands: {
+              reduceMotion: async ({ page }, on: boolean) => {
+                await page.emulateMedia({ reducedMotion: on ? "reduce" : "no-preference" });
+              },
+            },
             // Chromium alone. These tests assert spec'd platform behaviour, not
             // engine quirks; a second engine would triple CI time to re-prove
             // the same spec. Add one when a real cross-engine bug turns up.

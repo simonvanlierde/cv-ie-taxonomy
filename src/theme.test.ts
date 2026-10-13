@@ -22,20 +22,36 @@ function lightDark(token: string): { light: string; dark: string } {
   return { light: m[1], dark: m[2] };
 }
 
-// One hue set, both exposures: each is checked against both grounds, so collapsing
-// the per-theme fork cannot hide a hue that only worked on one of them.
+// each ground has its own hue set, held against that ground
 describe.each(["light", "dark"] as const)("mark hues hold the 3:1 floor (%s)", (theme) => {
   const surface = SURFACE[theme];
 
   it("scale hues clear 3:1 against the surface", () => {
-    for (const [scale, hex] of Object.entries(SCALE_HUE)) {
+    for (const [scale, hex] of Object.entries(SCALE_HUE[theme])) {
       expect(contrast(hex, surface), `${scale} on ${theme} surface`).toBeGreaterThanOrEqual(3);
     }
   });
 
   it("segmentation hues clear 3:1 against the surface", () => {
-    for (const [slot, hex] of Object.entries(SEG_HUE)) {
+    for (const [slot, hex] of Object.entries(SEG_HUE[theme])) {
       expect(contrast(hex, surface), `seg ${slot} on ${theme} surface`).toBeGreaterThanOrEqual(3);
+    }
+  });
+});
+
+// axe does not read SVG text, so the read-out tags' text is held to 4.5:1 here
+describe.each(["light", "dark"] as const)("tag text holds the 4.5:1 floor (%s)", (theme) => {
+  const ink = lightDark("--cvt-tag-ink")[theme];
+
+  it("on every segmentation hue", () => {
+    for (const [slot, hex] of Object.entries(SEG_HUE[theme])) {
+      expect(contrast(ink, hex), `tag text on seg ${slot}`).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
+  it("on every material tag", () => {
+    for (const token of ["--cvt-tag-steel", "--cvt-tag-abs", "--cvt-tag-cu", "--cvt-tag-pcb"]) {
+      expect(contrast(ink, lightDark(token)[theme]), token).toBeGreaterThanOrEqual(4.5);
     }
   });
 });

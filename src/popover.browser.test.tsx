@@ -1,5 +1,5 @@
 import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { CvTaxonomy } from "./CvTaxonomy";
 
@@ -16,28 +16,26 @@ import { CvTaxonomy } from "./CvTaxonomy";
  * only claimant and the ordering question cannot come up. This is the engine
  * answering it.
  *
- * Driven through the mobile sheet because the sheet's cell list is a plain list
- * of buttons: the desktop callouts ride the fan's spring and are never still
- * enough for a trusted click to land on.
+ * Driven through the phone layout because its cell lists are plain buttons, which
+ * hold still for a trusted click.
  */
+// the viewport is per-page, not per-test, so hand the next test its desktop back
+afterEach(() => page.viewport(1280, 900));
+
 const popover = () => document.querySelector(".cvt-cite-pop:popover-open");
 
 describe("a citation inside a detail, in a real engine", () => {
   it("gives Esc to the popover first, and the detail keeps the next one", async () => {
     render(<CvTaxonomy />);
     await page.viewport(420, 900);
-    await vi.waitFor(() => expect(document.querySelector(".cvt-stepper")).not.toBeNull());
-
-    await userEvent.click(screen.getByRole("button", { name: /^Start/ }));
-    // the scale steps arrive folded to their title, so open the sheet for its cells
-    await userEvent.click(document.querySelector(".cvt-sheet-toggle") as HTMLElement);
     await vi.waitFor(() => expect(document.querySelector(".cvt-mcell")).not.toBeNull());
-    await userEvent.click(document.querySelector(".cvt-mcell") as HTMLElement);
+    const cell = document.querySelector(".cvt-mcell") as HTMLElement;
+    cell.scrollIntoView({ block: "end" });
+    await userEvent.click(cell);
 
     const detail = await screen.findByRole("dialog");
     // the chips carry author–year, so a year is what tells one from a control;
-    // the sheet's prose is folded away until the reader scrolls it up, so take
-    // the first chip actually on screen rather than the first in the DOM
+    // take the first chip actually on screen rather than the first in the DOM
     const cite = within(detail)
       .getAllByRole("button", { name: /\d{4}/ })
       .find((b) => b.checkVisibility()) as HTMLElement;

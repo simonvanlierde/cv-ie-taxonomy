@@ -20,7 +20,6 @@ export type Chapter = "hero" | Scale | "outro";
 // material plateau, and a home frame that began below it cropped the top of the
 // drawing at every zoom (and, clamped into VIEW, on the phone's explode steps).
 export const VIEW: Frame = { x: -120, y: -5, w: 800, h: 875 };
-export const HOME_FRAME: Frame = VIEW;
 
 /**
  * One frame per chapter, held at that chapter's plateau state.
@@ -42,15 +41,15 @@ export const CHAPTER_FRAMES: Record<Chapter, Frame> = {
   // the camera can sit right on the product — this is the frame VIEW cost most
   hero: { x: 124, y: 209, w: 353, h: 583 },
   // assembled, with read-outs down both gutters
-  Product: { x: -105, y: 184, w: 782, h: 659 },
+  Product: { x: -120, y: 184, w: 800, h: 659 },
   // exploded: the parts spread and the topmost read-out clears them
-  Component: { x: -107, y: 21, w: 783, h: 806 },
+  Component: { x: -120, y: 21, w: 800, h: 806 },
   // drifted: the front grille rises to y ≈ 0 and the base sinks; this chapter
   // fills the envelope, which is the chapter's point
   Material: { x: -120, y: -5, w: 800, h: 855 },
   // the stage unpins and fades under the closing figure; the camera goes home
   // so that a reader scrolling back up meets the drawing whole
-  outro: HOME_FRAME,
+  outro: VIEW,
 };
 
 export const frameToViewBox = (f: Frame) => `${f.x} ${f.y} ${f.w} ${f.h}`;

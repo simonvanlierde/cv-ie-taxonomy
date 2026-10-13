@@ -169,8 +169,7 @@ export function useDialogRegion({
       const wasOurs =
         region.contains(document.activeElement) || document.activeElement === document.body;
       // preventScroll: the opener is where the reader already was; a chip that
-      // sits partly under the chapter rail must not tug the page — and with it
-      // the scroll timeline — on its way back
+      // sits partly under the chapter nav must not scroll the page on its way back
       if (wasOurs) ((operable && opener) || document.body).focus?.({ preventScroll: true });
     };
   }, [open, onClose, modal, contentKey]);
