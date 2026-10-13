@@ -76,7 +76,8 @@ The libraries load only when a model runs, so the page itself stays small. Their
 runtime code is built into the site; only data comes from elsewhere: the
 detector's weights from huggingface.co, at a fixed commit, and Tesseract's English
 data from cdn.jsdelivr.net. Those servers see your IP address and browser. The
-files stay in your browser's storage until you clear this site's data. The built
+files stay in your browser's storage for next time; **Remove downloaded models**
+in the panel deletes them. The built
 page sets a content security policy, so it can contact no other host.
 
 ## Data is the source of truth

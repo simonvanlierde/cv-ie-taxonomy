@@ -75,6 +75,32 @@ describe("real-model mode", () => {
   });
 });
 
+describe("removing the downloaded models", () => {
+  it("empties the model cache and Tesseract's store, and says so", async () => {
+    const del = vi.fn(async () => true);
+    vi.stubGlobal("caches", { delete: del });
+    const request = {} as { onsuccess?: () => void };
+    const deleteDatabase = vi.fn(() => {
+      queueMicrotask(() => request.onsuccess?.());
+      return request;
+    });
+    vi.stubGlobal("indexedDB", { deleteDatabase });
+    try {
+      const user = userEvent.setup();
+      render(<RealPhoto scale="Product" model={fake(vi.fn())} />);
+      await user.click(screen.getByRole("button", { name: /try a real model/i }));
+      await user.click(screen.getByRole("button", { name: /remove downloaded models/i }));
+      expect(del).toHaveBeenCalledWith("transformers-cache");
+      expect(deleteDatabase).toHaveBeenCalledWith("keyval-store");
+      await vi.waitFor(() =>
+        expect(screen.getByRole("status")).toHaveTextContent(/removed from this browser/i),
+      );
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+});
+
 describe("a run belongs to its photo", () => {
   /** a model whose answer the test releases by hand */
   const deferred = () => {

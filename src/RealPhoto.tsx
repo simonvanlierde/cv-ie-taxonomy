@@ -1,12 +1,19 @@
 import { useEffect, useId, useRef, useState } from "react";
 import type { Scale } from "./data/types";
-import { FAN_PHOTOS, REAL_MODELS, type Reading, type RealModel } from "./realModels";
+import {
+  FAN_PHOTOS,
+  REAL_MODELS,
+  type Reading,
+  type RealModel,
+  removeDownloads,
+} from "./realModels";
 
 type State =
   | { status: "idle" }
   | { status: "running" }
   | { status: "done"; reading: Reading; ms: number }
-  | { status: "error"; message: string };
+  | { status: "error"; message: string }
+  | { status: "removed" };
 
 /**
  * A scene's real-model mode: one photo, one model, run in the reader's browser.
@@ -82,8 +89,8 @@ function RealPhotoPanel({ scale, model }: { scale: Scale; model: RealModel }) {
       <p className="cvt-real-what">
         {model.name} will {model.task}. It runs in this browser. The first run downloads{" "}
         {model.download}; those servers see your IP address and browser, as any website does. The
-        files stay in this browser&rsquo;s storage for next time, until you clear this site&rsquo;s
-        data. Your photo is not sent anywhere.
+        files stay in this browser&rsquo;s storage for next time; the button below removes them.
+        Your photo is not sent anywhere.
       </p>
       {src ? (
         <div className="cvt-real-photo">
@@ -131,6 +138,23 @@ function RealPhotoPanel({ scale, model }: { scale: Scale; model: RealModel }) {
             Run the model
           </button>
         )}
+        <button
+          type="button"
+          onClick={async () => {
+            runId.current += 1;
+            try {
+              await removeDownloads();
+              setState({ status: "removed" });
+            } catch (error) {
+              setState({
+                status: "error",
+                message: error instanceof Error ? error.message : String(error),
+              });
+            }
+          }}
+        >
+          Remove downloaded models
+        </button>
       </div>
       <Result state={state} model={model} />
     </div>
@@ -146,6 +170,9 @@ function Result({ state, model }: { state: State; model: RealModel }) {
         <p className="cvt-real-error">The model could not run here: {state.message}</p>
       )}
       {state.status === "done" && <Answer state={state} model={model} />}
+      {state.status === "removed" && (
+        <p>The downloaded model files are removed from this browser&rsquo;s storage.</p>
+      )}
     </div>
   );
 }

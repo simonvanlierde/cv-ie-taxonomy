@@ -125,6 +125,26 @@ export const REAL_MODELS: Record<Scale, RealModel> = {
 };
 
 /**
+ * Removes what the models downloaded from this browser's storage: transformers.js
+ * keeps the weights and its runtime in the Cache Storage "transformers-cache",
+ * tesseract.js its English data in the IndexedDB "keyval-store" (idb-keyval's
+ * default, which nothing else on this site uses). A model already loaded in this
+ * tab keeps working until the page is closed.
+ */
+export async function removeDownloads(): Promise<void> {
+  await Promise.all([
+    typeof caches === "undefined" ? undefined : caches.delete("transformers-cache"),
+    new Promise<void>((resolve, reject) => {
+      const request = indexedDB.deleteDatabase("keyval-store");
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+      // an open connection only defers the delete until it closes
+      request.onblocked = () => resolve();
+    }),
+  ]);
+}
+
+/**
  * Photos of the paper's desk fan, per scene. None are taken yet; until they are,
  * each scene offers the reader's own photo instead. Each entry will pair a clean
  * shot with a worn one, so a good result is never shown without its field case.
