@@ -131,6 +131,25 @@ describe("a run belongs to its photo", () => {
     await vi.waitFor(() => expect(button).toHaveAttribute("aria-disabled", "false"));
   });
 
+  it("removes nothing while a run is downloading, since the download would land after", async () => {
+    const del = vi.fn(async () => true);
+    vi.stubGlobal("caches", { delete: del });
+    try {
+      const model = deferred();
+      const { user } = await openWithPhoto(fake(model.run));
+      await user.click(screen.getByRole("button", { name: /run the model/i }));
+      const remove = screen.getByRole("button", { name: /remove downloaded models/i });
+      expect(remove).toHaveAttribute("aria-disabled", "true");
+      await user.click(remove);
+      expect(del).not.toHaveBeenCalled();
+      expect(screen.getByRole("status")).toHaveTextContent(/running/i);
+      model.release(answer);
+      await vi.waitFor(() => expect(remove).toHaveAttribute("aria-disabled", "false"));
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("frees each photo's object URL when it is replaced, and the last on close", async () => {
     const { user, view } = await openWithPhoto(fake(vi.fn()));
     await user.upload(screen.getByLabelText(/use another photo/i), photo());

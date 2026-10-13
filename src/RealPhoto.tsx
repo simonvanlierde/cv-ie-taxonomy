@@ -96,9 +96,10 @@ function RealPhotoPanel({ scale, model }: { scale: Scale; model: RealModel }) {
           <img ref={image} src={src} alt={own ? "Your photo" : (fan?.alt ?? "")} />
           {state.status === "done" && state.reading.kind === "boxes" && (
             <div className="cvt-real-boxes" aria-hidden="true">
-              {state.reading.boxes.map((b) => (
+              {state.reading.boxes.map((b, i) => (
                 <span
-                  key={`${b.label}-${b.x}-${b.y}`}
+                  // biome-ignore lint/suspicious/noArrayIndexKey: each reading replaces the whole list, never reorders it; two boxes can share a label and position
+                  key={i}
                   style={{
                     left: `${b.x * 100}%`,
                     top: `${b.y * 100}%`,
@@ -139,8 +140,10 @@ function RealPhotoPanel({ scale, model }: { scale: Scale; model: RealModel }) {
         )}
         <button
           type="button"
+          // a download still running would write its files back after the delete
+          aria-disabled={state.status === "running"}
           onClick={async () => {
-            runId.current += 1;
+            if (state.status === "running") return;
             try {
               await removeDownloads();
               setState({ status: "removed" });
@@ -198,8 +201,9 @@ function Answer({
         <p>It found nothing it was asked for.</p>
       ) : (
         <ul>
-          {reading.boxes.map((b) => (
-            <li key={`${b.label}-${b.x}-${b.y}`}>
+          {reading.boxes.map((b, i) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: as for the boxes drawn on the photo
+            <li key={i}>
               {b.label}, score {b.score.toFixed(2)}
             </li>
           ))}

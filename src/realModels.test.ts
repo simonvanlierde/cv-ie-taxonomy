@@ -1,3 +1,5 @@
+import { realpathSync } from "node:fs";
+import { join } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
@@ -83,5 +85,34 @@ describe("the real models", () => {
     worker.recognize.mockRejectedValueOnce(new Error("bad image"));
     await expect(REAL_MODELS.Product.run(image())).rejects.toThrow("bad image");
     expect(worker.terminate).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("the runtimes this site serves", () => {
+  // The site serves the ONNX runtime's wasm and Tesseract's core from the
+  // top-level packages, while each library's own code comes from the copy it
+  // depends on. pnpm keeps a package's dependencies beside it, so the two are
+  // the same files only when the versions match.
+  const real = (p: string) => realpathSync(join("node_modules", p));
+  // the dependency as `pkg` itself resolves it: up out of the package's own name
+  const beside = (pkg: string, dep: string) =>
+    realpathSync(join(real(pkg), ...pkg.split("/").map(() => ".."), dep));
+
+  it("serves the ONNX runtime transformers.js was built against", () => {
+    expect(beside("@huggingface/transformers", "onnxruntime-web")).toBe(real("onnxruntime-web"));
+  });
+
+  it("serves the Tesseract core tesseract.js was built against", () => {
+    expect(beside("tesseract.js", "tesseract.js-core")).toBe(real("tesseract.js-core"));
+  });
+});
+
+describe("removing the downloads", () => {
+  it("drops the loaded detector, so the next run downloads it again", async () => {
+    const { REAL_MODELS, removeDownloads } = await load();
+    await REAL_MODELS.Component.run(image());
+    await removeDownloads();
+    await REAL_MODELS.Component.run(image());
+    expect(pipeline).toHaveBeenCalledTimes(2);
   });
 });

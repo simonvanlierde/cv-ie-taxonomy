@@ -34,7 +34,7 @@ export interface RealModel {
 // OWL-ViT: an open-vocabulary detector built on CLIP, so the paper's zero-shot
 // family; Google's weights, Apache-2.0. The onnx-community export, because the
 // older Xenova one uses a Cast node this ONNX runtime cannot run. The first run
-// fetches the quantised weights (149 MB), the tokenizer (2 MB) and the
+// fetches the quantised weights (149 MB), the tokenizer (3.5 MB) and the
 // runtime's WebAssembly (14 MB, served by this site). One download serves both
 // the parts and the materials scene.
 const DETECTOR = "onnx-community/owlvit-base-patch32-ONNX";
@@ -130,10 +130,13 @@ export const REAL_MODELS: Record<Scale, RealModel> = {
 
 /**
  * Removes the detector's files from this browser: transformers.js keeps the
- * weights and its runtime in the Cache Storage "transformers-cache". A model
- * already loaded in this tab keeps working until the page is closed.
+ * weights and its runtime in the Cache Storage "transformers-cache". The model
+ * loaded in this tab is dropped too, so the next run downloads it again.
+ * Callers must not call this while a model is loading: the download would write
+ * its files back after the delete.
  */
 export async function removeDownloads(): Promise<void> {
+  detector = null;
   if (typeof caches !== "undefined") await caches.delete("transformers-cache");
 }
 
