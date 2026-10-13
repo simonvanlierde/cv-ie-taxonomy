@@ -1421,6 +1421,13 @@ html[data-theme="dark"] {
   background: var(--cvt-ink);
   color: var(--cvt-bg);
 }
+/* forced colours drop the filled background, so the open toggle needs a ring */
+@media (forced-colors: active) {
+  .cvt-real-toggle[aria-expanded="true"] {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+}
 .cvt-real-panel {
   display: grid;
   gap: 0.8rem;
