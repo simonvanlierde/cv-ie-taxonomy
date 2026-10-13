@@ -109,3 +109,46 @@ describe("Explorable", () => {
     expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
   });
 });
+
+describe("What if?", () => {
+  const cell = () => document.getElementById("cvt-mx-product-identity") as HTMLElement;
+
+  it("re-derives a verdict from the reader's marks, keeps the paper's beside it, and resets", async () => {
+    const user = userEvent.setup();
+    render(<Explorable />);
+    await user.click(screen.getByRole("button", { name: "What if?" }));
+    expect(screen.getByRole("button", { name: "What if?" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+
+    await user.click(cell());
+    const detail = screen.getByRole("complementary", { name: /product · identity/i });
+    // B · ✗ᵐ · ✓: show it working on field photos and it reaches Strong
+    const field = within(detail).getByRole("group", { name: /shown to work on field photos/i });
+    await user.click(within(field).getByRole("radio", { name: "Yes" }));
+
+    expect(cell().getAttribute("aria-label")).toMatch(/: Strong\..*The paper's verdict: Partial$/);
+    expect(cell().querySelector(".cvt-mx-ghost")).not.toBeNull();
+    expect(screen.getByRole("status")).toHaveTextContent("1 cell differs from the paper");
+
+    await user.click(screen.getByRole("button", { name: /reset to the paper/i }));
+    expect(cell().getAttribute("aria-label")).toMatch(/: Partial\./);
+    expect(cell().querySelector(".cvt-mx-ghost")).toBeNull();
+  });
+
+  it("shows the paper's map again when switched off, edits and all", async () => {
+    const user = userEvent.setup();
+    render(<Explorable />);
+    await user.click(screen.getByRole("button", { name: "What if?" }));
+    await user.click(cell());
+    const detail = screen.getByRole("complementary", { name: /product · identity/i });
+    const field = within(detail).getByRole("group", { name: /shown to work on field photos/i });
+    await user.click(within(field).getByRole("radio", { name: "Yes" }));
+
+    await user.click(screen.getByRole("button", { name: "What if?" }));
+    expect(cell().getAttribute("aria-label")).toMatch(/: Partial\./);
+    // the detail is the paper's again, not the editor
+    expect(within(detail).queryByRole("group", { name: /evidence/i })).toBeNull();
+  });
+});

@@ -15,9 +15,12 @@ import { SCALE_VAR, VERDICT_HEIGHT, VERDICT_VAR } from "./theme";
 export function MiniMatrix({
   selectedId,
   onSelect,
+  view = (cell) => cell,
 }: {
   selectedId: string | null;
   onSelect: (cell: Cell) => void;
+  /** the cell as shown: the paper's, or the reader's What if? version of it */
+  view?: (cell: Cell) => Cell;
 }) {
   return (
     <div className="cvt-matrix">
@@ -32,7 +35,7 @@ export function MiniMatrix({
         </span>
       ))}
       {SCALES.map((s) => (
-        <MiniMatrixRow key={s} scale={s} selectedId={selectedId} onSelect={onSelect} />
+        <MiniMatrixRow key={s} scale={s} selectedId={selectedId} onSelect={onSelect} view={view} />
       ))}
     </div>
   );
@@ -51,10 +54,12 @@ function MiniMatrixRow({
   scale,
   selectedId,
   onSelect,
+  view,
 }: {
   scale: Scale;
   selectedId: string | null;
   onSelect: (cell: Cell) => void;
+  view: (cell: Cell) => Cell;
 }) {
   return (
     <>
@@ -62,12 +67,18 @@ function MiniMatrixRow({
         {scale}
       </span>
       {INFO_TYPES.map((info) => {
-        const cell = cellAt(scale, info);
+        const paper = cellAt(scale, info);
+        const cell = view(paper);
+        // where the reader's verdict is not the paper's, the paper's stays drawn
+        // as a ghost, so the sandbox can never pass for the paper's finding
+        const ghost = cell.maturity !== paper.maturity ? paper.maturity : null;
         // a compound cell shows both sub-task verdicts rather than flattening to one
         const split = splitOf(cell);
         const standsAt = split ? split[0] : cell.maturity;
         const missing = cellGapTexts(cell);
-        const said = missing.length > 0 ? `. Missing: ${missing.join(", ")}` : "";
+        const said =
+          (missing.length > 0 ? `. Missing: ${missing.join(", ")}` : "") +
+          (ghost ? `. The paper's verdict: ${paper.maturity}` : "");
         // the name starts with the letter the cell shows, so a voice user can say it
         const letters = split
           ? split.map((s) => VERDICT_LETTER[s]).join(" / ")
@@ -107,6 +118,13 @@ function MiniMatrixRow({
             >
               {subRule(split)}
             </span>
+            {ghost && (
+              <span
+                className="cvt-mx-ghost"
+                style={{ "--h": VERDICT_HEIGHT[splitOf(paper)?.[0] ?? ghost] }}
+                aria-hidden
+              />
+            )}
             {!cell.structurallyEmpty && (
               <b className="cvt-mx-letter">
                 {split

@@ -1,8 +1,19 @@
-import { type ReactNode, type RefObject, useCallback, useEffect, useRef, useState } from "react";
+import {
+  type ReactNode,
+  type RefObject,
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from "react";
 import { DetailBody } from "./CvTaxonomy";
-import { cells } from "./data/taxonomy";
+import { cells, maturityName, VERDICT_LETTER } from "./data/taxonomy";
 import type { Cell } from "./data/types";
 import { MiniMatrix } from "./MiniMatrix";
+import { RubricCircuit } from "./RubricCircuit";
+import { type Evidence, runsOf } from "./rubricMarks";
+import { changedCount, type Edits, type Marks, toDepositCsv, withEdits } from "./sandbox";
 import { SCALE_VAR } from "./theme";
 import { useDialogRegion } from "./useDialogRegion";
 
@@ -24,6 +35,14 @@ export function Explorable({ children }: { children?: ReactNode }) {
     setSelected(cell);
   }, []);
   const close = useCallback(() => setSelected(null), []);
+  // What if?: the reader's own marks, re-derived through the paper's ladder
+  const [whatIf, setWhatIf] = useState(false);
+  const [edits, setEdits] = useState<Edits>({});
+  const view = useCallback(
+    (cell: Cell) => (whatIf ? withEdits(cell, edits[cell.id]) : cell),
+    [whatIf, edits],
+  );
+  const changed = changedCount(edits);
   // Arrow keys step the selection along the matrix while a detail is open, so a
   // reader scanning cells does not have to leave the detail and find the next
   // bay by Tab. Focus stays where it is; `select` re-points the focus return at
@@ -56,7 +75,15 @@ export function Explorable({ children }: { children?: ReactNode }) {
   return (
     <div className="cvt-explorable" data-open={selected !== null}>
       <div className="cvt-explorable-grid">
-        <MiniMatrix selectedId={selected?.id ?? null} onSelect={select} />
+        <WhatIfBar
+          on={whatIf}
+          changed={changed}
+          edited={Object.keys(edits).length > 0}
+          onToggle={() => setWhatIf((v) => !v)}
+          onReset={() => setEdits({})}
+          csv={() => toDepositCsv(edits)}
+        />
+        <MiniMatrix selectedId={selected?.id ?? null} onSelect={select} view={view} />
       </div>
       <div className="cvt-explorable-col">
         {!selected && (
@@ -97,7 +124,16 @@ export function Explorable({ children }: { children?: ReactNode }) {
               <p className="cvt-panel-scale" style={{ "--hue": SCALE_VAR[selected.scale] }}>
                 detail · {selected.scale} · {selected.informationType}
               </p>
-              <DetailBody key={selected.id} cell={selected} />
+              {whatIf && runsOf(selected).length > 0 ? (
+                <MarksEditor
+                  key={selected.id}
+                  paper={selected}
+                  marks={edits[selected.id]}
+                  onChange={(m) => setEdits((e) => ({ ...e, [selected.id]: m }))}
+                />
+              ) : (
+                <DetailBody key={selected.id} cell={selected} />
+              )}
             </aside>
           )}
         </div>
@@ -119,5 +155,159 @@ function CloseGlyph() {
     >
       <path d="M6 6l12 12M18 6L6 18" />
     </svg>
+  );
+}
+
+/** The sandbox's switch and, while it is on, what the reader has changed. */
+function WhatIfBar({
+  on,
+  changed,
+  edited,
+  onToggle,
+  onReset,
+  csv,
+}: {
+  on: boolean;
+  changed: number;
+  edited: boolean;
+  onToggle: () => void;
+  onReset: () => void;
+  csv: () => string;
+}) {
+  const download = () => {
+    const url = URL.createObjectURL(new Blob([csv()], { type: "text/csv" }));
+    const a = Object.assign(document.createElement("a"), {
+      href: url,
+      download: "rubric-marks-what-if.csv",
+    });
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+  return (
+    <div className="cvt-whatif" data-on={on}>
+      <button type="button" className="cvt-whatif-toggle" aria-pressed={on} onClick={onToggle}>
+        What if?
+      </button>
+      {on ? (
+        <>
+          <p className="cvt-whatif-note" role="status">
+            Your marks, not the paper&rsquo;s. {changed === 1 ? "1 cell" : `${changed} cells`}{" "}
+            {changed === 1 ? "differs" : "differ"} from the paper. A dashed outline is the
+            paper&rsquo;s verdict.
+          </p>
+          <button type="button" onClick={onReset} disabled={!edited}>
+            Reset to the paper
+          </button>
+          <button type="button" onClick={download}>
+            Export CSV
+          </button>
+        </>
+      ) : (
+        <p className="cvt-whatif-note">Change a cell&rsquo;s marks and see its verdict move.</p>
+      )}
+    </div>
+  );
+}
+
+const EVIDENCE: { value: Evidence; label: string }[] = [
+  { value: "B", label: "B, tested on these or similar products" },
+  { value: "N", label: "N, one narrow kind of object only" },
+  { value: "C", label: "C, an idea or a neighbouring field only" },
+  { value: "–", label: "–, no method" },
+];
+
+/** The marks of each run as radio groups; the verdict follows from them. */
+function MarksEditor({
+  paper,
+  marks,
+  onChange,
+}: {
+  paper: Cell;
+  marks: Marks[] | undefined;
+  onChange: (marks: Marks[]) => void;
+}) {
+  const id = useId();
+  const runs = runsOf(paper);
+  const current: Marks[] =
+    marks ??
+    runs.map(({ evidence, capture, deployed, basis }) => ({ evidence, capture, deployed, basis }));
+  const mine = withEdits(paper, current);
+  const set = (i: number, patch: Partial<Marks>) =>
+    onChange(current.map((m, j) => (j === i ? { ...m, ...patch } : m)));
+
+  return (
+    <div className="cvt-marks">
+      <p className="cvt-marks-verdict">
+        <b>{VERDICT_LETTER[mine.maturity]}</b> {maturityName(mine)}
+        <span>{` · the paper’s: ${VERDICT_LETTER[paper.maturity]} ${maturityName(paper)}`}</span>
+      </p>
+      {runs.map((run, i) => {
+        const m = current[i];
+        if (!m) return null;
+        const name = `${id}-${i}`;
+        return (
+          <div className="cvt-marks-run" key={run.label ?? i}>
+            {run.label && <p className="cvt-circuit-sub">{paper.subVerdicts?.[i]?.label}</p>}
+            <fieldset>
+              <legend>Evidence</legend>
+              {EVIDENCE.map((e) => (
+                <label key={e.value}>
+                  <input
+                    type="radio"
+                    name={`${name}-evidence`}
+                    checked={m.evidence === e.value}
+                    onChange={() => set(i, { evidence: e.value })}
+                  />
+                  {e.label}
+                </label>
+              ))}
+            </fieldset>
+            <fieldset>
+              <legend>Shown to work on field photos</legend>
+              <label>
+                <input
+                  type="radio"
+                  name={`${name}-field`}
+                  checked={m.capture === "pass"}
+                  onChange={() => set(i, { capture: "pass" })}
+                />
+                Yes
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name={`${name}-field`}
+                  checked={m.capture === "fail"}
+                  onChange={() => set(i, { capture: "fail" })}
+                />
+                No
+              </label>
+            </fieldset>
+            <fieldset>
+              <legend>In use for this task</legend>
+              <label>
+                <input
+                  type="radio"
+                  name={`${name}-deployed`}
+                  checked={m.deployed === "pass"}
+                  onChange={() => set(i, { deployed: "pass" })}
+                />
+                Yes
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name={`${name}-deployed`}
+                  checked={m.deployed === "fail"}
+                  onChange={() => set(i, { deployed: "fail" })}
+                />
+                No
+              </label>
+            </fieldset>
+          </div>
+        );
+      })}
+      <RubricCircuit cell={mine} />
+    </div>
   );
 }

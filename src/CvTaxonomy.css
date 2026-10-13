@@ -1299,6 +1299,11 @@ html[data-theme="dark"] {
   font-size: var(--cvt-t-2);
   color: var(--cvt-ink);
 }
+/* a Strong block (only reachable in What if?) fills the bay, letter row and all */
+.cvt-mx-cell[data-verdict="S"] .cvt-mx-letter {
+  z-index: 1;
+  color: var(--cvt-bg);
+}
 .cvt-mx-cell:hover .cvt-mx-block,
 .cvt-mx-cell:focus-visible .cvt-mx-block {
   outline: 1.5px solid var(--cvt-ink);
@@ -1377,6 +1382,109 @@ html[data-theme="dark"] {
   margin-top: 0.8rem;
   padding-top: 0.8rem;
   border-top: 1px solid var(--cvt-grid);
+}
+
+/* ---- What if?: the reader's marks on the map (Explorable.tsx, sandbox.ts) ---------------
+   One ruled strip over the matrix. While it is on, the strip and the open cell's
+   editor say plainly whose marks these are, and every changed bay keeps the
+   paper's verdict as a dashed ghost. */
+.cvt-whatif {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 0.9rem;
+  margin: 0 0 1.2rem;
+  padding: 0 0 0.8rem;
+  border-bottom: 1px solid var(--cvt-line);
+}
+.cvt-whatif button {
+  font-family: var(--cvt-mono);
+  font-size: var(--cvt-t-2);
+  letter-spacing: 0.06em;
+  color: var(--cvt-ink);
+  background: var(--cvt-card);
+  border: 1px solid var(--cvt-line);
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  cursor: pointer;
+}
+.cvt-whatif button:hover:not(:disabled) {
+  background: var(--cvt-card-hi);
+}
+.cvt-whatif button:disabled {
+  color: var(--cvt-ink-dim);
+  cursor: default;
+}
+.cvt-whatif .cvt-whatif-toggle[aria-pressed="true"] {
+  background: var(--cvt-ink);
+  color: var(--cvt-bg);
+  border-color: var(--cvt-ink);
+}
+.cvt-whatif-note {
+  flex: 1 1 18rem;
+  margin: 0;
+  font-size: var(--cvt-t-3);
+  line-height: 1.45;
+  color: var(--cvt-ink-dim);
+}
+.cvt-whatif[data-on="true"] .cvt-whatif-note {
+  color: var(--cvt-ink);
+}
+/* the paper's verdict, where the reader's marks moved a block */
+.cvt-mx-ghost {
+  position: absolute;
+  left: 7px;
+  right: 7px;
+  bottom: var(--cvt-mx-floor);
+  height: calc(var(--h, 0) * (100% - var(--cvt-mx-floor)));
+  border: 2px dashed var(--cvt-ink);
+  /* a ground-coloured line inside the dashes keeps them visible on a dark block */
+  box-shadow: inset 0 0 0 2px var(--cvt-bg);
+  pointer-events: none;
+}
+.cvt-marks {
+  display: grid;
+  gap: 1rem;
+  font-size: var(--cvt-t-3);
+}
+.cvt-marks-verdict {
+  margin: 0;
+  font-size: var(--cvt-t-4);
+}
+.cvt-marks-verdict span {
+  color: var(--cvt-ink-dim);
+  font-size: var(--cvt-t-3);
+}
+.cvt-marks-run {
+  display: grid;
+  gap: 0.6rem;
+}
+.cvt-marks fieldset {
+  margin: 0;
+  padding: 0.5rem 0 0;
+  border: 0;
+  border-top: 1px solid var(--cvt-line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+}
+.cvt-marks legend {
+  padding: 0 0.4rem 0 0;
+  font-family: var(--cvt-mono);
+  font-size: var(--cvt-t-2);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cvt-ink-dim);
+}
+.cvt-marks label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 24px;
+  cursor: pointer;
+}
+.cvt-marks input {
+  accent-color: var(--cvt-ink);
 }
 
 /* ---- table view: the figure's WCAG-clean twin ------------------------------------------- */
