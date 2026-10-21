@@ -82,6 +82,12 @@ URL parameters: `?cell=component-structure` opens a detail (ids are
 `<scale>-<information type>` in lower case), `?theme=dark|light` forces a theme,
 and `?scene=2` pins a scene for screenshots (0 is the opening, 4 the map).
 
+## Writing the page copy
+
+All visible text is for the general public and industrial-ecology readers. Use short, concrete
+words. Explain a technical term in the same sentence, or drop it. Keep the paper's numbers as
+they are: a test checks them.
+
 ## License
 
 The license is split so anyone can reuse the code, while the research stays

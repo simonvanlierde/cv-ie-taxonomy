@@ -84,8 +84,9 @@ async function detect(image: HTMLImageElement, labels: string[]): Promise<Readin
 
 async function readText(image: HTMLImageElement): Promise<Reading> {
   const { createWorker, OEM } = await import("tesseract.js");
-  // langPath: the English data, served under a fixed name by vite.config.ts;
-  // "none" keeps it out of IndexedDB, leaving only the browser's normal file cache
+  // langPath: the English data, served under a fixed name by vite.config.ts.
+  // Do not pass it as `[{ code, data }]`: tesseract.js 7 then fails to load the language in the browser.
+  // cacheMethod "none" keeps it out of IndexedDB, leaving only the browser's normal file cache
   const worker = await createWorker("eng", OEM.LSTM_ONLY, {
     langPath: `${import.meta.env.BASE_URL}tesseract`,
     workerPath: tesseractWorker,
