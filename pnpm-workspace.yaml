@@ -10,3 +10,6 @@ allowBuilds:
   protobufjs: false
   # its install script only prints a funding notice
   tesseract.js: false
+minimumReleaseAgeExclude:
+  # Renovate security update: vite@8.3.3
+  - vite@8.3.3
