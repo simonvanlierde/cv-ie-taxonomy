@@ -37,6 +37,8 @@ drifts from the paper's rules.
   schematic, not to scale.
 - Verdicts are a **June 2026 snapshot**. The taxonomy's structure is the part
   meant to last.
+- Each author–year citation opens its full reference and DOI, and so does
+  each named model or dataset.
 
 ## What if? and real models
 
