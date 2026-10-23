@@ -17,6 +17,12 @@ Please include:
 I will acknowledge your report within 14 days. After that I will tell you
 whether I can reproduce it and when I expect a fix.
 
+## Fixes and disclosure
+
+This site has no releases. A fix lands on `main` and the site redeploys from there.
+Once it is live, I publish the GitHub security advisory, with a CVE where one applies,
+and credit you unless you would rather not be named.
+
 ## Scope
 
 This repository is a static website that supports a journal article. It has no
