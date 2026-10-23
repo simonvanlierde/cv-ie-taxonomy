@@ -35,7 +35,6 @@ they drift. Open an issue first if you think a verdict or number is wrong.
 ## Who maintains this
 
 Simon van Lierde ([@simonvanlierde](https://github.com/simonvanlierde)) maintains the
-site: he reviews and merges pull requests. Only he can merge to `main`, and only through a
-pull request whose checks pass. A new maintainer would be named here first. If he stops
+site: he reviews and merges pull requests. Only he can merge to `main`. A new maintainer would be named here first. If he stops
 maintaining it, the README says so and the repository is archived; anyone may fork it
 under its licenses (MIT for the code, CC BY 4.0 for the content).
