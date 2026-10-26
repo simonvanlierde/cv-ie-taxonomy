@@ -352,6 +352,7 @@ function Callout({
     >
       <VerdictSwatch verdict={cell.maturity} />
       <b className="cvt-co-letter">{letter}</b>
+      {/* a flex gap in layout, a space in the text, so it reads as the name does */}{" "}
       <span className="cvt-co-text" data-strike={strike || undefined}>
         {text}
       </span>

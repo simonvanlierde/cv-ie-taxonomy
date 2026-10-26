@@ -137,7 +137,7 @@ describe("What if?", () => {
     );
 
     await user.click(screen.getByRole("button", { name: /reset to the paper/i }));
-    expect(cell().getAttribute("aria-label")).toMatch(/: Partial\./);
+    expect(cell().getAttribute("aria-label")).toMatch(/: Partial$/);
     expect(cell().querySelector(".cvt-mx-ghost")).toBeNull();
   });
 
@@ -151,7 +151,7 @@ describe("What if?", () => {
     await user.click(within(field).getByRole("radio", { name: "Yes" }));
 
     await user.click(screen.getByRole("button", { name: "What if?" }));
-    expect(cell().getAttribute("aria-label")).toMatch(/: Partial\./);
+    expect(cell().getAttribute("aria-label")).toMatch(/: Partial$/);
     // the detail is the paper's again, not the editor
     expect(within(detail).queryByRole("group", { name: /evidence/i })).toBeNull();
   });
@@ -208,7 +208,7 @@ describe("What if?", () => {
     render(<Explorable />);
     await user.click(screen.getByRole("button", { name: "What if?" }));
     await user.click(screen.getByRole("button", { name: /reset to the paper/i }));
-    expect(cell().getAttribute("aria-label")).toMatch(/: Partial\./);
+    expect(cell().getAttribute("aria-label")).toMatch(/: Partial$/);
     expect(document.querySelector(".cvt-whatif-note")).toHaveTextContent("0 cells differ");
   });
 
