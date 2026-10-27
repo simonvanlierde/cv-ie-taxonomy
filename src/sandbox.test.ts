@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import deposit from "./data/deposit-rubric-marks.json";
-import { cellById, cells } from "./data/taxonomy";
-import { runsOf } from "./rubricMarks";
+import { cellById, cells, maturityName } from "./data/taxonomy";
+import { type Evidence, runsOf } from "./rubricMarks";
 import { changedCount, type Edits, type Marks, toDepositCsv, withEdits } from "./sandbox";
 
 /** the paper's own marks for a cell, as the sandbox holds them */
@@ -96,5 +96,33 @@ describe("the What if? sandbox", () => {
     if (!run) throw new Error("no run");
     const csv = toDepositCsv({ "product-identity": [{ ...run, evidence: "–" }] });
     expect(csv.split("\n")[1]).toMatch(/^Product · Identity,,–,✗,,✓,Absent,/);
+  });
+
+  it("pins how many single-mark edits flip a verdict", () => {
+    const evidence: Evidence[] = ["B", "N", "C", "–"];
+    let total = 0;
+    let flips = 0;
+    for (const cell of cells) {
+      const runs = marksOf(cell.id);
+      // withEdits has no marks to change on a structurally empty cell
+      if (runs.length === 0) continue;
+      runs.forEach((run, i) => {
+        const alternatives: Partial<Marks>[] = [
+          ...evidence.filter((e) => e !== run.evidence).map((e) => ({ evidence: e })),
+          { capture: run.capture === "pass" ? "fail" : "pass" },
+          { deployed: run.deployed === "pass" ? "fail" : "pass" },
+        ];
+        for (const change of alternatives) {
+          const edits = runs.map((r, j) => (j === i ? { ...r, ...change } : r));
+          total++;
+          if (maturityName(withEdits(cell, edits)) !== maturityName(cell)) flips++;
+        }
+      });
+    }
+    // 11 runs in 10 cells, 5 alternative marks each on the three marks a reader can pick
+    // (the basis follows the field gate). Only the evidence mark flips a verdict (3 per run),
+    // plus Product · Identity passing its field gate (Partial to Strong).
+    expect(total).toBe(55);
+    expect(flips).toBe(34);
   });
 });
