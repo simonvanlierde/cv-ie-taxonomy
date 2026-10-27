@@ -1331,8 +1331,8 @@ function Row({
   );
 }
 
-/** Drawn, not a glyph: the sheet has an icon system (sun, moon, mark) in one
- *  stroke weight, and a Unicode ✕ rendered in whatever the fallback face is. */
+/** Drawn, not a glyph: the sheet's icons (close, chevron, table) share one
+ *  stroke weight, and a Unicode ✕ renders in whatever the fallback face is. */
 function CloseIcon() {
   return (
     <svg
