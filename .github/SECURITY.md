@@ -3,7 +3,8 @@
 ## Report a vulnerability
 
 Report it privately through GitHub:
-[open a private advisory](https://github.com/simonvanlierde/cv-ie-taxonomy/security/advisories/new).
+[open a private advisory](https://github.com/simonvanlierde/cv-ie-taxonomy/security/advisories/new),
+or by email to <code@duinlab.nl>.
 
 Do not open a public issue or pull request for a vulnerability. A public report
 lets anyone read it before there is a fix.
