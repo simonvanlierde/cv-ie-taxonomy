@@ -19,8 +19,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # installing Chromium's system packages has taken 9 to 14 minutes on a slow apt mirror, cache hit or not
-    timeout-minutes: 25
+    timeout-minutes: 15
     permissions:
       contents: read
       id-token: write # Codecov upload via OIDC, no token secret
@@ -50,12 +49,12 @@ jobs:
         with:
           path: ~/.cache/ms-playwright
           key: playwright-chromium-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
+      # No --with-deps or install-deps: ubuntu-latest already has Chromium's libraries,
+      # and apt would only add CJK, Thai and bitmap fonts the site never uses (it serves
+      # its own), from a mirror that has taken up to 14 minutes for them.
       - name: Install Chromium
-        run: pnpm exec playwright install --with-deps chromium
+        run: pnpm exec playwright install chromium
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-      - name: Install Chromium system deps
-        run: pnpm exec playwright install-deps chromium
-        if: steps.playwright-cache.outputs.cache-hit == 'true'
       - run: pnpm test:browser
       - run: pnpm build
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
