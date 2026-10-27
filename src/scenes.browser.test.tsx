@@ -20,6 +20,20 @@ function scrollSceneTo(id: string, at: number) {
   window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - at * innerHeight });
 }
 
+/** scroll a scale scene in, then wait for the page to report it and for the
+ *  presence transitions to end: a waitFor on the value alone gives up after 1 s,
+ *  which a slow machine can spend before the scene is even reported */
+async function enterScene(scale: string) {
+  scrollSceneTo(`cvt-ch-${scale}`, 0.3);
+  await vi.waitFor(() => expect(scroller().dataset.chapter).toBe(scale));
+  await Promise.all(
+    sticky()
+      .getAnimations()
+      .filter((a) => a instanceof CSSTransition)
+      .map((a) => a.finished),
+  );
+}
+
 afterEach(async () => {
   window.scrollTo({ top: 0 });
   await page.viewport(DESKTOP.w, DESKTOP.h);
@@ -51,19 +65,19 @@ describe("the scenes, on real scrolling", () => {
     // the scroll-driven block exists and is in force (Chromium has view timelines)
     expect(getComputedStyle(sticky()).animationName).toContain("cvt-explode");
 
-    scrollSceneTo("cvt-ch-Product", 0.3);
-    await vi.waitFor(() => expect(num("--pr-product")).toBeCloseTo(1, 3));
+    await enterScene("Product");
+    expect(num("--pr-product")).toBeCloseTo(1, 3);
     expect(num("--e")).toBeCloseTo(0, 3);
     expect(num("--pr-component")).toBeCloseTo(0, 3);
 
-    scrollSceneTo("cvt-ch-Component", 0.3);
-    await vi.waitFor(() => expect(num("--pr-component")).toBeCloseTo(1, 3));
+    await enterScene("Component");
+    expect(num("--pr-component")).toBeCloseTo(1, 3);
     expect(num("--e")).toBeCloseTo(1, 3);
     expect(num("--m")).toBeCloseTo(0, 3);
     expect(num("--pr-product")).toBeCloseTo(0, 3);
 
-    scrollSceneTo("cvt-ch-Material", 0.3);
-    await vi.waitFor(() => expect(num("--pr-material")).toBeCloseTo(1, 3));
+    await enterScene("Material");
+    expect(num("--pr-material")).toBeCloseTo(1, 3);
     expect(num("--m")).toBeCloseTo(1, 3);
     expect(num("--fog")).toBeGreaterThan(0);
   });
