@@ -19,7 +19,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # a Playwright cache miss can spend 14 minutes installing system packages alone
+    timeout-minutes: 25
     permissions:
       contents: read
       id-token: write # Codecov upload via OIDC, no token secret
