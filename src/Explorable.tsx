@@ -45,8 +45,9 @@ export function Explorable({ children }: { children?: ReactNode }) {
   const changed = changedCount(edits);
   // Arrow keys step the selection along the matrix while a detail is open, so a
   // reader scanning cells does not have to leave the detail and find the next
-  // bay by Tab. Focus stays where it is; `select` re-points the focus return at
-  // the new cell, so Esc afterwards lands on the bay the reader ended on.
+  // bay by Tab. Focus moves to the new detail (the region's contentKey re-runs its
+  // open step); `select` re-points the focus return at the new cell, so Esc
+  // afterwards lands on the bay the reader ended on.
   useEffect(() => {
     if (!selected) return;
     const onKey = (e: KeyboardEvent) => {

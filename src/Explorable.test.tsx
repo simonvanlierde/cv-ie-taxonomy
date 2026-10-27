@@ -48,11 +48,12 @@ describe("Explorable", () => {
     await user.click(screen.getByRole("button", { name: /component · quantity/i }));
     expect(screen.getByRole("complementary", { name: /component · quantity/i })).toHaveFocus();
 
+    // from a control inside the detail, so the focus move is the step's own doing
+    screen.getByRole("button", { name: /close details/i }).focus();
     await user.keyboard("{ArrowRight}");
 
-    expect(
-      screen.getByRole("complementary", { name: /component · structure/i }),
-    ).toBeInTheDocument();
+    // focus moves into the new detail, so a screen reader hears which cell it is
+    expect(screen.getByRole("complementary", { name: /component · structure/i })).toHaveFocus();
     // Esc afterwards returns focus to the bay the reader ended on
     await user.keyboard("{Escape}");
     expect(screen.getByRole("button", { name: /component · structure/i })).toHaveFocus();

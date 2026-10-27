@@ -122,8 +122,8 @@ const OCR_W = monoWidth(OCR_TEXT, TAG_FONT) + 10;
 
 // ---- CV-annotation primitives -----------------------------------------------------
 // `s` scales the read-out type and plates: 1 on desktop; >1 on the compact fan,
-// where the same viewBox units render at roughly half the pixels and the tags
-// double as the tap targets for the cell modal.
+// where the same viewBox units render at roughly half the pixels. The tags are
+// never controls: the phone opens cells from each scene's cell list.
 
 const tagWidth = (label: string, s = 1) => monoWidth(label, TAG_FONT * s) + 10 * s;
 
