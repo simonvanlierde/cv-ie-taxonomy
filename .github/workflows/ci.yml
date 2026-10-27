@@ -19,7 +19,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # a Playwright cache miss can spend 14 minutes installing system packages alone
+    # installing Chromium's system packages has taken 9 to 14 minutes on a slow apt mirror, cache hit or not
     timeout-minutes: 25
     permissions:
       contents: read
