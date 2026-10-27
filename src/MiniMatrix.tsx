@@ -78,13 +78,16 @@ function MiniMatrixRow({
         const split = splitOf(cell);
         const standsAt = split ? split[0] : cell.maturity;
         const missing = cellGapTexts(cell);
-        const said =
-          (missing.length > 0 ? `. Missing: ${missing.join(", ")}` : "") +
-          (differs ? `. That is your marks' verdict; the paper's is ${maturityName(paper)}` : "");
-        // the name starts with the letter the cell shows, so a voice user can say it
-        const letters = split
-          ? split.map((s) => VERDICT_LETTER[s]).join(" / ")
-          : VERDICT_LETTER[cell.maturity];
+        const said = differs
+          ? `. That is your marks' verdict; the paper's is ${maturityName(paper)}`
+          : "";
+        // the name starts with what the cell shows, the letter and then what it
+        // is missing, so a voice user can say it
+        const shown =
+          (split
+            ? split.map((s) => VERDICT_LETTER[s]).join(" / ")
+            : VERDICT_LETTER[cell.maturity]) +
+          (missing.length > 0 ? ` ${missing.join(", ")}.` : "");
         return (
           <button
             key={cell.id}
@@ -98,8 +101,8 @@ function MiniMatrixRow({
               cell.structurallyEmpty
                 ? `${scale} · ${info}: structurally empty, answered at the component scale`
                 : split
-                  ? `${letters} ${scale} · ${info}: ${cell.subVerdicts?.map((s) => `${s.label} ${s.maturity}`).join("; ")}${said}`
-                  : `${letters} ${scale} · ${info}: ${cell.maturity}${said}`
+                  ? `${shown} ${scale} · ${info}: ${cell.subVerdicts?.map((s) => `${s.label} ${s.maturity}`).join("; ")}${said}`
+                  : `${shown} ${scale} · ${info}: ${cell.maturity}${said}`
             }
             // the paper's cell, never the What if? copy: the detail and the editor
             // both read their "paper's" verdict from what is selected
@@ -132,6 +135,8 @@ function MiniMatrixRow({
                   : VERDICT_LETTER[cell.maturity]}
               </b>
             )}
+            {/* collapses in layout, but keeps the letter and the gap words apart
+                in the text, so it reads as the name does */}{" "}
             {/* under the block, what it is missing; the verdict is in the letter
                 and the key above the matrix */}
             <span className="cvt-mx-name">

@@ -587,9 +587,8 @@ describe("what each cell is missing", () => {
   it("is in each matrix cell's name, after the letter it shows", () => {
     render(<CvTaxonomy debugChapter="outro" />);
     const cell = document.getElementById("cvt-mx-component-structure") as HTMLElement;
-    expect(cell.getAttribute("aria-label")).toMatch(/^P \/ E Component · Structure: /);
     expect(cell.getAttribute("aria-label")).toMatch(
-      /Missing: no shared taxonomy yet, likely short or not tried on field photos$/,
+      /^P \/ E no shared taxonomy yet, likely short or not tried on field photos\. Component · Structure: /,
     );
   });
 
