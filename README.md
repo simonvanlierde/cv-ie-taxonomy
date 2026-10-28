@@ -2,7 +2,7 @@
 
 [![CI & Deploy](https://github.com/simonvanlierde/cv-ie-taxonomy/actions/workflows/ci.yml/badge.svg)](https://github.com/simonvanlierde/cv-ie-taxonomy/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/simonvanlierde/cv-ie-taxonomy/branch/main/graph/badge.svg)](https://codecov.io/gh/simonvanlierde/cv-ie-taxonomy)
-[![Live demo](https://img.shields.io/badge/live-demo-2b7a78?logo=githubpages&logoColor=white)](https://simonvanlierde.github.io/cv-ie-taxonomy/)
+[![Live demo](https://img.shields.io/badge/live-demo-2b7a78?logo=githubpages&logoColor=white)](https://simonvanlierde.com/cv-ie-taxonomy/)
 [![License: MIT](https://img.shields.io/badge/code-MIT-blue)](LICENSE)
 [![License: CC BY 4.0](https://img.shields.io/badge/content-CC%20BY%204.0-lightgrey)](LICENSE-CONTENT)
 
@@ -14,7 +14,7 @@ answer.
 
 ![A desk fan drawn as a cyanotype teardown, ringed by computer-vision read-outs](public/screenshot.png)
 
-**[▶ Open the live demo](https://simonvanlierde.github.io/cv-ie-taxonomy/)**
+**[▶ Open the live demo](https://simonvanlierde.com/cv-ie-taxonomy/)**
 
 A worn-out desk fan comes apart as you scroll, through Product → Component →
 Material. Each label on it opens one cell of the paper's map, and the last
