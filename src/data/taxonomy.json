@@ -12,31 +12,31 @@
       {
         "verdict": "Strong",
         "letter": "S",
-        "gloss": "Well tested and ready to use, within a stated caveat.",
+        "gloss": "Tested well enough to use within its stated limits.",
         "handling": "Accept the value and record where it came from."
       },
       {
         "verdict": "Partial",
         "letter": "P",
-        "gloss": "The method exists, but it needs tuning or checking, or it gets worse outside the setting it was tested in.",
-        "handling": "A person checks every value. Record a higher uncertainty, and flag that the value came from a field photo."
+        "gloss": "A method exists. It needs adjustment or human checks, or works less well in a different setting.",
+        "handling": "A person checks each value. Record the extra uncertainty and note that it came from a field photo."
       },
       {
         "verdict": "Emerging-but-narrow",
         "letter": "E",
-        "gloss": "Works only for the narrow kind of object it was built for. It fails on other kinds.",
-        "handling": "Treat it as unavailable for products in general. Do not fill the field from it."
+        "gloss": "Shown to work for one type of object. It does not work for products in general.",
+        "handling": "For products in general, a person must supply the value. Do not fill an inventory entry from this result."
       },
       {
         "verdict": "Plausible-but-unvalidated",
         "letter": "U",
-        "gloss": "No method has been benchmarked for this on the products in question. It has been shown only in principle or in a neighbouring field, so its performance in the field is unknown.",
-        "handling": "Do not fill the inventory field from the camera. A person enters the value, with redundant checks (k-of-n)."
+        "gloss": "The idea has been demonstrated in principle or in a related field. There is no systematic test of its performance on these products, so performance in practice is unknown.",
+        "handling": "A person enters the value and checks it in more than one way. Do not use a camera estimate for the inventory."
       },
       {
         "verdict": "Absent",
         "letter": "A",
-        "gloss": "No method fits this cell, or the cell is worked out from other cells instead of sensed directly.",
+        "gloss": "There is no direct method for this task. The answer may need to be calculated from other information.",
         "handling": "Work the value out from other sources."
       }
     ]
@@ -61,7 +61,7 @@
       "task": "Identify the product and read its label details",
       "methodFamily": "Reading the label's text (OCR) and matching it to a database; matching the photo against reference images (retrieval, one-shot recognition)",
       "maturity": "Partial",
-      "maturityNote": "Tested and in use in the setting it was built for, but it gets much worse toward end of life. Model numbers were read from 95.7% of label-visible images at repair, 90.8% at reuse and 39.7% at recycler intake. Both datasets come from one research group (the end-of-life read-rate drop and the collection-site pilot), so this is not independent replication.",
+      "maturityNote": "The method is in use, but labels become harder to read as products move toward recycling. Software read model numbers from 95.7% of images with a visible label at repair, 90.8% at reuse and 39.7% at recycler intake. Both the study of this drop and the collection-site pilot come from one research group. Independent confirmation is still missing.",
       "rubricMarks": "B · ✗ᵐ · ✓",
       "hardware": "Photos are taken on the device; recognition is better run on a server.",
       "failureMode": "End-of-life labels are damaged, dirty, skewed or too far away. The database may not cover the product. It is not automatic: a person picks the final match.",
@@ -81,7 +81,7 @@
       "task": "Measure size, weight and 3D shape",
       "methodFamily": "Depth from one photo (monocular metric depth); 3D shape from several photos (feed-forward multi-view geometry). A 3D model generated from one photo is for documentation only.",
       "maturity": "Partial",
-      "maturityNote": "Geometry is approximate, but observed. Depth maps are benchmarked on general scenes; measuring products themselves has been demonstrated, not benchmarked. Weight is an approximate quantity, not a measurement: about one estimate in four is off by more than a factor of two. A generated 3D model is not a measurement.",
+      "maturityNote": "Software can estimate shape and distance from photos. Tests cover general scenes; measurements of products have been demonstrated but not systematically tested. Weight is estimated too: about one estimate in four is off by more than a factor of two. A generated 3D model is not a measurement.",
       "rubricMarks": "B · ✗ᵘ · ✗",
       "hardware": "Depth from one photo can run on the phone; several photos or generated 3D are better on a server.",
       "failureMode": "Only visible surfaces count. Scale still depends on the camera details stored with the photo. Weight adds the error in shape to the error in material.",
@@ -124,7 +124,7 @@
       "task": "Judge wear and damage, to decide between repair, reuse and recycling",
       "methodFamily": "Detecting known defects with trained models; flagging unusual areas without examples (zero-shot anomaly detection: WinCLIP / AnomalyCLIP); describing the product in words (vision-language models, VLMs). Triage in use today sorts by value or material.",
       "maturity": "Emerging-but-narrow",
-      "maturityNote": "Grading has been shown only for one product class at a time, on fixed camera rigs (instrumented capture). Nothing has been tested on field photos. Peer-reviewed tests on single classes now exist. Laptop covers were graded A to E at 86.7% end-to-end on unseen models. Smartphone screens were graded by severity. Researchers ran both, and both are sensitive to lighting.",
+      "maturityNote": "Condition grading has been tested for one type of product at a time, using fixed camera rigs. Software graded laptop covers A to E with 86.7% accuracy across the full process on previously unseen models. Another study graded the severity of damage to smartphone screens. Researchers ran both systems. Both are sensitive to lighting, and neither has been tested on field photos.",
       "rubricMarks": "N · ✗ᵘ · ✗",
       "hardware": "Could run on a phone in principle; the tested systems are tied to a fixed rig.",
       "failureMode": "Not tested on field photos, and known to be sensitive to lighting. Works for one product class only. Triage in use today still sorts by value or material.",
@@ -147,10 +147,10 @@
       "task": "Identify each part and read its markings",
       "methodFamily": "Reading text (OCR); finding and naming parts from a typed description (open-vocabulary detection); matching against reference images (retrieval)",
       "maturity": "Partial",
-      "maturityNote": "Naming parts is feasible. Telling apart closely similar parts is not reliable. Results are weak outside the training setting: 15.7 mAP (mean average precision, a detection score out of 100) across many domains.",
+      "maturityNote": "Software can name parts, but struggles to tell very similar parts apart. Performance is weak outside the settings it was trained on: 15.7 mAP, a score out of 100 for finding objects, across a range of settings.",
       "rubricMarks": "B · ✗ᵃ · ✗ (close-adjacent benchmark)",
       "hardware": "Photos are taken on the device; recognition is better run on a server.",
-      "failureMode": "Markings are missing or worn. Recognition without task-specific training (zero-shot) is weak outside its training domains.",
+      "failureMode": "Markings may be missing or worn. Software that has not been trained for this task performs poorly on unfamiliar kinds of image.",
       "example": "Reading component markings, as at product scale (Sterkens et al. 2023). Naming parts from a typed description (Liu et al. 2025, Grounding DINO). Weak zero-shot results across many domains, 15.7 mAP (Popov et al. 2025). Battery type read from markings in photos from a battery-sorting facility, precision 0.98 and recall 0.67 for packs of 300 g or more (0.88 and 0.54 below) (Sterkens et al. 2022). That last study is context only: it names a battery type group, not a part, and has no clean-photo comparison.",
       "citations": [
         "sterkensProductLabelIdentification2023",
@@ -167,7 +167,7 @@
       "task": "Measure each part's size, weight and shape",
       "methodFamily": "Depth from one photo (monocular metric depth); 3D shape from several photos (feed-forward multi-view geometry)",
       "maturity": "Partial",
-      "maturityNote": "As at product scale, but for individual parts.",
+      "maturityNote": "The same methods estimate size, shape and weight for individual parts as for whole products. They share the same limits.",
       "rubricMarks": "B · ✗ᵘ · ✗",
       "hardware": "Phone or server, as for the whole product.",
       "failureMode": "Parts hide each other inside an assembly, so even less surface is visible. Scale is still sensitive to the camera.",
@@ -182,7 +182,7 @@
       "task": "Find, outline and count the parts, and how they attach (Bill of Components)",
       "methodFamily": "Detecting parts from a fixed or an open list; outlining any region with a large pretrained (foundation) model, then labelling it; for attachments, inferring joints from an image (image-to-articulation)",
       "maturity": "Partial",
-      "maturityNote": "Detect/segment is Partial: ~98.8% mAP50 (a detection score) on a narrow benchmark, and it needs tuning to each setting. Segmentation trained at one waste-sorting facility falls from 56.0 to 45.5 mIoU (an overlap score) at another. BoC relations, meaning how parts attach, are Emerging-but-narrow: methods give relations only for articulated (jointed) household categories or toy vehicles. Their graph-topology accuracy also falls from ~82% to ~39% on an unseen dataset of the same kinds. The detect/segment sub-verdict rests on a single source: one lab-captured teardown benchmark.",
+      "maturityNote": "Finding and outlining parts is rated Partial. One narrow test reports ~98.8% mAP50, a score for finding objects, but the software needs adjustment for each setting. Outlines learned at one waste-sorting facility score 56.0 mIoU, a measure of overlap with the correct outlines, and 45.5 at another. Identifying how parts attach is Emerging-but-narrow: methods cover only jointed household objects or toy vehicles. Accuracy in mapping those connections falls from ~82% to ~39% on a new dataset of the same kinds. The rating for finding and outlining parts rests on one lab-photographed teardown study.",
       "subVerdicts": [
         {
           "label": "Detection / segmentation",
@@ -198,7 +198,7 @@
       ],
       "rubricMarks": "detect/seg B · ✗ᵃ · ✗; relations N · ✗ᵘ · ✗",
       "hardware": "Fixed-list detection can run on the phone; open-vocabulary and foundation models need a server.",
-      "failureMode": "Weak outside the training setting and without task-specific training: it needs adapting to the domain, plus a step that labels each outline. No method gives a general map of how parts attach.",
+      "failureMode": "Performance drops outside the setting used for training. The software needs adjustment to that setting and a way to name each outlined part. There is no general method for mapping how parts attach.",
       "example": "Segmenting parts in e-waste and laptop teardowns (Zhang et al. 2026). Waste segmentation tested across facilities (Bashkirova et al. 2023). Foundation segmentation that also labels what it outlines (Carion et al. 2025, SAM 3). Joints inferred from an image (Liu 2025 SINGAPO; Chen 2024 URDFormer; Yuan 2025 LARM).",
       "citations": [
         "zhangEvaluatingLargeLightweight2026",
@@ -217,10 +217,10 @@
       "task": "Judge wear, damage and connector state, to decide what happens to each part",
       "methodFamily": "Detecting known defects with trained models; connector state (requirements level, graded per unit only on lab-corroded screws); robots driven by vision-language-action models (embodied/VLA, immature)",
       "maturity": "Plausible-but-unvalidated",
-      "maturityNote": "Connector-state grading is absent from products. It exists at requirements level, and is done per unit only on lab-corroded screws on test plates. Where it has been shown, it is tied to a central robotic cell.",
+      "maturityNote": "There is no system for grading the condition of connectors on products. Researchers have described what such a system would need to check. Grading individual screws has only been shown on screws corroded in a lab and mounted on test plates. Demonstrations rely on a central robot station.",
       "rubricMarks": "C · ✗ᵘ · ✗",
       "hardware": "Tied to servers and robotic cells, where it has been shown.",
-      "failureMode": "No validated per-unit grading outside a central facility. Robot disassembly of this kind is unreliable: 0 of 20 full operations without help.",
+      "failureMode": "Grading individual connectors has not been validated outside a central facility. Robot disassembly of this kind is unreliable: 0 of 20 full operations finished without help.",
       "example": "Robotic disassembly cells (Liu et al. 2026, RAISE; Liu et al. 2025, VLA selective disassembly). Connector-state evidence: requirements level (Saenz et al. 2024). Rust grading on lab-corroded screws on test plates (Mandolini et al. 2026). Vision-guided screw removal that completed disassembly on 72 of 92 in-scope air-conditioner units (Ishikura et al. 2026). Fastener and screw detection for disassembly with a collaborative robot (Sutradhar et al. 2025).",
       "citations": [
         "liuRAISERobotAssistedSelective2026",
@@ -240,10 +240,10 @@
       "task": "Identify materials on and under the surface (Bill of Materials)",
       "methodFamily": "Classifying colour photos under controlled conditions (RGB classification); matching against one or a few examples, given an outline of the region; few-shot vision-language models; outlining material regions across a surface",
       "maturity": "Partial",
-      "maturityNote": "Identifies the material of surface regions, under controlled conditions only. There is no quantified composition of what a camera cannot see (interiors, coatings, alloys). The only precedent is an image-based material sorter (a pilot-scale trial on shredded electronic waste, Vogelgesang et al. 2025). It describes a mixed stream of fragments from unidentified products, not one intact product. So no per-unit deployed precedent exists (deployment gate ✗).",
+      "maturityNote": "Software identifies materials on visible surfaces under controlled conditions. The review found no method for measuring the composition of hidden interiors, coatings or alloys. The only related trial used a photo-based sorter on shredded electronic waste (Vogelgesang et al. 2025). That trial describes mixed fragments from unidentified products. It does not identify the materials in one intact product, so it does not meet the requirement for use on individual products.",
       "rubricMarks": "B · ✗ᵃ · ✗ (close-adjacent benchmark: in-the-wild material appearance, not EoL products)",
       "hardware": "Lightweight classifiers can run on the phone; vision-language recognisers need a server.",
-      "failureMode": "Objects made of several materials are hard to label: ~90% on TrashNet falls to ~40% on MultiWaste. Domain shift, a change of setting, hurts too. In a historical extreme, a legacy colour-photo (RGB) pipeline fell from 100% to ~12–28% overall under two hand-held lighting changes, with 0% on up to 3 of 4 classes. A third run, on a robot arm at 77 lx, kept ~78%. Clutter in realistic scenes also hurts.",
+      "failureMode": "Objects made of several materials are hard to label: ~90% on TrashNet falls to ~40% on MultiWaste. Performance also drops when the setting changes. In an extreme example, an older system using colour photos fell from 100% to ~12–28% overall under two hand-held lighting changes, with 0% on up to 3 of 4 classes. A third run, on a robot arm at 77 lx, kept ~78%. Clutter in realistic scenes also hurts.",
       "example": "Material recognition by a vision-language model without examples (Funk et al. 2026). Colour-photo material classification under controlled conditions (Penumuru et al. 2020). Outlining materials across 3D surfaces (Li 2024 MaterialSeg3D; Drehwald 2023). A component-level bill of masses from circuit-board photos, tested on four off-the-shelf boards (Chedotel et al. 2026).",
       "citations": [
         "penumuruIdentificationClassificationMaterials2020",
@@ -263,9 +263,9 @@
       "task": "Measure material mass and volume",
       "methodFamily": "Worked out from other cells: part geometry times material class times a typical density",
       "maturity": "Absent",
-      "maturityNote": "Absent as a method of its own. It combines the uncertainty of the geometry and of the material identity. It is derived, so its evidence mark is –.",
+      "maturityNote": "There is no direct method. Material mass must be calculated from estimated shape, material type and density. Errors in shape and material identification both affect the result. The paper uses – for this evidence mark because the answer is calculated from other results.",
       "rubricMarks": "– · ✗ · ✗",
-      "hardware": "Inherits the hardware of its inputs (mixed).",
+      "hardware": "Depends on the tools used to estimate shape and identify materials.",
       "failureMode": "Errors from both inputs add up. Image-to-mass methods are tested only on off-the-shelf circuit boards, whole catalog objects, and discarded packaging and food photographed by calibrated smart-bin cameras.",
       "example": "Derived from other cells; no direct method.",
       "citations": [],
@@ -294,10 +294,10 @@
       "task": "Detect corrosion, degradation and contamination",
       "methodFamily": "Outlining surface regions; monitoring particle size (only in known streams)",
       "maturity": "Plausible-but-unvalidated",
-      "maturityNote": "Plausible-but-unvalidated for products in general.",
+      "maturityNote": "The idea is plausible, but has not been tested for products in general.",
       "rubricMarks": "C · ✗ᵘ · ✗",
-      "hardware": "Phone or server, as for segmentation.",
-      "failureMode": "Domain shift (a change of setting) and clutter hurt. No method grades the condition of each region with validation.",
+      "hardware": "A phone or server, depending on the method used to outline material regions.",
+      "failureMode": "A change of setting or a cluttered scene reduces performance. No validated method grades the condition of each material region.",
       "example": "Surface segmentation (Li et al. 2024, MaterialSeg3D); particle segmentation for size monitoring of crushed aggregates, on simulated images (Y. Zhou et al. 2025, ParticleSAM).",
       "citations": ["liMaterialSeg3DSegmentingDense2024", "zhouParticleSAMSmallParticle2025"],
       "sourceStatus": "Preprint",

@@ -95,15 +95,15 @@ describe("gap kinds", () => {
 describe("the matrix's gap words", () => {
   it("joins a compound cell's field gaps into one phrase, after the other kinds", () => {
     expect(cellGapTexts(byId("component-structure"))).toEqual([
-      "no shared taxonomy yet",
-      "likely short or not tried on field photos",
+      "no agreed categories yet",
+      "likely to fall short or not tested on field photos",
     ]);
     expect(cellGapTexts(byId("product-identity"))).toEqual(["fell short on field photos"]);
     expect(cellGapTexts(byId("product-structure"))).toEqual([]);
     // the paper's method gap is only the composition a camera cannot see
     expect(cellGapTexts(byId("material-identity"))).toEqual([
       "no method for what's hidden",
-      "likely short on field photos",
+      "likely to fall short on field photos",
     ]);
   });
 });

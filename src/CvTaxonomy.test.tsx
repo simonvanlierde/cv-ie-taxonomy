@@ -39,7 +39,7 @@ describe("detail on the sheet (desktop)", () => {
 
     const region = await detail();
     expect(within(region).getByRole("heading", { level: 2 })).toBeInTheDocument();
-    expect(within(region).getByText(/no model run/i)).toBeInTheDocument();
+    expect(within(region).getByText(/no photo was analysed/i)).toBeInTheDocument();
   });
 
   it("moves focus into the detail when it opens", async () => {
@@ -196,7 +196,7 @@ describe("detail on the sheet (desktop)", () => {
 
     const region = await screen.findByRole("complementary", { name: /material · quantity/i });
     expect(within(region).getByRole("heading", { level: 2 })).toHaveTextContent(cell.task);
-    expect(within(region).getByText(/simulated read-outs/i)).toBeInTheDocument();
+    expect(within(region).getByText(/illustration/i)).toBeInTheDocument();
   });
 
   it("defines EoL before source copy uses the abbreviation", async () => {
@@ -204,7 +204,7 @@ describe("detail on the sheet (desktop)", () => {
 
     const region = await screen.findByRole("complementary", { name: /product · identity/i });
     expect(region.querySelector(".cvt-term-note")).toHaveTextContent(
-      /End-of-life \(EoL\) capture means photos of products after use/i,
+      /End-of-life \(EoL\) means after a product has been used/i,
     );
   });
 
@@ -588,7 +588,7 @@ describe("what each cell is missing", () => {
     render(<CvTaxonomy debugChapter="outro" />);
     const cell = document.getElementById("cvt-mx-component-structure") as HTMLElement;
     expect(cell.getAttribute("aria-label")).toMatch(
-      /^P \/ E no shared taxonomy yet, likely short or not tried on field photos\. Component · Structure: /,
+      /^P \/ E no agreed categories yet, likely to fall short or not tested on field photos\. Component · Structure: /,
     );
   });
 
@@ -603,9 +603,9 @@ describe("what each cell is missing", () => {
     render(<CvTaxonomy initialCell="component-structure" />);
     const compound = await screen.findByRole("complementary");
     const row = within(compound).getByText("What is missing").nextElementSibling as HTMLElement;
-    expect(row).toHaveTextContent("Detection / segmentation: likely short on field photos");
+    expect(row).toHaveTextContent("Detection / segmentation: likely to fall short on field photos");
     expect(row).toHaveTextContent(
-      "BoC attachment relations: no shared taxonomy yet; not tried on field photos",
+      "BoC attachment relations: no agreed categories yet; not tested on field photos",
     );
   });
 
@@ -621,9 +621,10 @@ describe("real-model mode", () => {
     render(<CvTaxonomy />);
     for (const scale of ["Product", "Component", "Material"]) {
       const scene = document.getElementById(`cvt-ch-${scale}`) as HTMLElement;
-      expect(
-        within(scene).getByRole("button", { name: /try a real model on one photo/i }),
-      ).toHaveAttribute("aria-expanded", "false");
+      expect(within(scene).getByRole("button", { name: /try your own photo/i })).toHaveAttribute(
+        "aria-expanded",
+        "false",
+      );
     }
   });
 });

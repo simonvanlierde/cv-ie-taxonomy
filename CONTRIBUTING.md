@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for taking a look. Small fixes and suggestions are welcome.
+Small fixes and suggestions are welcome. Please follow the [code of conduct](CODE_OF_CONDUCT.md).
 
 ## Report a problem or suggest a change
 
@@ -30,14 +30,17 @@ To report a security problem, do not open an issue. Follow
    pnpm build       # TypeScript and production build
    ```
 
-4. Open the pull request against `main`. Keep it small and say what it changes.
+4. Open the pull request against `main`. Say what it changes and which checks passed.
+   Use a title such as `fix: correct the photo panel label` or `docs: explain a rating`.
 
-The taxonomy in `src/data/taxonomy.json` mirrors the paper, and a test fails if
-they drift. Open an issue first if you think a verdict or number is wrong.
+The ratings in `src/data/taxonomy.json` mirror the paper. Tests check their scoring
+rules, marks and citation keys against the stored deposit data. Open an issue first if you think
+a rating or number is wrong. For page copy, explain each finding in words a reader
+without computer-vision training can follow. Keep the evidence and its limits intact.
 
 ## Who maintains this
 
 Simon van Lierde ([@simonvanlierde](https://github.com/simonvanlierde)) maintains the
-site: he reviews and merges pull requests. Only he can merge to `main`. A new maintainer would be named here first. If he stops
-maintaining it, the README says so and the repository is archived; anyone may fork it
-under its licenses (MIT for the code, CC BY 4.0 for the content).
+site and reviews pull requests. Only he can merge to `main`. A new maintainer would
+be named here first. If he stops maintaining it, the README says so and the repository
+is archived. Anyone may fork it under its licences: MIT for code, CC BY 4.0 for content.

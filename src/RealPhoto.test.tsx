@@ -25,7 +25,7 @@ const photo = () => new File(["x"], "fan.jpg", { type: "image/jpeg" });
 async function openWithPhoto(model: RealModel) {
   const user = userEvent.setup();
   const view = render(<RealPhoto scale="Component" model={model} />);
-  await user.click(screen.getByRole("button", { name: /try a real model on one photo/i }));
+  await user.click(screen.getByRole("button", { name: /try your own photo/i }));
   await user.upload(screen.getByLabelText(/use your own photo/i), photo());
   return { user, view };
 }
@@ -34,33 +34,33 @@ describe("real-model mode", () => {
   it("stays folded away, and runs nothing, until the reader asks", () => {
     const run = vi.fn();
     render(<RealPhoto scale="Component" model={fake(run)} />);
-    expect(screen.getByRole("button", { name: /try a real model/i })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: /try your own photo/i })).toHaveAttribute(
       "aria-expanded",
       "false",
     );
-    expect(screen.queryByRole("button", { name: /run the model/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /analyse photo/i })).toBeNull();
     expect(run).not.toHaveBeenCalled();
   });
 
-  it("says no photo of the fan exists yet, and offers the reader's own", async () => {
+  it("offers the reader's own photo when no example is available", async () => {
     const user = userEvent.setup();
     render(<RealPhoto scale="Material" model={fake(vi.fn())} />);
-    await user.click(screen.getByRole("button", { name: /try a real model/i }));
-    expect(screen.getByText(/no photo of this fan has been taken yet/i)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /try your own photo/i }));
+    expect(screen.getByText(/no example photo is available/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/use your own photo/i)).toBeInTheDocument();
   });
 
-  it("runs on the reader's photo and labels the result as one photo, not validation", async () => {
+  it("runs on the reader's photo and labels the result as one photo, not a test of reliability", async () => {
     const run = vi.fn(async () => ({
       kind: "boxes" as const,
       boxes: [{ label: "an electric motor", score: 0.42, x: 0.1, y: 0.2, w: 0.3, h: 0.3 }],
     }));
     const { user } = await openWithPhoto(fake(run));
-    await user.click(screen.getByRole("button", { name: /run the model/i }));
+    await user.click(screen.getByRole("button", { name: /analyse photo/i }));
 
     expect(run).toHaveBeenCalledWith(screen.getByAltText("Your photo"));
     const result = await screen.findByRole("status");
-    expect(result).toHaveTextContent(/one photo, not validation · Fake detector/i);
+    expect(result).toHaveTextContent(/one photo, not a test of reliability · Fake detector/i);
     expect(within(result).getByRole("listitem")).toHaveTextContent("an electric motor, score 0.42");
   });
 
@@ -70,7 +70,7 @@ describe("real-model mode", () => {
         throw new Error("offline");
       }),
     );
-    await user.click(screen.getByRole("button", { name: /run the model/i }));
+    await user.click(screen.getByRole("button", { name: /analyse photo/i }));
     await vi.waitFor(() => expect(screen.getByRole("status")).toHaveTextContent(/offline/));
   });
 
@@ -80,7 +80,7 @@ describe("real-model mode", () => {
       .mockResolvedValueOnce({ kind: "text", text: "TYP 4212/A", confidence: 76.4 })
       .mockResolvedValueOnce({ kind: "text", text: "", confidence: 0 });
     const { user } = await openWithPhoto(fake(run));
-    const button = screen.getByRole("button", { name: /run the model/i });
+    const button = screen.getByRole("button", { name: /analyse photo/i });
     await user.click(button);
     await vi.waitFor(() =>
       expect(screen.getByRole("status")).toHaveTextContent(
@@ -99,11 +99,13 @@ describe("removing the downloaded models", () => {
     try {
       const user = userEvent.setup();
       render(<RealPhoto scale="Product" model={fake(vi.fn())} />);
-      await user.click(screen.getByRole("button", { name: /try a real model/i }));
-      await user.click(screen.getByRole("button", { name: /remove downloaded models/i }));
+      await user.click(screen.getByRole("button", { name: /try your own photo/i }));
+      await user.click(screen.getByRole("button", { name: /remove OWL-ViT downloads/i }));
       expect(del).toHaveBeenCalledWith("transformers-cache");
       await vi.waitFor(() =>
-        expect(screen.getByRole("status")).toHaveTextContent(/removed from this browser/i),
+        expect(screen.getByRole("status")).toHaveTextContent(
+          /Saved OWL-ViT files have been removed/i,
+        ),
       );
     } finally {
       vi.unstubAllGlobals();
@@ -115,10 +117,12 @@ describe("removing the downloaded models", () => {
     try {
       const user = userEvent.setup();
       render(<RealPhoto scale="Product" model={fake(vi.fn())} />);
-      await user.click(screen.getByRole("button", { name: /try a real model/i }));
-      await user.click(screen.getByRole("button", { name: /remove downloaded models/i }));
+      await user.click(screen.getByRole("button", { name: /try your own photo/i }));
+      await user.click(screen.getByRole("button", { name: /remove OWL-ViT downloads/i }));
       await vi.waitFor(() =>
-        expect(screen.getByRole("status")).toHaveTextContent(/could not run here: storage blocked/),
+        expect(screen.getByRole("status")).toHaveTextContent(
+          /Could not remove the saved OWL-ViT files: storage blocked/,
+        ),
       );
     } finally {
       vi.unstubAllGlobals();
@@ -143,7 +147,7 @@ describe("a run belongs to its photo", () => {
   it("drops an answer that arrives after the reader chose another photo", async () => {
     const model = deferred();
     const { user } = await openWithPhoto(fake(model.run));
-    await user.click(screen.getByRole("button", { name: /run the model/i }));
+    await user.click(screen.getByRole("button", { name: /analyse photo/i }));
     await user.upload(screen.getByLabelText(/use another photo/i), photo());
     model.release(answer);
     await new Promise((r) => setTimeout(r, 0));
@@ -159,7 +163,7 @@ describe("a run belongs to its photo", () => {
         }),
     );
     const { user } = await openWithPhoto(fake(run));
-    await user.click(screen.getByRole("button", { name: /run the model/i }));
+    await user.click(screen.getByRole("button", { name: /analyse photo/i }));
     await user.upload(screen.getByLabelText(/use another photo/i), photo());
     fail(new Error("too late"));
     await new Promise((r) => setTimeout(r, 0));
@@ -169,7 +173,7 @@ describe("a run belongs to its photo", () => {
   it("starts one run however often Run is pressed while it is running, and keeps focus", async () => {
     const model = deferred();
     const { user } = await openWithPhoto(fake(model.run));
-    const button = screen.getByRole("button", { name: /run the model/i });
+    const button = screen.getByRole("button", { name: /analyse photo/i });
     await user.click(button);
     await user.click(button);
     expect(model.run).toHaveBeenCalledTimes(1);
@@ -185,8 +189,8 @@ describe("a run belongs to its photo", () => {
     try {
       const model = deferred();
       const { user } = await openWithPhoto(fake(model.run));
-      await user.click(screen.getByRole("button", { name: /run the model/i }));
-      const remove = screen.getByRole("button", { name: /remove downloaded models/i });
+      await user.click(screen.getByRole("button", { name: /analyse photo/i }));
+      const remove = screen.getByRole("button", { name: /remove OWL-ViT downloads/i });
       expect(remove).toHaveAttribute("aria-disabled", "true");
       await user.click(remove);
       expect(del).not.toHaveBeenCalled();

@@ -14,17 +14,16 @@ import { runsOf } from "./rubricMarks";
  */
 export const CHAPTER_COPY: Record<Scale, { title: string; body: string }> = {
   Product: {
-    title: "Reading the label works on 95.7% of repair photos, but on only 39.7% at the recycler.",
-    body: "This is where cameras come closest to real use: read the rating label, then look the product up. The repair photos were taken by customers on their own phones, and all the numbers come from one research group working on washing machines. Label reading can be tried now, as long as a person checks each value.",
+    title: "Label reading drops from 95.7% at repair to 39.7% at the recycler.",
+    body: "A model number can link a used appliance to information in a product database. But a worn, dirty or badly angled label is harder to read. Both figures count photos in which a label was visible. They come from washing-machine studies by one research group, including repair photos taken by customers on their phones. This is the closest task to routine use. A person still needs to check each result.",
   },
   Component: {
-    title:
-      "Cameras can find the parts in the lab. Nobody has yet worked out how to describe how the parts are fastened together.",
-    body: "Finding and outlining parts has only been tested on teardowns photographed in a lab or on a fixed rig, so the next step is a trial in a real workshop. For how parts attach, there is no agreed list of fastener types linked to photos, and no photo collection that marks which part is attached to which. The few methods that try handle only jointed household objects and toy vehicles, and their accuracy falls from ~82% to ~39% on new objects of the same kinds.",
+    title: "To take a product apart, we need to know how its parts are attached.",
+    body: "Software can find and outline parts in teardown photos taken in a lab or on a fixed camera rig. Tests in working repair shops are still missing. Connections need a different kind of evidence: agreed labels for attachment types and photos showing which parts connect. The review found neither. Methods that infer joints have been tried on jointed household objects and toy vehicles. Their accuracy falls from ~82% to ~39% on new objects of the same kinds.",
   },
   Material: {
-    title: "A camera sees the surface, not what’s underneath. Weight is estimated, not measured.",
-    body: "Under controlled conditions, a camera can often name the material on the outside of a part. What lies underneath, such as insides, coatings and alloys, it cannot see, and no method for it exists yet. Weight is worked out from an estimated shape, a guessed material and a density from a table, so every small error adds up. The drawing fades on purpose: the picture blurs as the evidence thins.",
+    title: "A photo shows the surface. Recovery depends on what lies underneath, too.",
+    body: "Under controlled conditions, software can often recognise a material on the surface of a part. A colour photo cannot reveal hidden layers, interiors or alloy composition. The review found no method for measuring that hidden composition. Material weight is estimated from shape, material type and a typical density. An error in any of those estimates affects the answer.",
   },
 };
 
@@ -73,8 +72,8 @@ export const FIELD_SPLIT = (() => {
     (sum, c) => sum + (c.structurallyEmpty ? 0 : (c.subVerdicts?.length ?? 1)),
     0,
   );
-  const have = `${cap(NUMBER_WORD[withMethod.length])} of the ${NUMBER_WORD[rows]} verdicts have a method.`;
+  const have = `${cap(NUMBER_WORD[withMethod.length])} of the ${NUMBER_WORD[rows]} assessments have a method to test.`;
   const capture =
-    "The open question is how well it works on field photos: ordinary photos taken by the people who repair, collect or recycle products.";
-  return `${have} ${capture} That performance is measured to fall short for ${n("measured")} (${measured}). It is inferred from neighbouring fields, or from tests of models not trained for the task, for ${n("inferred")}, and untested for ${n("untested")}.`;
+    "Field photos are ordinary pictures taken during repair, collection or recycling.";
+  return `${have} ${capture} Performance falls short in ${n("measured")} assessment (${measured}), is judged from indirect evidence in ${n("inferred")}, and has not been tested in ${n("untested")}.`;
 })();

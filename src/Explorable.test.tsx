@@ -6,14 +6,14 @@ import { Explorable } from "./Explorable";
 describe("Explorable", () => {
   it("shows a prompt until a cell is selected, then fills the detail inline (no dialog)", async () => {
     render(<Explorable />);
-    expect(screen.getByText(/select a cell/i)).toBeInTheDocument();
+    expect(screen.getByText(/select a task/i)).toBeInTheDocument();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: /component · quantity/i }));
 
     // inline detail is present, still no modal dialog; the prompt has done its job
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    expect(screen.queryByText(/select a cell/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/select a task/i)).not.toBeInTheDocument();
     expect(screen.getByText(/where it fails/i)).toBeInTheDocument();
   });
 
@@ -96,7 +96,9 @@ describe("Explorable", () => {
     expect(region).toHaveTextContent("Partial and Emerging-but-narrow");
     // the relations sub-task is Emerging-but-narrow: its handling is "do not
     // populate", which must not be flattened into Partial's "verify"
-    expect(region).toHaveTextContent(/BoC attachment relations: Treat it as unavailable/);
+    expect(region).toHaveTextContent(
+      /BoC attachment relations: For products in general, a person must supply the value/,
+    );
   });
 
   it("closes on its own close control", async () => {
@@ -134,7 +136,7 @@ describe("What if?", () => {
     );
     expect(cell().querySelector(".cvt-mx-ghost")).not.toBeNull();
     expect(document.querySelector(".cvt-whatif-note")).toHaveTextContent(
-      "1 cell differs from the paper",
+      "1 rating differs from the paper",
     );
 
     await user.click(screen.getByRole("button", { name: /reset to the paper/i }));
@@ -210,7 +212,7 @@ describe("What if?", () => {
     await user.click(screen.getByRole("button", { name: "What if?" }));
     await user.click(screen.getByRole("button", { name: /reset to the paper/i }));
     expect(cell().getAttribute("aria-label")).toMatch(/: Partial$/);
-    expect(document.querySelector(".cvt-whatif-note")).toHaveTextContent("0 cells differ");
+    expect(document.querySelector(".cvt-whatif-note")).toHaveTextContent("0 ratings differ");
   });
 
   it("takes the deployment mark too", async () => {
@@ -221,11 +223,11 @@ describe("What if?", () => {
     const detail = screen.getByRole("complementary", { name: /product · identity/i });
     const field = within(detail).getByRole("group", { name: /shown to work on field photos/i });
     await user.click(within(field).getByRole("radio", { name: "Yes" }));
-    expect(within(detail).getByRole("status")).toHaveTextContent(/^Your marks: Strong/);
+    expect(within(detail).getByRole("status")).toHaveTextContent(/^Your rating: Strong/);
     const used = within(detail).getByRole("group", { name: /in use for this task/i });
     await user.click(within(used).getByRole("radio", { name: "No" }));
     expect(within(used).getByRole("radio", { name: "No" })).toBeChecked();
-    expect(within(detail).getByRole("status")).toHaveTextContent(/^Your marks: (?!Strong)/);
+    expect(within(detail).getByRole("status")).toHaveTextContent(/^Your rating: (?!Strong)/);
   });
 
   it("downloads the reader's marks as a CSV in the deposit's format", async () => {

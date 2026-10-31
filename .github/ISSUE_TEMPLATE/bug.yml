@@ -1,0 +1,33 @@
+name: Bug report
+description: Something does not work as the docs say
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: For a security problem, follow .github/SECURITY.md instead of opening an issue.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: The page link and the steps or clicks that show the problem.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Page or version
+      description: The page URL, or the commit if you are running the code locally.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Your browser and operating system, including their versions.

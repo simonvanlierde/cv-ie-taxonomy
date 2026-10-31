@@ -38,7 +38,7 @@ export function RealPhoto({
         aria-controls={panel}
         onClick={() => setOpen((v) => !v)}
       >
-        Try a real model on one photo
+        Try your own photo
       </button>
       <div id={panel} hidden={!open}>
         {open && <RealPhotoPanel scale={scale} model={model} />}
@@ -79,7 +79,7 @@ function RealPhotoPanel({ scale, model }: { scale: Scale; model: RealModel }) {
       if (id !== runId.current) return;
       setState({
         status: "error",
-        message: error instanceof Error ? error.message : String(error),
+        message: `Could not analyse the photo: ${error instanceof Error ? error.message : String(error)}. Try again or choose another photo.`,
       });
     }
   };
@@ -117,7 +117,7 @@ function RealPhotoPanel({ scale, model }: { scale: Scale; model: RealModel }) {
         </div>
       ) : (
         <p className="cvt-real-none">
-          No photo of this fan has been taken yet. Try your own photo of a product instead.
+          No example photo is available. Choose a photo of a product to try this tool.
         </p>
       )}
       <div className="cvt-real-controls">
@@ -135,7 +135,7 @@ function RealPhotoPanel({ scale, model }: { scale: Scale; model: RealModel }) {
         {src && (
           // aria-disabled, not disabled: a disabled button drops the focus it holds
           <button type="button" onClick={run} aria-disabled={state.status === "running"}>
-            Run the model
+            Analyse photo
           </button>
         )}
         <button
@@ -150,12 +150,12 @@ function RealPhotoPanel({ scale, model }: { scale: Scale; model: RealModel }) {
             } catch (error) {
               setState({
                 status: "error",
-                message: error instanceof Error ? error.message : String(error),
+                message: `Could not remove the saved OWL-ViT files: ${error instanceof Error ? error.message : String(error)}. Try clearing this site’s data in your browser settings.`,
               });
             }
           }}
         >
-          Remove downloaded models
+          Remove OWL-ViT downloads
         </button>
       </div>
       <Result state={state} model={model} />
@@ -168,12 +168,13 @@ function Result({ state, model }: { state: State; model: RealModel }) {
   return (
     <div className="cvt-real-result" role="status">
       {state.status === "running" && <p>Running {model.name}…</p>}
-      {state.status === "error" && (
-        <p className="cvt-real-error">The model could not run here: {state.message}</p>
-      )}
+      {state.status === "error" && <p className="cvt-real-error">{state.message}</p>}
       {state.status === "done" && <Answer state={state} model={model} />}
       {state.status === "removed" && (
-        <p>The downloaded model files are removed from this browser&rsquo;s storage.</p>
+        <p>
+          Saved OWL-ViT files have been removed. Other files may remain in your browser&rsquo;s
+          normal cache.
+        </p>
       )}
     </div>
   );
@@ -189,8 +190,8 @@ function Answer({
   return (
     <>
       <p className="cvt-real-stamp">
-        One photo, not validation · {model.name} · {(ms / 1000).toFixed(1)} s (a first run includes
-        the download)
+        One photo, not a test of reliability · {model.name} · {(ms / 1000).toFixed(1)} s (a first
+        run includes the download)
       </p>
       {reading.kind === "text" ? (
         <p>

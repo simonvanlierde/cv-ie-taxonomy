@@ -6,95 +6,92 @@
 [![License: MIT](https://img.shields.io/badge/code-MIT-blue)](LICENSE)
 [![License: CC BY 4.0](https://img.shields.io/badge/content-CC%20BY%204.0-lightgrey)](LICENSE-CONTENT)
 
-An interactive map from the review article *Benchmarked, Rarely Field-Tested:
+A photo may help identify a used appliance, find a part or recognise a material.
+Can we trust that information when deciding what to repair, reuse or recycle?
+This page shows what the research has tested and what still needs checking on
+photos taken in those settings.
+
+![A drawing of a desk fan with labels showing what image software might identify](public/screenshot.png)
+
+**[Open the interactive map](https://simonvanlierde.com/cv-ie-taxonomy/)**
+
+Follow a desk fan from the whole product to its parts and materials. Select a
+label or a cell to see the evidence for one task. No task earns the review's
+highest rating, Strong. Label reading, for example, drops from 95.7% on repair
+photos to 39.7% at recycler intake.
+
+The page accompanies the review article *Benchmarked, Rarely Field-Tested:
 Computer Vision for End-of-Life Product Data in Industrial Ecology* (van Lierde
-et al., [citation: forthcoming]). It shows what cameras and image software
-(computer vision) can tell about a used product, and how far you can trust each
-answer.
+et al., [citation: forthcoming]).
 
-![A desk fan drawn as a cyanotype teardown, ringed by computer-vision read-outs](public/screenshot.png)
+## What the page shows
 
-**[▶ Open the live demo](https://simonvanlierde.com/cv-ie-taxonomy/)**
+- **The research:** ratings and evidence mirror the paper's Table S2 in
+  [`src/data/taxonomy.json`](src/data/taxonomy.json). Tests check the scoring
+  rules, ratings, marks and citation keys against the stored deposit data. The evidence covers the
+  literature as of June 2026, including washing machines, laptops, phones and vehicles.
+- **The illustration:** the fan and its read-outs show what the methods might
+  output. No image analysis was run on the drawing. The fan is schematic and not to scale.
+- **The sources:** select an author–year citation or a named model or dataset
+  to open its full reference and DOI. **Plain table** shows the ratings as text.
+- **Your own assessment:** **What if?** lets you change the evidence marks and
+  see how the rating changes. A dashed outline keeps the paper's rating visible.
+  **Export CSV** saves your changes in the deposit's `rubric-marks.csv` format.
 
-A worn-out desk fan comes apart as you scroll, through Product → Component →
-Material. Each label on it opens one cell of the paper's map, and the last
-screen shows all twelve cells, with a **Plain table** button for the same data.
-No task reaches Strong on field photos. Label reading, for example, falls from
-95.7% on repair photos to 39.7% at the recycler.
+## Try software on your own photo
 
-## Data and assumptions
+Each scene has a panel for running a model, meaning image-analysis software,
+in your browser. Tesseract 5 reads labels; OWL-ViT looks for parts and materials.
+Both use the Apache-2.0 licence. A result on one photo illustrates what the
+software does; it does not validate the review's ratings.
 
-[`src/data/taxonomy.json`](src/data/taxonomy.json) mirrors **Table S2** of the
-paper, and [`src/data/taxonomy.test.ts`](src/data/taxonomy.test.ts) fails if it
-drifts from the paper's rules.
-
-- The read-outs on the fan are simulated **mock values** that show what each
-  technique outputs: I didn't run a model on the drawing. The verdict letters
-  come from the paper.
-- The desk fan stands in for any WEEE product (waste electrical and electronic
-  equipment). The taxonomy isn't tied to one product: its evidence comes from
-  washing machines, laptops, smartphones, and vehicles. The drawing is
-  schematic, not to scale.
-- Verdicts are a **June 2026 snapshot**. The taxonomy's structure is the part
-  meant to last.
-- Each author–year citation opens its full reference and DOI, and so does
-  each named model or dataset.
-
-## What if? and real models
-
-**What if?**, above the map, lets you change any cell's rubric marks and see the
-verdict follow by the paper's own rules. The paper's verdict stays as a dashed
-outline, and **Export CSV** writes your marks in the deposit's `rubric-marks.csv`
-format.
-
-Each scale scene can also **try a real model on one photo** of your own, in your
-browser: Tesseract 5 reads the label (about 7 MB, all from this site), and
-OWL-ViT finds parts and materials (about 165 MB, the weights from Hugging Face at
-a fixed commit). Both are Apache-2.0. Nothing runs until you press Run, the photo
-is not sent anywhere, and every result says it is one photo, not validation.
-**Remove downloaded models** clears the cached weights.
-[`public/privacy.html`](public/privacy.html) says what leaves the browser.
+Nothing runs until you press **Analyse photo**, and your photo stays on your
+device. The first run downloads about 7 MB for Tesseract, all from this site,
+or about 165 MB for OWL-ViT. OWL-ViT's model files come from Hugging Face at a
+fixed commit. **Remove OWL-ViT downloads** clears its stored model files.
+[Privacy](https://simonvanlierde.com/cv-ie-taxonomy/privacy.html) explains those requests and browser storage.
 
 ## Accessibility
 
-Maturity shows as ink weight, letters and, in `forced-colors` mode and print,
-textures, never colour alone. The three scale colours come from the
-colourblind-safe Okabe–Ito palette. Every label and cell is a button with an
-accessible name, and the detail view closes with `Esc`. `prefers-reduced-motion`
-stops the idle spin and swaps the scroll animation for jumps between poses.
+Ratings use letters and ink weight as well as colour. High-contrast mode and
+print add textures. Each task is a named button, and `Esc` closes its details.
+The page respects reduced-motion settings. Chromium tests run axe WCAG 2.2 AA
+checks, including the assessment editor and model panels. Automated checks do
+not cover every accessibility need; axe cannot judge text contrast over the grid.
 
 ## Develop
 
-Requires Node 26 or later.
+Requires Node 26 or later and the pnpm version in `package.json`.
 
 ```sh
 pnpm install
+pnpm exec playwright install chromium
 pnpm dev         # http://localhost:5173
-pnpm test        # data + interaction tests, jsdom (vitest)
-pnpm build       # typecheck + production build
+pnpm test:all    # unit and Chromium tests
+pnpm check       # lint and format
+pnpm check:theme # colours match src/theme.ts
+pnpm build       # typecheck and production build
 ```
 
-`pnpm test:browser` runs the tests that need real Chromium (focus return,
-`inert`, the top layer, `ResizeObserver` layout); install it once with
-`pnpm exec playwright install chromium`. `pnpm test:all` runs both, and so does
-CI. CI also runs `pnpm check` (Biome) and `pnpm check:theme`, which fails if a
-surface colour in CSS or HTML differs from `src/theme.ts`.
+Use `pnpm test` for unit tests or `pnpm test:browser` for Chromium tests.
+[Contributing](CONTRIBUTING.md) covers issues and pull requests.
+[The changelog](CHANGELOG.md) records changes.
 
-URL parameters: `?cell=component-structure` opens a detail (ids are
-`<scale>-<information type>` in lower case), `?theme=dark|light` forces a theme,
-and `?scene=2` pins a scene for screenshots (0 is the opening, 4 the map).
+URL parameters: `?cell=component-structure` opens a task's details. Cell IDs use
+`<scale>-<information type>` in lower case. `?theme=dark|light` sets the theme;
+`?scene=2` pins a scene for screenshots (0 is the opening, 4 the map).
 
 ## Writing the page copy
 
-All visible text is for the general public and industrial-ecology readers. Use short, concrete
-words. Explain a technical term in the same sentence, or drop it. Keep the paper's numbers as
-they are: a test checks them.
+Start with the decision a reader faces: what can be repaired, reused or recycled?
+Explain what a photo could tell us, then what the evidence supports. Write for
+industrial ecologists and readers arriving without a computer-vision background.
+Define a necessary technical term when it first appears. Keep the paper's ratings,
+numbers and qualifications intact. Distinguish a failed test, indirect evidence
+and a test that has not been done.
 
 ## License
 
-The license is split so anyone can reuse the code, while the research stays
-citable:
-
-- **Code**: [MIT](LICENSE).
-- **Taxonomy data** (`src/data/taxonomy.json`, mirroring Table S2), **figures, and
-  content**: [CC BY 4.0](LICENSE-CONTENT).
+[MIT](LICENSE) covers the code. [CC BY 4.0](LICENSE-CONTENT) covers the taxonomy
+data, figures and page content. The code of conduct has its own attribution and
+licence in [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
