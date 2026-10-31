@@ -13,10 +13,11 @@ To report a security problem, do not open an issue. Follow
 ## Send a pull request
 
 1. Fork the repository and branch from `main`.
-2. Install and run the site:
+2. Use Node 26 or later and the pnpm version in `package.json`. Install and run the site:
 
    ```sh
    pnpm install
+   pnpm exec playwright install chromium
    pnpm dev
    ```
 
@@ -24,7 +25,9 @@ To report a security problem, do not open an issue. Follow
 
    ```sh
    pnpm check       # Biome lint and format
+   pnpm check:theme # theme colours
    pnpm test:all    # unit and browser tests
+   pnpm build       # TypeScript and production build
    ```
 
 4. Open the pull request against `main`. Keep it small and say what it changes.

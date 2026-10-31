@@ -1,7 +1,9 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import axe from "axe-core";
 import { describe, expect, it, vi } from "vitest";
 import { CvTaxonomy } from "./CvTaxonomy";
+import { SCALES } from "./data/taxonomy";
 import { SCENES } from "./params";
 
 /**
@@ -44,6 +46,30 @@ describe("WCAG 2.2 AA (axe)", () => {
   it("an open cell detail", async () => {
     render(<CvTaxonomy initialCell="component-structure" />);
     await screen.findByRole("complementary", { name: /component · structure/i });
+    expect(await violations()).toEqual([]);
+  });
+
+  it.each(["product-identity", "component-structure"])("the %s rubric editor", async (id) => {
+    const user = userEvent.setup();
+    render(<CvTaxonomy debugChapter="outro" />);
+    await user.click(screen.getByRole("button", { name: "What if?" }));
+    await user.click(document.getElementById(`cvt-mx-${id}`) as HTMLElement);
+    const detail = screen.getByRole("complementary");
+    expect(within(detail).getAllByRole("radio").length).toBeGreaterThan(0);
+    expect(await violations()).toEqual([]);
+  });
+
+  it.each(SCALES)("the open %s real-model panel", async (scale) => {
+    const user = userEvent.setup();
+    render(<CvTaxonomy debugChapter={scale} />);
+    const chapter = document.getElementById(`cvt-ch-${scale}`) as HTMLElement;
+    const toggle = within(chapter).getByRole("button", { name: /try a real model/i });
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(within(chapter).getByLabelText(/use your own photo/i)).toBeInTheDocument();
+    expect(
+      within(chapter).getByRole("button", { name: /remove downloaded models/i }),
+    ).toBeVisible();
     expect(await violations()).toEqual([]);
   });
 

@@ -1,6 +1,6 @@
 import { realpathSync } from "node:fs";
 import { join } from "node:path";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
  * The real runners, with both libraries mocked: what each scene asks for, where
@@ -108,6 +108,25 @@ describe("the runtimes this site serves", () => {
 });
 
 describe("removing the downloads", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("deletes the detector's persistent cache", async () => {
+    const del = vi.fn().mockResolvedValue(true);
+    vi.stubGlobal("caches", { delete: del });
+    const { removeDownloads } = await load();
+    await removeDownloads();
+    expect(del).toHaveBeenCalledExactlyOnceWith("transformers-cache");
+  });
+
+  it("drops the loaded detector even when Cache Storage is unavailable", async () => {
+    vi.stubGlobal("caches", undefined);
+    const { REAL_MODELS, removeDownloads } = await load();
+    await REAL_MODELS.Component.run(image());
+    await expect(removeDownloads()).resolves.toBeUndefined();
+    await REAL_MODELS.Component.run(image());
+    expect(pipeline).toHaveBeenCalledTimes(2);
+  });
+
   it("drops the loaded detector, so the next run downloads it again", async () => {
     const { REAL_MODELS, removeDownloads } = await load();
     await REAL_MODELS.Component.run(image());
