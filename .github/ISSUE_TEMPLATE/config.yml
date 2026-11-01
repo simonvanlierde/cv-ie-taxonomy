@@ -1,0 +1,9 @@
+# Point readers to the guide before they open an issue.
+blank_issues_enabled: false
+contact_links:
+  - name: Read the guide
+    url: https://github.com/simonvanlierde/cv-ie-taxonomy/blob/main/README.md
+    about: What the map shows and how to use it.
+  - name: Report a vulnerability
+    url: https://github.com/simonvanlierde/cv-ie-taxonomy/security/advisories/new
+    about: Privately, as SECURITY.md says.

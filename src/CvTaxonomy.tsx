@@ -553,7 +553,11 @@ export function CvTaxonomy({
                 {!isMobile && (
                   <MaturityInstrument
                     live={CLAIMED_VERDICTS}
-                    reading={focus ? (splitOf(focus) ?? [focus.maturity]).join("|") : ""}
+                    reading={
+                      focus && !focus.structurallyEmpty
+                        ? (splitOf(focus) ?? [focus.maturity]).join("|")
+                        : ""
+                    }
                   />
                 )}
                 <IllustrativeDisclosure />
@@ -748,8 +752,8 @@ const Rail = memo(function Rail({
         <Hero
           hint={
             phone
-              ? "Each scene lists its cells. Tap one to see its evidence."
-              : "Once labels appear on the fan, click one to see its evidence."
+              ? "Tap a task in each scene to see what the research found."
+              : "Select a label on the fan to see what the research found."
           }
         />
         <p className="cvt-scrollhint" aria-hidden>
@@ -793,7 +797,7 @@ const Rail = memo(function Rail({
 // claim-bearing copy and the cell buttons have exactly one source ---------------
 
 export function IllustrativeDisclosure() {
-  return <p className="cvt-illustrative-note">Simulated read-outs · no model run</p>;
+  return <p className="cvt-illustrative-note">Illustration · no photo was analysed</p>;
 }
 
 export function MaturityKey() {
@@ -821,18 +825,16 @@ export function Hero({ hint }: { hint: string }) {
         actually see?
       </h1>
       <p className="cvt-hero-contract">
-        Every verdict comes from the paper&rsquo;s <span className="cvt-cite">Table&nbsp;S2</span>.
-        The more solid the mark, the stronger the evidence. Colour only shows the physical scale.
+        Good results on carefully taken photos do not guarantee useful answers at a repair shop or
+        recycling site.
       </p>
       <p className="cvt-sub">
-        Research on reuse and recycling (the circular economy) keeps asking cameras to judge
-        discarded products. What is this? What&rsquo;s inside? What is it worth? Here is one
-        worn-out desk fan, and ten tasks that computer vision (software that reads images) could
-        take on. Most of them work in the lab. Almost none has been tested on photos taken where
-        products are repaired, collected or recycled.
+        Before a used fan can be repaired or recycled, someone needs to identify it, check its parts
+        and work out what it is made of. Can a photo help? We reviewed ten tasks for computer
+        vision, software that reads images. Follow the fan as it comes apart to see what the
+        research can support.
         {` ${hint}`}
       </p>
-      <p className="cvt-hero-split">{FIELD_SPLIT}</p>
     </>
   );
 }
@@ -879,7 +881,9 @@ export function CellList({
                   ? split.map((v) => VERDICT_LETTER[v]).join(" / ")
                   : VERDICT_LETTER[cell.maturity]}
             </b>{" "}
-            <span className="cvt-sr">Maturity: {maturity}. Open details.</span>
+            <span className="cvt-sr">
+              {cell.structurallyEmpty ? "Not applicable" : `Maturity: ${maturity}`}. Open details.
+            </span>
           </button>
         );
       })}
@@ -901,35 +905,39 @@ export const Outro = memo(function Outro() {
       tabIndex={-1}
       data-chapter-at="outro"
     >
-      <h2>
-        Most of these tools exist. Almost none has been tested where products are actually handled.
-      </h2>
+      <h2>A useful tool must work on the photos people can actually take.</h2>
       <MaturityKey />
       {/* the caption and the table twin ride the narrative column beside the
           figure, and step aside for the detail the way act one's prose does */}
       <Explorable>
         <div className="cvt-foot">
           <p>
-            How mature ten vision tasks are, across twelve cells: physical scale by type of
-            information. Each block is as tall as its verdict. The dashed line is Strong, and
-            nothing reaches it. The words under a block say what it is missing. Verdicts come from
-            the paper&rsquo;s Table&nbsp;S2 and cover the literature as of {taxonomy.meta.scanDate}.
+            Choose a cell to see the evidence for one task. The columns ask what something is, how
+            much is there, how it is put together and what condition it is in. The rows move from
+            the whole product to its parts and materials. Ratings come from the paper&rsquo;s
+            Table&nbsp;S2, a review of the literature as of {taxonomy.meta.scanDate}.
           </p>
           <p>
-            Hatched cells have no task of their own, because structure is a question for the
-            Component scale. Two letters mean two sub-tasks. The block stands at the stronger
-            verdict, with a line across at the weaker one.
+            Taller blocks mean stronger evidence. The dashed line marks Strong, the highest rating;
+            no task reaches it. Finding parts and identifying their attachments receive separate
+            ratings, giving eleven assessments across ten tasks. The two hatched cells point back to
+            the parts, where connections are assessed; they have no rating of their own.
           </p>
           <p>
-            By the paper&rsquo;s own scoring rules (its rubric), no task earns a Strong on field
-            photos. What is missing comes in three shapes. Some tasks have no shared taxonomy yet,
-            for example for a product&rsquo;s condition across product types, or for how its parts
-            are fastened. One has no method at all: seeing what lies under the surface. The rest
-            have methods that have not been tested on field photos.
+            Strong requires a method intended for many product types, evidence that it works on
+            recycler-intake photos, and documented use for the task. Missing tests leave a
+            requirement unmet; they do not demonstrate failure.
+          </p>
+          <p>{FIELD_SPLIT}</p>
+          <p>
+            Some gaps need more than another test. Describing damage across product types or the
+            connections between parts needs agreed categories first. Measuring hidden material
+            composition needs a method. The other gaps concern how existing methods perform on
+            photos taken where used products are handled.
           </p>
           <p>
-            Industrial ecology already describes products by hand, so it can help build those shared
-            words and a shared set of field photos to test on.
+            Industrial ecologists can help define the information needed for reuse and recycling,
+            agree how to describe it, and test tools with the people who handle used products.
           </p>
         </div>
         <TableView />
@@ -998,11 +1006,17 @@ function TableView() {
                     <th scope="row">{cell.scale}</th>
                     <td>{cell.informationType}</td>
                     <td>
-                      {cell.structurallyEmpty ? "structurally empty" : cell.task}
+                      {cell.structurallyEmpty ? "See Component · Structure" : cell.task}
                       {sub.label && <span className="cvt-subtask"> · {sub.label}</span>}
                     </td>
                     <td>
-                      <b>{VERDICT_LETTER[sub.maturity]}</b> {sub.maturity}
+                      {cell.structurallyEmpty ? (
+                        "Not applicable"
+                      ) : (
+                        <>
+                          <b>{VERDICT_LETTER[sub.maturity]}</b> {sub.maturity}
+                        </>
+                      )}
                     </td>
                     <td className="cvt-mono">
                       {"rubricMarks" in sub && sub.rubricMarks ? sub.rubricMarks : cell.rubricMarks}
@@ -1075,12 +1089,13 @@ const RUBRIC_LABEL = "Rubric marks (evidence · field · deployed)";
 function RubricKey() {
   return (
     <p className="cvt-rubric-key">
-      The first mark is the evidence. <b>B</b>: a general method, benchmarked on these or similar
-      products (benchmarked product-general). <b>N</b>: one narrow class only. <b>C</b>: a concept,
-      or shown only in a neighbouring field. <b>–</b>: no method, or worked out from other cells.
-      Then come two gates, each ✓ or ✗. The field gate asks whether it survives end-of-life photos.
-      The deployment gate asks whether it is in use on this task. A ✗ on the field gate says why: ✗ᵐ
-      measured drop, ✗ᵃ inferred from adjacent evidence, ✗ᵘ untested.
+      The first mark describes the evidence. <b>B</b>: a general method tested on these or similar
+      products.
+      <b>N</b>: tested on one type of object only. <b>C</b>: an idea or evidence from a related
+      field. <b>–</b>: no direct method. The next two marks check whether it works on photos taken
+      after use and whether it is in use for this task. A ✓ means yes; a ✗ means no. The small
+      letters explain a ✗ for field photos: ✗ᵐ means performance was measured and fell short, ✗ᵃ
+      means limits are inferred from related research, and ✗ᵘ means it has not been tested.
     </p>
   );
 }
@@ -1174,6 +1189,21 @@ function DetailPanel({
 }
 
 export function DetailBody({ cell }: { cell: Cell }) {
+  if (cell.structurallyEmpty) {
+    return (
+      <>
+        <div className="cvt-verdict">
+          <strong>Not applicable</strong>
+        </div>
+        <dl className="cvt-panel-grid">
+          <Row label="Why this cell has no rating" value={cell.maturityNote} />
+        </dl>
+        <div className="cvt-panel-foot">
+          <ShareLink cellId={cell.id} />
+        </div>
+      </>
+    );
+  }
   const level = maturityLevel(cell.maturity);
   // a compound cell states both verdicts, and each sub-task keeps its own
   // handling: the weaker one's "do not populate" must not read as "verify"
@@ -1185,8 +1215,8 @@ export function DetailBody({ cell }: { cell: Cell }) {
     <>
       {mentionsEol && (
         <p className="cvt-term-note">
-          End-of-life (<abbr title="End-of-life">EoL</abbr>) capture means photos of products after
-          use. They are often damaged, dirty, incomplete or poorly framed.
+          End-of-life (<abbr title="End-of-life">EoL</abbr>) means after a product has been used.
+          Dirt, wear, missing parts and awkward camera angles can change what software recognises.
         </p>
       )}
       <div className="cvt-verdict">
@@ -1226,14 +1256,26 @@ export function DetailBody({ cell }: { cell: Cell }) {
           />
         )}
         <GapRow cell={cell} />
+        <Row
+          label="How to use the result"
+          value={
+            cell.subVerdicts
+              ? cell.subVerdicts.map((s) => (
+                  <span className="cvt-handling" key={s.label}>
+                    {s.label}: {maturityLevel(s.maturity).handling}
+                  </span>
+                ))
+              : level.handling
+          }
+        />
         {/* The run belongs where the panel opens, not folded into "More detail":
             it is the derivation of the verdict stated three lines above it, and
             behind a closed <details> nobody meets the mechanism at all. */}
-        <Row label="How it was derived" value={<RubricCircuit cell={cell} />} />
+        <Row label="How the rating was reached" value={<RubricCircuit cell={cell} />} />
       </dl>
 
       <details className="cvt-panel-more">
-        <summary>More</summary>
+        <summary>Methods, examples and sources</summary>
         <dl className="cvt-panel-grid">
           {cell.methodFamily && (
             <Row
@@ -1243,7 +1285,7 @@ export function DetailBody({ cell }: { cell: Cell }) {
           )}
           {cell.example && (
             <Row
-              label="Nearby examples"
+              label="Studies and examples"
               value={<CitedProse text={cell.example} citeKeys={cell.citations} />}
             />
           )}
@@ -1251,18 +1293,6 @@ export function DetailBody({ cell }: { cell: Cell }) {
           {/* the paper's own notation, for a reader checking against Table S2; the
               run above already glosses each mark, so the key stays with the table */}
           <Row label={RUBRIC_LABEL} value={<span className="cvt-mono">{cell.rubricMarks}</span>} />
-          <Row
-            label="How to use the result"
-            value={
-              cell.subVerdicts
-                ? cell.subVerdicts.map((s) => (
-                    <span className="cvt-handling" key={s.label}>
-                      {s.label}: {maturityLevel(s.maturity).handling}
-                    </span>
-                  ))
-                : level.handling
-            }
-          />
         </dl>
       </details>
 

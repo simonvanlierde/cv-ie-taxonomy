@@ -2,6 +2,7 @@ import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  CellList,
   CvTaxonomy,
   cameraTransform,
   flyIntoMap,
@@ -39,7 +40,7 @@ describe("detail on the sheet (desktop)", () => {
 
     const region = await detail();
     expect(within(region).getByRole("heading", { level: 2 })).toBeInTheDocument();
-    expect(within(region).getByText(/no model run/i)).toBeInTheDocument();
+    expect(within(region).getByText(/no photo was analysed/i)).toBeInTheDocument();
   });
 
   it("moves focus into the detail when it opens", async () => {
@@ -196,7 +197,7 @@ describe("detail on the sheet (desktop)", () => {
 
     const region = await screen.findByRole("complementary", { name: /material · quantity/i });
     expect(within(region).getByRole("heading", { level: 2 })).toHaveTextContent(cell.task);
-    expect(within(region).getByText(/simulated read-outs/i)).toBeInTheDocument();
+    expect(within(region).getByText(/illustration/i)).toBeInTheDocument();
   });
 
   it("defines EoL before source copy uses the abbreviation", async () => {
@@ -204,7 +205,7 @@ describe("detail on the sheet (desktop)", () => {
 
     const region = await screen.findByRole("complementary", { name: /product · identity/i });
     expect(region.querySelector(".cvt-term-note")).toHaveTextContent(
-      /End-of-life \(EoL\) capture means photos of products after use/i,
+      /End-of-life \(EoL\) means after a product has been used/i,
     );
   });
 
@@ -584,11 +585,31 @@ describe("the closing flight", () => {
 });
 
 describe("what each cell is missing", () => {
+  it.each(["Product", "Material"] as const)(
+    "does not rate %s connections in a phone list",
+    (scale) => {
+      render(<CellList scale={scale} onOpen={() => {}} />);
+      const button = screen.getByRole("button", { name: new RegExp(`${scale} · Structure`) });
+      expect(button).toHaveAccessibleName(/not applicable/i);
+      expect(button).not.toHaveAccessibleName(/absent/i);
+    },
+  );
+
+  it("does not light the Absent rung for a connections placeholder", async () => {
+    const user = userEvent.setup();
+    render(<CvTaxonomy debugChapter="Product" />);
+    await user.hover(trigger("product-structure"));
+    expect(document.querySelector('.cvt-rung[data-verdict="A"]')).toHaveAttribute(
+      "data-reading",
+      "false",
+    );
+  });
+
   it("is in each matrix cell's name, after the letter it shows", () => {
     render(<CvTaxonomy debugChapter="outro" />);
     const cell = document.getElementById("cvt-mx-component-structure") as HTMLElement;
     expect(cell.getAttribute("aria-label")).toMatch(
-      /^P \/ E no shared taxonomy yet, likely short or not tried on field photos\. Component · Structure: /,
+      /^P \/ E no agreed categories yet, likely to fall short or not tested on field photos\. Component · Structure: /,
     );
   });
 
@@ -603,9 +624,9 @@ describe("what each cell is missing", () => {
     render(<CvTaxonomy initialCell="component-structure" />);
     const compound = await screen.findByRole("complementary");
     const row = within(compound).getByText("What is missing").nextElementSibling as HTMLElement;
-    expect(row).toHaveTextContent("Detection / segmentation: likely short on field photos");
+    expect(row).toHaveTextContent("Detection / segmentation: likely to fall short on field photos");
     expect(row).toHaveTextContent(
-      "BoC attachment relations: no shared taxonomy yet; not tried on field photos",
+      "BoC attachment relations: no agreed categories yet; not tested on field photos",
     );
   });
 
@@ -613,6 +634,9 @@ describe("what each cell is missing", () => {
     render(<CvTaxonomy initialCell="product-structure" />);
     const detail = await screen.findByRole("complementary");
     expect(within(detail).queryByText("What is missing")).toBeNull();
+    expect(detail).toHaveTextContent(/not applicable/i);
+    expect(detail).not.toHaveTextContent(/A: Absent/);
+    expect(within(detail).queryByText("How to use the result")).toBeNull();
   });
 });
 
@@ -621,9 +645,10 @@ describe("real-model mode", () => {
     render(<CvTaxonomy />);
     for (const scale of ["Product", "Component", "Material"]) {
       const scene = document.getElementById(`cvt-ch-${scale}`) as HTMLElement;
-      expect(
-        within(scene).getByRole("button", { name: /try a real model on one photo/i }),
-      ).toHaveAttribute("aria-expanded", "false");
+      expect(within(scene).getByRole("button", { name: /try your own photo/i })).toHaveAttribute(
+        "aria-expanded",
+        "false",
+      );
     }
   });
 });
@@ -727,6 +752,18 @@ describe("the chapter rail is navigation, not decoration", () => {
 });
 
 describe("the plain-table twin", () => {
+  it.each(["Product", "Material"])(
+    "does not give %s connections an Absent rating",
+    async (scale) => {
+      const user = userEvent.setup();
+      render(<Outro />);
+      await user.click(screen.getByRole("button", { name: /plain table/i }));
+      const row = screen.getByRole("row", { name: new RegExp(`${scale} Structure`) });
+      expect(row).toHaveTextContent("Not applicable");
+      expect(row).not.toHaveTextContent("Absent");
+    },
+  );
+
   // The only native <dialog> left on the sheet, and the sole consumer of the
   // showModal/close emulation in test-setup — so its contract is asserted here
   // rather than assumed.

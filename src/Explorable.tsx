@@ -90,7 +90,7 @@ export function Explorable({ children }: { children?: ReactNode }) {
         {!selected && (
           <div className="cvt-explorable-idle">
             <p className="cvt-inline-prompt">
-              Select a cell to see why it got its verdict, and where it fails.
+              Select a task to see what has been tested and what is still missing.
             </p>
             {children}
           </div>
@@ -109,7 +109,7 @@ export function Explorable({ children }: { children?: ReactNode }) {
               <div className="cvt-inline-head">
                 <h3 className="cvt-inline-title">
                   {selected.structurallyEmpty
-                    ? "Structurally empty: answered at the component scale"
+                    ? "Connections are assessed at the parts level"
                     : selected.task}
                 </h3>
                 <button
@@ -192,8 +192,8 @@ function WhatIfBar({
       {/* always there, so turning the switch on is announced */}
       <p className="cvt-whatif-note" role="status">
         {on
-          ? `Your marks, not the paper’s. ${changed === 1 ? "1 cell differs" : `${changed} cells differ`} from the paper; each one shows the paper’s verdict as a dashed outline.`
-          : "Change a cell’s marks and see its verdict move."}
+          ? `${changed === 1 ? "1 rating differs" : `${changed} ratings differ`} from the paper. The dashed outline shows the paper’s rating.`
+          : "Try different evidence and see how the rating changes."}
       </p>
       {on && (
         <>
@@ -217,9 +217,9 @@ function WhatIfBar({
 }
 
 const EVIDENCE: { value: Marks["evidence"]; label: string }[] = [
-  { value: "B", label: "B, tested on these or similar products" },
-  { value: "N", label: "N, one narrow kind of object only" },
-  { value: "C", label: "C, an idea or a neighbouring field only" },
+  { value: "B", label: "B, a general method tested on these or similar products" },
+  { value: "N", label: "N, tested on one type of object only" },
+  { value: "C", label: "C, an idea or evidence from a related field" },
   { value: "–", label: "–, no method" },
 ];
 const GATE: { value: Marks["capture"]; label: string }[] = [
@@ -282,7 +282,7 @@ function MarksEditor({
     <div className="cvt-marks">
       {/* announced as the reader changes a mark */}
       <p className="cvt-marks-verdict" role="status">
-        Your marks: {maturityName(mine)}
+        Your rating: {maturityName(mine)}
         <span>{`. The paper’s: ${maturityName(paper)}`}</span>
       </p>
       {runs.map((run, i) => {

@@ -28,16 +28,16 @@ export interface Run {
 }
 
 const EVIDENCE_TEXT: Record<Evidence, string> = {
-  B: "general method, benchmarked",
-  N: "narrow class only",
-  C: "concept or neighbouring field only",
-  "–": "no method, or derived",
+  B: "general method, tested on these or similar products",
+  N: "tested on one type of object only",
+  C: "idea or evidence from a related field",
+  "–": "no method, or calculated from other results",
 };
 
 const BASIS_TEXT = {
-  measured: "measured drop on end-of-life photos",
-  inferred: "inferred from neighbouring-field or zero-shot evidence",
-  untested: "untested on end-of-life photos",
+  measured: "performance drops on photos taken after use",
+  inferred: "limits inferred from related research",
+  untested: "not tested on photos taken after use",
 } as const;
 
 export const evidenceText = (e: Evidence) => EVIDENCE_TEXT[e];
@@ -137,7 +137,7 @@ export function gapsOf(cell: Cell): { label: string | null; gaps: Gap[] }[] {
 }
 
 const GAP_TEXT: Record<Exclude<Gap["kind"], "field">, string> = {
-  ontology: "no shared taxonomy yet",
+  ontology: "no agreed categories yet",
   // the paper's one method-bound gap is the composition a camera cannot see
   // (§3.2.3, §5), so the words say so rather than "no method" for the cell
   method: "no method for what's hidden",
@@ -145,8 +145,8 @@ const GAP_TEXT: Record<Exclude<Gap["kind"], "field">, string> = {
 };
 const SHORT_BASIS: Record<NonNullable<Run["basis"]>, string> = {
   measured: "fell short",
-  inferred: "likely short",
-  untested: "not tried",
+  inferred: "likely to fall short",
+  untested: "not tested",
 };
 
 /** A gap in plain words, short enough for a matrix cell. */
