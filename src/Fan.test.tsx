@@ -38,6 +38,17 @@ const COMPONENT_CHIPS = [
 ];
 
 describe("chip operability", () => {
+  it.each(["Product", "Material"] as const)(
+    "does not rate the %s connections placeholder",
+    (scale) => {
+      const { container } = renderFan({ chapter: scale });
+      const button = chip(container, `${scale.toLowerCase()}-structure`);
+      expect(button).toHaveAccessibleName(/not applicable/i);
+      expect(button).not.toHaveAccessibleName(/absent/i);
+      expect(button.querySelector(".cvt-co-letter")).toBeEmptyDOMElement();
+    },
+  );
+
   it("drops chips outside the camera frame from the tab ring, but never the selected one", () => {
     // component-quantity's frame is tight around the motor: the identity chip in
     // the left gutter is not on the sheet while that detail is open, and a chip

@@ -2658,10 +2658,9 @@ html[data-theme="dark"] {
   position: relative;
   min-width: 0;
 }
-/* The prose steps aside rather than unmounting. visibility:hidden takes it out
-   of the tab order and the accessibility tree — the detail stands in its place
-   for the reader too — while the box keeps the height the scroll needs. */
-.cvt-railcol[data-detail="open"] .cvt-rail {
+/* The desktop detail replaces the prose without changing its height. The phone
+   sheet uses inert instead; its opener must stay visible for focus return. */
+:where(.cvt-scroll[data-layout="sheet"]) .cvt-railcol[data-detail="open"] .cvt-rail {
   visibility: hidden;
 }
 /* The slot is the sticky, zero-height thing; the detail overflows it, so opening

@@ -24,7 +24,7 @@
       {
         "verdict": "Emerging-but-narrow",
         "letter": "E",
-        "gloss": "Shown to work for one type of object. It does not work for products in general.",
+        "gloss": "Shown to work for one type of object. Performance on other product types is not established.",
         "handling": "For products in general, a person must supply the value. Do not fill an inventory entry from this result."
       },
       {
@@ -108,7 +108,7 @@
       "task": "(structurally empty)",
       "methodFamily": null,
       "maturity": "Absent",
-      "maturityNote": "Structurally empty: how parts fit together is answered at the Component scale. Evidence mark –. This cell has no row in Table S2.",
+      "maturityNote": "Connections are assessed at the parts level (Component · Structure). This cell has no separate task or rating, and no row in Table S2. Its evidence mark is –.",
       "rubricMarks": "–",
       "hardware": null,
       "failureMode": null,
@@ -182,7 +182,7 @@
       "task": "Find, outline and count the parts, and how they attach (Bill of Components)",
       "methodFamily": "Detecting parts from a fixed or an open list; outlining any region with a large pretrained (foundation) model, then labelling it; for attachments, inferring joints from an image (image-to-articulation)",
       "maturity": "Partial",
-      "maturityNote": "Finding and outlining parts is rated Partial. One narrow test reports ~98.8% mAP50, a score for finding objects, but the software needs adjustment for each setting. Outlines learned at one waste-sorting facility score 56.0 mIoU, a measure of overlap with the correct outlines, and 45.5 at another. Identifying how parts attach is Emerging-but-narrow: methods cover only jointed household objects or toy vehicles. Accuracy in mapping those connections falls from ~82% to ~39% on a new dataset of the same kinds. The rating for finding and outlining parts rests on one lab-photographed teardown study.",
+      "maturityNote": "Finding and outlining parts is rated Partial. One narrow test reports ~98.8% mAP50, a score for finding objects, but the software needs adjustment for each setting. Outlines learned at one waste-sorting facility score 56.0 mIoU, a measure of overlap with the correct outlines, and 45.5 at another. Identifying how parts attach is Emerging-but-narrow: methods cover only jointed household objects or toy vehicles. In one study of jointed household objects, the whole connection map was correct in ~82% of cases on one dataset and ~39% on an unseen dataset. This tests generalisation, not performance on repair-shop photos. The rating for finding and outlining parts rests on one lab-photographed teardown study.",
       "subVerdicts": [
         {
           "label": "Detection / segmentation",
@@ -278,7 +278,7 @@
       "task": "(structurally empty)",
       "methodFamily": null,
       "maturity": "Absent",
-      "maturityNote": "Structurally empty: how parts fit together is answered at the Component scale. Evidence mark –. This cell has no row in Table S2.",
+      "maturityNote": "Connections are assessed at the parts level (Component · Structure). This cell has no separate task or rating, and no row in Table S2. Its evidence mark is –.",
       "rubricMarks": "–",
       "hardware": null,
       "failureMode": null,

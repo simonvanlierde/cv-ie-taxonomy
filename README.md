@@ -17,8 +17,8 @@ photos taken in those settings.
 
 Follow a desk fan from the whole product to its parts and materials. Select a
 label or a cell to see the evidence for one task. No task earns the review's
-highest rating, Strong. Label reading, for example, drops from 95.7% on repair
-photos to 39.7% at recycler intake.
+highest rating, Strong. In one washing-machine study, model numbers were read
+from 95.7% of photos with a visible label at repair, and 39.7% at recycler intake.
 
 The page accompanies the review article *Benchmarked, Rarely Field-Tested:
 Computer Vision for End-of-Life Product Data in Industrial Ecology* (van Lierde
@@ -71,6 +71,7 @@ pnpm test:all    # unit and Chromium tests
 pnpm check       # lint and format
 pnpm check:theme # colours match src/theme.ts
 pnpm build       # typecheck and production build
+pnpm preview     # inspect the build at /cv-ie-taxonomy/
 ```
 
 Use `pnpm test` for unit tests or `pnpm test:browser` for Chromium tests.

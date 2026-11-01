@@ -2,6 +2,7 @@ import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  CellList,
   CvTaxonomy,
   cameraTransform,
   flyIntoMap,
@@ -584,6 +585,26 @@ describe("the closing flight", () => {
 });
 
 describe("what each cell is missing", () => {
+  it.each(["Product", "Material"] as const)(
+    "does not rate %s connections in a phone list",
+    (scale) => {
+      render(<CellList scale={scale} onOpen={() => {}} />);
+      const button = screen.getByRole("button", { name: new RegExp(`${scale} · Structure`) });
+      expect(button).toHaveAccessibleName(/not applicable/i);
+      expect(button).not.toHaveAccessibleName(/absent/i);
+    },
+  );
+
+  it("does not light the Absent rung for a connections placeholder", async () => {
+    const user = userEvent.setup();
+    render(<CvTaxonomy debugChapter="Product" />);
+    await user.hover(trigger("product-structure"));
+    expect(document.querySelector('.cvt-rung[data-verdict="A"]')).toHaveAttribute(
+      "data-reading",
+      "false",
+    );
+  });
+
   it("is in each matrix cell's name, after the letter it shows", () => {
     render(<CvTaxonomy debugChapter="outro" />);
     const cell = document.getElementById("cvt-mx-component-structure") as HTMLElement;
@@ -613,6 +634,9 @@ describe("what each cell is missing", () => {
     render(<CvTaxonomy initialCell="product-structure" />);
     const detail = await screen.findByRole("complementary");
     expect(within(detail).queryByText("What is missing")).toBeNull();
+    expect(detail).toHaveTextContent(/not applicable/i);
+    expect(detail).not.toHaveTextContent(/A: Absent/);
+    expect(within(detail).queryByText("How to use the result")).toBeNull();
   });
 });
 
@@ -728,6 +752,18 @@ describe("the chapter rail is navigation, not decoration", () => {
 });
 
 describe("the plain-table twin", () => {
+  it.each(["Product", "Material"])(
+    "does not give %s connections an Absent rating",
+    async (scale) => {
+      const user = userEvent.setup();
+      render(<Outro />);
+      await user.click(screen.getByRole("button", { name: /plain table/i }));
+      const row = screen.getByRole("row", { name: new RegExp(`${scale} Structure`) });
+      expect(row).toHaveTextContent("Not applicable");
+      expect(row).not.toHaveTextContent("Absent");
+    },
+  );
+
   // The only native <dialog> left on the sheet, and the sole consumer of the
   // showModal/close emulation in test-setup — so its contract is asserted here
   // rather than assumed.

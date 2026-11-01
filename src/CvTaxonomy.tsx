@@ -553,7 +553,11 @@ export function CvTaxonomy({
                 {!isMobile && (
                   <MaturityInstrument
                     live={CLAIMED_VERDICTS}
-                    reading={focus ? (splitOf(focus) ?? [focus.maturity]).join("|") : ""}
+                    reading={
+                      focus && !focus.structurallyEmpty
+                        ? (splitOf(focus) ?? [focus.maturity]).join("|")
+                        : ""
+                    }
                   />
                 )}
                 <IllustrativeDisclosure />
@@ -877,7 +881,9 @@ export function CellList({
                   ? split.map((v) => VERDICT_LETTER[v]).join(" / ")
                   : VERDICT_LETTER[cell.maturity]}
             </b>{" "}
-            <span className="cvt-sr">Maturity: {maturity}. Open details.</span>
+            <span className="cvt-sr">
+              {cell.structurallyEmpty ? "Not applicable" : `Maturity: ${maturity}`}. Open details.
+            </span>
           </button>
         );
       })}
@@ -913,9 +919,14 @@ export const Outro = memo(function Outro() {
           </p>
           <p>
             Taller blocks mean stronger evidence. The dashed line marks Strong, the highest rating;
-            no task reaches it. Two letters separate finding parts from identifying their
-            attachments. The two hatched cells point back to the parts, where connections are
-            assessed.
+            no task reaches it. Finding parts and identifying their attachments receive separate
+            ratings, giving eleven assessments across ten tasks. The two hatched cells point back to
+            the parts, where connections are assessed; they have no rating of their own.
+          </p>
+          <p>
+            Strong requires a method intended for many product types, evidence that it works on
+            recycler-intake photos, and documented use for the task. Missing tests leave a
+            requirement unmet; they do not demonstrate failure.
           </p>
           <p>{FIELD_SPLIT}</p>
           <p>
@@ -999,7 +1010,13 @@ function TableView() {
                       {sub.label && <span className="cvt-subtask"> · {sub.label}</span>}
                     </td>
                     <td>
-                      <b>{VERDICT_LETTER[sub.maturity]}</b> {sub.maturity}
+                      {cell.structurallyEmpty ? (
+                        "Not applicable"
+                      ) : (
+                        <>
+                          <b>{VERDICT_LETTER[sub.maturity]}</b> {sub.maturity}
+                        </>
+                      )}
                     </td>
                     <td className="cvt-mono">
                       {"rubricMarks" in sub && sub.rubricMarks ? sub.rubricMarks : cell.rubricMarks}
@@ -1172,6 +1189,21 @@ function DetailPanel({
 }
 
 export function DetailBody({ cell }: { cell: Cell }) {
+  if (cell.structurallyEmpty) {
+    return (
+      <>
+        <div className="cvt-verdict">
+          <strong>Not applicable</strong>
+        </div>
+        <dl className="cvt-panel-grid">
+          <Row label="Why this cell has no rating" value={cell.maturityNote} />
+        </dl>
+        <div className="cvt-panel-foot">
+          <ShareLink cellId={cell.id} />
+        </div>
+      </>
+    );
+  }
   const level = maturityLevel(cell.maturity);
   // a compound cell states both verdicts, and each sub-task keeps its own
   // handling: the weaker one's "do not populate" must not read as "verify"
@@ -1224,6 +1256,18 @@ export function DetailBody({ cell }: { cell: Cell }) {
           />
         )}
         <GapRow cell={cell} />
+        <Row
+          label="How to use the result"
+          value={
+            cell.subVerdicts
+              ? cell.subVerdicts.map((s) => (
+                  <span className="cvt-handling" key={s.label}>
+                    {s.label}: {maturityLevel(s.maturity).handling}
+                  </span>
+                ))
+              : level.handling
+          }
+        />
         {/* The run belongs where the panel opens, not folded into "More detail":
             it is the derivation of the verdict stated three lines above it, and
             behind a closed <details> nobody meets the mechanism at all. */}
@@ -1249,18 +1293,6 @@ export function DetailBody({ cell }: { cell: Cell }) {
           {/* the paper's own notation, for a reader checking against Table S2; the
               run above already glosses each mark, so the key stays with the table */}
           <Row label={RUBRIC_LABEL} value={<span className="cvt-mono">{cell.rubricMarks}</span>} />
-          <Row
-            label="How to use the result"
-            value={
-              cell.subVerdicts
-                ? cell.subVerdicts.map((s) => (
-                    <span className="cvt-handling" key={s.label}>
-                      {s.label}: {maturityLevel(s.maturity).handling}
-                    </span>
-                  ))
-                : level.handling
-            }
-          />
         </dl>
       </details>
 

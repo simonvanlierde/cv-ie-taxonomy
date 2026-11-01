@@ -15,11 +15,11 @@ import { runsOf } from "./rubricMarks";
 export const CHAPTER_COPY: Record<Scale, { title: string; body: string }> = {
   Product: {
     title: "Label reading drops from 95.7% at repair to 39.7% at the recycler.",
-    body: "A model number can link a used appliance to information in a product database. But a worn, dirty or badly angled label is harder to read. Both figures count photos in which a label was visible. They come from washing-machine studies by one research group, including repair photos taken by customers on their phones. This is the closest task to routine use. A person still needs to check each result.",
+    body: "A model number can link a used appliance to information in a product database. But a worn, dirty or badly angled label is harder to read. Both figures count photos in which a label was visible. They come from one washing-machine study, including repair photos taken by customers on their phones. Related field results come from the same research group. The people, cameras and brand mix differed between sites, so the comparison does not identify the cause of the drop. Label reading can be trialled now, with a person checking each value.",
   },
   Component: {
     title: "To take a product apart, we need to know how its parts are attached.",
-    body: "Software can find and outline parts in teardown photos taken in a lab or on a fixed camera rig. Tests in working repair shops are still missing. Connections need a different kind of evidence: agreed labels for attachment types and photos showing which parts connect. The review found neither. Methods that infer joints have been tried on jointed household objects and toy vehicles. Their accuracy falls from ~82% to ~39% on new objects of the same kinds.",
+    body: "Software can find and outline parts in teardown photos taken in a lab or on a fixed camera rig. Tests in working repair shops are still missing. For disassembling consumer products in general, the review found no shared way to label attachments linked to photos, or general image dataset of those connections. Existing demonstrations cover jointed household objects and toy vehicles. In one study of jointed household objects, the whole connection map was correct in ~82% of cases on one dataset and ~39% on an unseen dataset. That tests generalisation, not performance on repair-shop photos.",
   },
   Material: {
     title: "A photo shows the surface. Recovery depends on what lies underneath, too.",
@@ -34,7 +34,7 @@ export const SCENE_DROP: Partial<
   Record<Scale, { from: string; fromLabel: string; to: string; toLabel: string }>
 > = {
   Product: { from: "95.7%", fromLabel: "repair photos", to: "39.7%", toLabel: "at the recycler" },
-  Component: { from: "~82%", fromLabel: "familiar objects", to: "~39%", toLabel: "new objects" },
+  Component: { from: "~82%", fromLabel: "first dataset", to: "~39%", toLabel: "unseen dataset" },
 };
 
 export const cap = (s = "") => s.charAt(0).toUpperCase() + s.slice(1);

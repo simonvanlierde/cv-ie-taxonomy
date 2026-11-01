@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { page, userEvent } from "vitest/browser";
+import { commands, page, userEvent } from "vitest/browser";
 import { CvTaxonomy } from "./CvTaxonomy";
 
 /**
@@ -17,7 +17,7 @@ import { CvTaxonomy } from "./CvTaxonomy";
  * point over a cell button belongs to the page and not to the button. Both
  * directions are asserted: an inert that never clears is its own bug.
  */
-const PHONE = { w: 420, h: 900 };
+const PHONE = { w: 390, h: 844 };
 
 const centreOf = (el: HTMLElement) => {
   const r = el.getBoundingClientRect();
@@ -26,26 +26,52 @@ const centreOf = (el: HTMLElement) => {
 
 /** Narrow past the seam, bring a cell button on screen above the sheet's reach,
  *  and open a cell's sheet from it. */
-async function openSheetOverScenes() {
+async function openSheetOverScenes(cellId = "product-condition", keyboard = false) {
   render(<CvTaxonomy />);
   await page.viewport(PHONE.w, PHONE.h);
   await vi.waitFor(() => expect(document.querySelector(".cvt-mcell")).not.toBeNull());
 
-  // the sheet is 82vh tall, so the button must sit in the top part of the screen;
+  // the sheet is 84vh tall, so the button must sit in the top part of the screen;
   // under the sticky figure it would be the figure's pixel, not the page's
-  const cells = [...document.querySelectorAll<HTMLElement>("#cvt-ch-Product .cvt-mcell")];
-  const button = cells.at(-1) as HTMLElement;
+  const button = document.getElementById(`cvt-m-${cellId}`) as HTMLElement;
   button.scrollIntoView({ block: "center" });
   window.scrollBy(0, PHONE.h * 0.05);
-  await userEvent.click(button);
+  if (keyboard) {
+    button.focus();
+    await userEvent.keyboard("{Enter}");
+  } else await userEvent.click(button);
   await vi.waitFor(() => expect(screen.queryByRole("dialog")).not.toBeNull());
   return button;
 }
 
 // the viewport is per-page, not per-test, so hand the next test its desktop back
-afterEach(() => page.viewport(1280, 900));
+afterEach(async () => {
+  await commands.emulateMedia({ reducedMotion: null });
+  await page.viewport(1280, 900);
+});
 
 describe("the covered scenes, in an engine that implements inert", () => {
+  it.each([
+    ["pointer", "Escape"],
+    ["pointer", "close button"],
+    ["keyboard", "Escape"],
+    ["keyboard", "close button"],
+  ])("returns keyboard position after %s open and %s", async (open, close) => {
+    await commands.emulateMedia({ reducedMotion: "reduce" });
+    const opener = await openSheetOverScenes("product-identity", open === "keyboard");
+    expect((document.querySelector(".cvt-scroll") as HTMLElement).inert).toBe(true);
+    // Read the settled style before dismissing: closing during the opening
+    // transition does not exercise the rail's final visibility state.
+    getComputedStyle(opener).getPropertyValue("visibility");
+    await new Promise(requestAnimationFrame);
+    if (close === "Escape") await userEvent.keyboard("{Escape}");
+    else await userEvent.click(screen.getByRole("button", { name: /close details/i }));
+    await vi.waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    await vi.waitFor(() => expect(opener).toHaveFocus());
+    await userEvent.tab();
+    expect(document.getElementById("cvt-m-product-quantity")).toHaveFocus();
+  });
+
   it("are not there to be pressed while the sheet is over them", async () => {
     const button = await openSheetOverScenes();
 

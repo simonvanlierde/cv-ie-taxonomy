@@ -306,7 +306,7 @@ function Callout({
   onSelect: (cell: Cell, focusId: string) => void;
   onHover: (cell: Cell | null) => void;
 }) {
-  const letter = VERDICT_LETTER[cell.maturity];
+  const letter = cell.structurallyEmpty ? "" : VERDICT_LETTER[cell.maturity];
   // The zoom frames are tighter than the chip ring by construction, so while a
   // detail is open most sibling chips sit outside the drawing's frame. A chip the
   // reader cannot see is not a tab stop. Its visible fragment stays clickable, so
@@ -332,7 +332,7 @@ function Callout({
       inert={!active}
       tabIndex={selected || inFrame ? 0 : -1}
       // starts with what the chip shows, so a voice user can say what they see
-      aria-label={`${letter} ${text}. ${cell.scale} · ${cell.informationType}: ${taskName(cell)}. Maturity: ${maturityName(cell)}. Open details.`}
+      aria-label={`${letter} ${text}. ${cell.scale} · ${cell.informationType}: ${taskName(cell)}. ${cell.structurallyEmpty ? "Not applicable" : `Maturity: ${maturityName(cell)}`}. Open details.`}
       style={{
         top: pctY(y - 6),
         ...(x === undefined
