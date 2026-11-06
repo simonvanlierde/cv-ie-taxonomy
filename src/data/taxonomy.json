@@ -179,18 +179,18 @@
       "id": "component-structure",
       "scale": "Component",
       "informationType": "Structure",
-      "task": "Find, outline and count the parts, and how they attach (Bill of Components)",
+      "task": "Find, outline and count the parts, and how they attach",
       "methodFamily": "Detecting parts from a fixed or an open list; outlining any region with a large pretrained (foundation) model, then labelling it; for attachments, inferring joints from an image (image-to-articulation)",
       "maturity": "Partial",
-      "maturityNote": "Finding and outlining parts is rated Partial. One narrow test reports ~98.8% mAP50, a score for finding objects, but the software needs adjustment for each setting. Outlines learned at one waste-sorting facility score 56.0 mIoU, a measure of overlap with the correct outlines, and 45.5 at another. Identifying how parts attach is Emerging-but-narrow: methods cover only jointed household objects or toy vehicles. In one study of jointed household objects, the whole connection map was correct in ~82% of cases on one dataset and ~39% on an unseen dataset. This tests generalisation, not performance on repair-shop photos. The rating for finding and outlining parts rests on one lab-photographed teardown study.",
+      "maturityNote": "Finding and outlining parts is rated Partial. One narrow test reports ~98.8% mAP50, a standard score for how reliably software finds objects, but the software needs adjustment for each setting. Outlines learned at one waste-sorting facility score 56.0 mIoU, and 45.5 at a second facility; mIoU measures, out of 100, how closely outlines match the correct ones. Identifying how parts attach is Emerging-but-narrow: methods cover only jointed household objects or toy vehicles. In one study of jointed household objects, the whole connection map was correct in ~82% of cases on one dataset and ~39% on an unseen dataset. This tests generalisation, not performance on repair-shop photos. The rating for finding and outlining parts rests on one lab-photographed teardown study.",
       "subVerdicts": [
         {
-          "label": "Detection / segmentation",
+          "label": "Finding and outlining parts",
           "maturity": "Partial",
           "rubricMarks": "B · ✗ᵃ · ✗"
         },
         {
-          "label": "BoC attachment relations",
+          "label": "How parts attach",
           "maturity": "Emerging-but-narrow",
           "rubricMarks": "N · ✗ᵘ · ✗",
           "gaps": ["ontology-bound"]
@@ -261,13 +261,13 @@
       "scale": "Material",
       "informationType": "Quantity",
       "task": "Measure material mass and volume",
-      "methodFamily": "Worked out from other cells: part geometry times material class times a typical density",
+      "methodFamily": "Calculated from other estimates: the part's shape, its material type and a typical density for that material",
       "maturity": "Absent",
       "maturityNote": "There is no direct method. Material mass must be calculated from estimated shape, material type and density. Errors in shape and material identification both affect the result. The paper uses – for this evidence mark because the answer is calculated from other results.",
       "rubricMarks": "– · ✗ · ✗",
       "hardware": "Depends on the tools used to estimate shape and identify materials.",
       "failureMode": "Errors from both inputs add up. Image-to-mass methods are tested only on off-the-shelf circuit boards, whole catalog objects, and discarded packaging and food photographed by calibrated smart-bin cameras.",
-      "example": "Derived from other cells; no direct method.",
+      "example": "Calculated from the shape and material estimates; there is no direct method.",
       "citations": [],
       "sourceStatus": "n/a"
     },

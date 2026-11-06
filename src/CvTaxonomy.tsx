@@ -560,7 +560,8 @@ export function CvTaxonomy({
                     }
                   />
                 )}
-                <IllustrativeDisclosure />
+                {/* the phone's figure band has no room under the drawing; its detail sheet says it */}
+                <IllustrativeDisclosure scores={!isMobile} />
               </div>
             </div>
           </div>
@@ -796,9 +797,25 @@ const Rail = memo(function Rail({
 // ---- pieces shared between the scenes, the detail and the map, so the
 // claim-bearing copy and the cell buttons have exactly one source ---------------
 
-export function IllustrativeDisclosure() {
-  return <p className="cvt-illustrative-note">Illustration · no photo was analysed</p>;
+/** `scores`: also say what the numbers on the drawing are, once, beside the figure. */
+export function IllustrativeDisclosure({ scores = false }: { scores?: boolean }) {
+  return (
+    <p className="cvt-illustrative-note">
+      Illustration · no photo was analysed
+      {scores && (
+        <span className="cvt-illustrative-scores">
+          Scores such as 0.94 are example confidence values, not measured accuracy.
+        </span>
+      )}
+    </p>
+  );
 }
+
+/** A rating's gloss cut to its first sentence, for the key beside the map. */
+const shortGloss = (gloss: string) => {
+  const first = /^[^.]*\./.exec(gloss)?.[0] ?? gloss;
+  return first.charAt(0).toLowerCase() + first.slice(1);
+};
 
 export function MaturityKey() {
   return (
@@ -807,7 +824,7 @@ export function MaturityKey() {
         .filter((level) => level.verdict !== "Strong")
         .map((level) => (
           <li key={level.verdict}>
-            <b>{level.letter}</b> {level.verdict}
+            <b>{level.letter}</b> {level.verdict}: <span>{shortGloss(level.gloss)}</span>
           </li>
         ))}
     </ul>
@@ -912,32 +929,38 @@ export const Outro = memo(function Outro() {
       <Explorable>
         <div className="cvt-foot">
           <p>
-            Choose a cell to see the evidence for one task. The columns ask what something is, how
-            much is there, how it is put together and what condition it is in. The rows move from
-            the whole product to its parts and materials. Ratings come from the paper&rsquo;s
-            Table&nbsp;S2, a review of the literature as of {taxonomy.meta.scanDate}.
+            Choose a cell to see the evidence for one task. Columns ask what something is, how much
+            is there, how it is put together and what condition it is in; rows run from the whole
+            product to its parts and materials. Ratings come from the paper&rsquo;s Table&nbsp;S2, a
+            review of the literature as of {taxonomy.meta.scanDate}. Taller blocks mean stronger
+            evidence.
           </p>
           <p>
-            Taller blocks mean stronger evidence. The dashed line marks Strong, the highest rating;
-            no task reaches it. Finding parts and identifying their attachments receive separate
-            ratings, giving eleven assessments across ten tasks. The two hatched cells point back to
-            the parts, where connections are assessed; they have no rating of their own.
+            Finding parts and identifying how they attach are rated separately, so ten tasks give
+            eleven assessments. The two hatched cells have no rating of their own: connections are
+            assessed at the parts level.
           </p>
           <p>
-            Strong requires a method intended for many product types, evidence that it works on
-            recycler-intake photos, and documented use for the task. Missing tests leave a
-            requirement unmet; they do not demonstrate failure.
+            The dashed line marks Strong, the highest rating, and no task reaches it. Strong needs a
+            method meant for many product types, evidence that it works on recycler-intake photos,
+            and documented use for the task. A missing test leaves a requirement unmet; it does not
+            show failure.
           </p>
           <p>{FIELD_SPLIT}</p>
           <p>
-            Some gaps need more than another test. Describing damage across product types or the
-            connections between parts needs agreed categories first. Measuring hidden material
-            composition needs a method. The other gaps concern how existing methods perform on
-            photos taken where used products are handled.
+            Some gaps need more than another test. Describing damage across product types, or how
+            parts connect, needs agreed categories first. Measuring hidden material composition
+            needs a method. The remaining gaps are about how existing methods perform on photos
+            taken where used products are handled.
           </p>
           <p>
-            Industrial ecologists can help define the information needed for reuse and recycling,
-            agree how to describe it, and test tools with the people who handle used products.
+            Only label reading has been piloted at collection sites, by one research group. For the
+            other tasks, evidence is missing across the whole workflow: how photos are taken where
+            used products are handled, what the software reads from them, and where a person checks
+            the result before it enters an inventory. Industrial ecologists can start at the first
+            step: photographs from repair shops, collection points and recyclers, each paired with
+            checked values for the information that reuse and recycling need, so that tools can be
+            tested on them.
           </p>
         </div>
         <TableView />
@@ -1133,7 +1156,9 @@ function DetailRegion({
     style: { "--hue": SCALE_VAR[cell.scale] } as CSSProperties,
     tabIndex: -1,
   };
-  const body = <DetailPanel cell={cell} onClose={onClose} onBackToStart={onBackToStart} />;
+  const body = (
+    <DetailPanel cell={cell} onClose={onClose} onBackToStart={onBackToStart} scores={compact} />
+  );
 
   // Two elements rather than one with a computed role: aria-modal is only valid
   // alongside an explicit dialog role, and <aside> already means complementary.
@@ -1152,10 +1177,12 @@ function DetailPanel({
   cell,
   onClose,
   onBackToStart,
+  scores,
 }: {
   cell: Cell;
   onClose: () => void;
   onBackToStart?: () => void;
+  scores: boolean;
 }) {
   return (
     <>
@@ -1177,7 +1204,7 @@ function DetailPanel({
           <CloseIcon />
         </button>
       </div>
-      <IllustrativeDisclosure />
+      <IllustrativeDisclosure scores={scores} />
       <DetailBody cell={cell} />
       {onBackToStart && (
         <button type="button" className="cvt-back-start" onClick={onBackToStart}>

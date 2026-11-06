@@ -97,7 +97,7 @@ describe("Explorable", () => {
     // the relations sub-task is Emerging-but-narrow: its handling is "do not
     // populate", which must not be flattened into Partial's "verify"
     expect(region).toHaveTextContent(
-      /BoC attachment relations: For products in general, a person must supply the value/,
+      /How parts attach: For products in general, a person must supply the value/,
     );
   });
 
@@ -183,7 +183,7 @@ describe("What if?", () => {
     const structure = document.getElementById("cvt-mx-component-structure") as HTMLElement;
     await user.click(structure);
     const detail = screen.getByRole("complementary", { name: /component · structure/i });
-    const relations = within(detail).getByRole("group", { name: "BoC attachment relations" });
+    const relations = within(detail).getByRole("group", { name: "How parts attach" });
     const evidence = within(relations).getByRole("group", { name: "Evidence" });
     await user.click(within(evidence).getByRole("radio", { name: /^C,/ }));
     expect(structure.querySelector(".cvt-mx-ghost")).not.toBeNull();

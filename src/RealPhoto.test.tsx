@@ -7,8 +7,10 @@ import { type RealModel, toBoxes } from "./realModels";
 /** a model that answers at once, so no weights are downloaded in a test */
 const fake = (run: RealModel["run"]): RealModel => ({
   name: "Fake detector",
+  what: "a stand-in",
   task: "find the parts",
-  download: "nothing",
+  size: "nothing",
+  source: "nowhere",
   run,
 });
 
@@ -40,6 +42,17 @@ describe("real-model mode", () => {
     );
     expect(screen.queryByRole("button", { name: /analyse photo/i })).toBeNull();
     expect(run).not.toHaveBeenCalled();
+  });
+
+  it("offers to remove OWL-ViT files only in the scenes that download them", async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(<RealPhoto scale="Product" model={fake(vi.fn())} />);
+    await user.click(screen.getByRole("button", { name: /try your own photo/i }));
+    expect(screen.queryByRole("button", { name: /remove owl-vit/i })).toBeNull();
+    unmount();
+    render(<RealPhoto scale="Component" model={fake(vi.fn())} />);
+    await user.click(screen.getByRole("button", { name: /try your own photo/i }));
+    expect(screen.getByRole("button", { name: /remove owl-vit/i })).toBeInTheDocument();
   });
 
   it("offers the reader's own photo when no example is available", async () => {
@@ -98,7 +111,7 @@ describe("removing the downloaded models", () => {
     vi.stubGlobal("caches", { delete: del });
     try {
       const user = userEvent.setup();
-      render(<RealPhoto scale="Product" model={fake(vi.fn())} />);
+      render(<RealPhoto scale="Component" model={fake(vi.fn())} />);
       await user.click(screen.getByRole("button", { name: /try your own photo/i }));
       await user.click(screen.getByRole("button", { name: /remove OWL-ViT downloads/i }));
       expect(del).toHaveBeenCalledWith("transformers-cache");
@@ -116,7 +129,7 @@ describe("removing the downloaded models", () => {
     vi.stubGlobal("caches", { delete: vi.fn().mockRejectedValue(new Error("storage blocked")) });
     try {
       const user = userEvent.setup();
-      render(<RealPhoto scale="Product" model={fake(vi.fn())} />);
+      render(<RealPhoto scale="Component" model={fake(vi.fn())} />);
       await user.click(screen.getByRole("button", { name: /try your own photo/i }));
       await user.click(screen.getByRole("button", { name: /remove OWL-ViT downloads/i }));
       await vi.waitFor(() =>

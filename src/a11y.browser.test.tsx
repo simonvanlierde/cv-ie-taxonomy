@@ -67,9 +67,9 @@ describe("WCAG 2.2 AA (axe)", () => {
     await user.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "true");
     expect(within(chapter).getByLabelText(/use your own photo/i)).toBeInTheDocument();
-    expect(
-      within(chapter).getByRole("button", { name: /remove OWL-ViT downloads/i }),
-    ).toBeVisible();
+    const remove = within(chapter).queryByRole("button", { name: /remove OWL-ViT downloads/i });
+    if (scale === "Product") expect(remove).toBeNull();
+    else expect(remove).toBeVisible();
     expect(await violations()).toEqual([]);
   });
 

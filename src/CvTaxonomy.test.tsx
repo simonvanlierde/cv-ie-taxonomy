@@ -624,9 +624,11 @@ describe("what each cell is missing", () => {
     render(<CvTaxonomy initialCell="component-structure" />);
     const compound = await screen.findByRole("complementary");
     const row = within(compound).getByText("What is missing").nextElementSibling as HTMLElement;
-    expect(row).toHaveTextContent("Detection / segmentation: likely to fall short on field photos");
     expect(row).toHaveTextContent(
-      "BoC attachment relations: no agreed categories yet; not tested on field photos",
+      "Finding and outlining parts: likely to fall short on field photos",
+    );
+    expect(row).toHaveTextContent(
+      "How parts attach: no agreed categories yet; not tested on field photos",
     );
   });
 

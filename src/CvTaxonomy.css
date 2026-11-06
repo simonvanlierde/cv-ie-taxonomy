@@ -819,6 +819,11 @@ html[data-theme="dark"] {
   letter-spacing: 0.04em;
   pointer-events: none;
 }
+.cvt-illustrative-scores {
+  display: block;
+  max-width: 38ch;
+  letter-spacing: 0;
+}
 /* the field's foot: the scale bar and the disclosure on one ruled line */
 .cvt-hud-foot {
   transition:
@@ -965,9 +970,8 @@ html[data-theme="dark"] {
   line-height: 1.5;
 }
 .cvt-maturity-key {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem 0.8rem;
+  display: grid;
+  gap: 0.35rem;
   margin: 0.7rem 0 1rem;
   padding: 0;
   list-style: none;
@@ -975,13 +979,13 @@ html[data-theme="dark"] {
   font-family: var(--cvt-mono);
   font-size: var(--cvt-t-2);
 }
-.cvt-maturity-key li {
-  display: inline-flex;
-  gap: 0.25rem;
-}
+
 .cvt-maturity-key b {
   color: var(--cvt-ink);
   font-family: var(--cvt-display);
+}
+.cvt-maturity-key span {
+  font-family: var(--cvt-sans);
 }
 .cvt-scrollhint {
   font-family: var(--cvt-mono);
@@ -1417,6 +1421,11 @@ html[data-theme="dark"] {
 .cvt-real-own {
   /* the hidden file input is placed against its own label */
   position: relative;
+}
+.cvt-real-hint {
+  margin: 0.45rem 0 0;
+  color: var(--cvt-ink-dim);
+  font-size: var(--cvt-t-2);
 }
 .cvt-real-toggle[aria-expanded="true"] {
   background: var(--cvt-ink);
@@ -2658,8 +2667,8 @@ html[data-theme="dark"] {
   position: relative;
   min-width: 0;
 }
-/* The desktop detail replaces the prose without changing its height. The phone
-   sheet uses inert instead; its opener must stay visible for focus return. */
+/* The desktop detail replaces the prose without changing its height. On phones
+   the detail is a bottom sheet over an inert page; its opener must stay visible for focus return. */
 :where(.cvt-scroll[data-layout="sheet"]) .cvt-railcol[data-detail="open"] .cvt-rail {
   visibility: hidden;
 }

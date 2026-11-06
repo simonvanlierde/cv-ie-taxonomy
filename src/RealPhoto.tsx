@@ -29,6 +29,7 @@ export function RealPhoto({
 }) {
   const [open, setOpen] = useState(false);
   const panel = useId();
+  const hint = useId();
   return (
     <div className="cvt-real">
       <button
@@ -36,10 +37,14 @@ export function RealPhoto({
         className="cvt-real-toggle"
         aria-expanded={open}
         aria-controls={panel}
+        aria-describedby={hint}
         onClick={() => setOpen((v) => !v)}
       >
         Try your own photo
       </button>
+      <p className="cvt-real-hint" id={hint}>
+        Runs in your browser; your photo is not uploaded. The first run downloads {model.size}.
+      </p>
       <div id={panel} hidden={!open}>
         {open && <RealPhotoPanel scale={scale} model={model} />}
       </div>
@@ -87,9 +92,9 @@ function RealPhotoPanel({ scale, model }: { scale: Scale; model: RealModel }) {
   return (
     <div className="cvt-real-panel">
       <p className="cvt-real-what">
-        {model.name} will {model.task}. It runs in this browser. The first run downloads{" "}
-        {model.download}. Your browser keeps the files for next time. Your photo is not sent
-        anywhere. <a href={`${import.meta.env.BASE_URL}privacy.html`}>Privacy</a>
+        {model.name}, {model.what}, will {model.task}. The first run downloads {model.size},{" "}
+        {model.source}. Your browser keeps the files for next time.{" "}
+        <a href={`${import.meta.env.BASE_URL}privacy.html`}>Privacy</a>
       </p>
       {src ? (
         <div className="cvt-real-photo">
@@ -138,25 +143,28 @@ function RealPhotoPanel({ scale, model }: { scale: Scale; model: RealModel }) {
             Analyse photo
           </button>
         )}
-        <button
-          type="button"
-          // a download still running would write its files back after the delete
-          aria-disabled={state.status === "running"}
-          onClick={async () => {
-            if (state.status === "running") return;
-            try {
-              await removeDownloads();
-              setState({ status: "removed" });
-            } catch (error) {
-              setState({
-                status: "error",
-                message: `Could not remove the saved OWL-ViT files: ${error instanceof Error ? error.message : String(error)}. Try clearing this site’s data in your browser settings.`,
-              });
-            }
-          }}
-        >
-          Remove OWL-ViT downloads
-        </button>
+        {/* only the OWL-ViT scenes keep files to remove; Product's Tesseract ships with the site */}
+        {scale !== "Product" && (
+          <button
+            type="button"
+            // a download still running would write its files back after the delete
+            aria-disabled={state.status === "running"}
+            onClick={async () => {
+              if (state.status === "running") return;
+              try {
+                await removeDownloads();
+                setState({ status: "removed" });
+              } catch (error) {
+                setState({
+                  status: "error",
+                  message: `Could not remove the saved OWL-ViT files: ${error instanceof Error ? error.message : String(error)}. Try clearing this site’s data in your browser settings.`,
+                });
+              }
+            }}
+          >
+            Remove OWL-ViT downloads
+          </button>
+        )}
       </div>
       <Result state={state} model={model} />
     </div>

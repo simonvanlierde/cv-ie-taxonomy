@@ -141,7 +141,7 @@ const GAP_TEXT: Record<Exclude<Gap["kind"], "field">, string> = {
   // the paper's one method-bound gap is the composition a camera cannot see
   // (§3.2.3, §5), so the words say so rather than "no method" for the cell
   method: "no method for what's hidden",
-  derived: "worked out from other cells",
+  derived: "calculated from shape and material",
 };
 const SHORT_BASIS: Record<NonNullable<Run["basis"]>, string> = {
   measured: "fell short",
