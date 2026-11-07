@@ -604,7 +604,7 @@ html[data-theme="dark"] {
   opacity: 1;
   animation:
     cvt-caretx 1.1s steps(18, end) 0.25s forwards,
-    cvt-blink 0.9s step-end infinite;
+    cvt-blink 0.9s step-end 3 forwards;
 }
 @keyframes cvt-caretx {
   from {
@@ -614,8 +614,10 @@ html[data-theme="dark"] {
     x: var(--ocr-caret);
   }
 }
+/* three blinks, then the caret stays hidden: the read-out has finished typing */
 @keyframes cvt-blink {
-  50% {
+  50%,
+  to {
     opacity: 0;
   }
 }
@@ -1279,10 +1281,18 @@ html[data-theme="dark"] {
 .cvt-mx-cell:last-child {
   border-right: 0.5px solid var(--cvt-grid);
 }
+/* registered so a What if? block rises or sinks to its new verdict instead of
+   jumping; set and read on the block itself, so it need not inherit */
+@property --h {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
 /* the block stands on the bay floor; its height is the verdict, as a share of
    the floor-to-shelf distance. A bare percentage would resolve against the whole
    bay, label band included, and draw every block taller than its verdict. */
 .cvt-mx-block {
+  transition: --h 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   position: absolute;
   left: 7px;
   right: 7px;

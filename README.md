@@ -37,6 +37,8 @@ et al., [citation: forthcoming]).
   to open its full reference and DOI. **Plain table** shows the ratings as text.
 - **Your own assessment:** **What if?** lets you change the evidence marks and
   see how the rating changes. A dashed outline keeps the paper's rating visible.
+  When your marks raise a task to Strong, the page names the marks the paper
+  did not give.
   **Export CSV** saves your changes in the deposit's `rubric-marks.csv` format.
 
 ## Try software on your own photo

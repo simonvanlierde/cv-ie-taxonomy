@@ -2,7 +2,14 @@ import { describe, expect, it } from "vitest";
 import deposit from "./data/deposit-rubric-marks.json";
 import { cellById, cells, maturityName } from "./data/taxonomy";
 import { type Evidence, runsOf } from "./rubricMarks";
-import { changedCount, type Edits, type Marks, toDepositCsv, withEdits } from "./sandbox";
+import {
+  assumptionsOf,
+  changedCount,
+  type Edits,
+  type Marks,
+  toDepositCsv,
+  withEdits,
+} from "./sandbox";
 
 /** the paper's own marks for a cell, as the sandbox holds them */
 const marksOf = (id: string): Marks[] =>
@@ -53,6 +60,30 @@ describe("the What if? sandbox", () => {
     expect(cell.maturity).toBe("Partial");
     // the printed marks still parse back into the same two labelled runs
     expect(runsOf(cell).map((r) => r.label)).toEqual(["detect/seg", "relations"]);
+  });
+
+  it("names the marks the paper did not give when the reader's lift a cell to Strong", () => {
+    const [run] = marksOf("product-identity");
+    if (!run) throw new Error("no run");
+    const paper = cellById("product-identity");
+    // B · ✗ᵐ · ✓: only the field gate differs, and the paper measured the drop
+    expect(assumptionsOf(paper, [{ ...run, capture: "pass" }])).toEqual([
+      "You marked field photos as tested here; the paper found they fall short.",
+    ]);
+    // short of Strong, nothing is the reader's assumption to name
+    expect(assumptionsOf(paper, [run])).toEqual([]);
+    expect(assumptionsOf(paper, [{ ...run, capture: "pass", deployed: "fail" }])).toEqual([]);
+  });
+
+  it("names every mark a Strong run needs that the paper did not give, by sub-task", () => {
+    const [detect, relations] = marksOf("component-structure");
+    if (!detect || !relations) throw new Error("no runs");
+    const strong = { evidence: "B", capture: "pass", deployed: "pass", basis: null } as const;
+    expect(assumptionsOf(cellById("component-structure"), [detect, strong])).toEqual([
+      "You marked a general method, tested on these or similar products, for how parts attach; the paper found a method tested on one type of object only.",
+      "You marked field photos as tested for how parts attach; the paper found they were not tested.",
+      "You marked the method as in use for how parts attach; the paper did not.",
+    ]);
   });
 
   it("exports the paper's own marks exactly as the deposit records them", () => {

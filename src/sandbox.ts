@@ -1,7 +1,7 @@
 import deposit from "./data/deposit-rubric-marks.json";
 import { cells, taxonomy } from "./data/taxonomy";
 import type { Cell, Verdict } from "./data/types";
-import { type Run, runsOf, verdictOf } from "./rubricMarks";
+import { type Evidence, type Run, runsOf, verdictOf } from "./rubricMarks";
 
 /**
  * The "What if?" sandbox: the reader changes a cell's rubric marks and every
@@ -49,6 +49,46 @@ export function withEdits(cell: Cell, edits: Marks[] | undefined): Cell {
       rubricMarks: printRun({ ...(runs[i] as Run), label: null }),
     })),
   };
+}
+
+// what the paper's own mark says, where the reader marked higher
+const PAPER_EVIDENCE: Record<Exclude<Evidence, "B">, string> = {
+  N: "found a method tested on one type of object only",
+  C: "found an idea or evidence from a related field",
+  "–": "found no direct method",
+};
+const PAPER_FIELD: Record<NonNullable<Run["basis"]>, string> = {
+  measured: "found they fall short",
+  inferred: "infers from related research that they are likely to fall short",
+  untested: "found they were not tested",
+};
+
+/** Where the reader's marks lift a cell to Strong and the paper rated it lower:
+ *  each mark of a Strong run the paper did not give, as the reader's assumption
+ *  beside the paper's own mark. Empty otherwise. */
+export function assumptionsOf(paper: Cell, marks: Marks[]): string[] {
+  if (paper.maturity === "Strong" || withEdits(paper, marks).maturity !== "Strong") return [];
+  return runsOf(paper).flatMap((run, i) => {
+    const m = marks[i];
+    if (m?.evidence !== "B" || m.capture !== "pass" || m.deployed !== "pass") return [];
+    const label = paper.subVerdicts?.[i]?.label;
+    const where = label ? `for ${label.charAt(0).toLowerCase()}${label.slice(1)}` : "here";
+    return [
+      ...(run.evidence === "B"
+        ? []
+        : [
+            `You marked a general method, tested on these or similar products, ${where}; the paper ${PAPER_EVIDENCE[run.evidence]}.`,
+          ]),
+      ...(run.capture === "pass"
+        ? []
+        : [
+            `You marked field photos as tested ${where}; the paper ${run.basis ? PAPER_FIELD[run.basis] : "did not"}.`,
+          ]),
+      ...(run.deployed === "pass"
+        ? []
+        : [`You marked the method as in use ${where}; the paper did not.`]),
+    ];
+  });
 }
 
 /** The verdict of every run, so a compound cell's two sub-verdicts both count. */
