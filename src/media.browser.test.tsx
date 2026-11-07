@@ -42,11 +42,24 @@ describe("reduced motion", () => {
       expect(Number(style.getPropertyValue("--pr-component"))).toBeCloseTo(1, 3),
     );
     expect(Number(style.getPropertyValue("--e"))).toBe(1);
+    // the What if? blocks cut to their new height too
+    const block = getComputedStyle(document.querySelector(".cvt-mx-block") as HTMLElement);
+    expect(Number.parseFloat(block.transitionDuration)).toBeLessThan(0.001);
   });
 
   it("scrubs the drawing with the scroll when motion is welcome", async () => {
     render(<CvTaxonomy />);
     expect(getComputedStyle(sticky()).animationName).toContain("cvt-explode");
+  });
+
+  it("stops the OCR caret after a few blinks and leaves it hidden", () => {
+    render(<CvTaxonomy debugChapter="Product" />);
+    const caret = document.querySelector(".ov-ocr[data-active='true'] .ov-caret") as SVGElement;
+    const blink = caret
+      .getAnimations()
+      .find((a) => (a as CSSAnimation).animationName === "cvt-blink");
+    expect(blink?.effect?.getTiming().iterations).toBe(3);
+    expect(blink?.effect?.getTiming().fill).toBe("forwards");
   });
 });
 

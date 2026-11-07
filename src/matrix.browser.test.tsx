@@ -25,4 +25,15 @@ describe("the matrix blocks, on real layout", () => {
       expect(b.height / shelfToFloor, el.id).toBeCloseTo(VERDICT_HEIGHT[standsAt], 1);
     }
   });
+
+  it("rise or sink to a new verdict rather than jump", () => {
+    render(<CvTaxonomy />);
+    const block = document.querySelector(".cvt-mx-block") as HTMLElement;
+    const style = getComputedStyle(block);
+    expect(style.transitionProperty).toBe("--h");
+    expect(style.transitionDuration).toBe("0.25s");
+    // a hatched bay sets no --h: only a registered property reads back its initial 0
+    const hatched = document.querySelector('[data-ghost="true"] .cvt-mx-block') as HTMLElement;
+    expect(getComputedStyle(hatched).getPropertyValue("--h")).toBe("0");
+  });
 });
