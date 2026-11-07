@@ -60,7 +60,7 @@ The page respects reduced-motion settings. Chromium tests run axe WCAG 2.2 AA
 checks, including the assessment editor and model panels. Automated checks do
 not cover every accessibility need; axe cannot judge text contrast over the grid.
 
-## Develop
+## Development
 
 Requires Node 26 or later and the pnpm version in `package.json`.
 

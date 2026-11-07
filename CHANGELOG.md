@@ -27,6 +27,6 @@ Changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Cells whose connections are assessed at the parts level show no maturity rating.
   See [how the map presents evidence](README.md#what-the-page-shows).
 - The production preview serves scripts at the same path as the build.
-  See [development commands](README.md#develop).
+  See [development commands](README.md#development).
 
 [Unreleased]: https://github.com/simonvanlierde/cv-ie-taxonomy/commits/HEAD
