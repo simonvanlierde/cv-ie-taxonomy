@@ -13,7 +13,14 @@ import type { Cell } from "./data/types";
 import { MiniMatrix } from "./MiniMatrix";
 import { RubricCircuit } from "./RubricCircuit";
 import { runsOf } from "./rubricMarks";
-import { changedCount, type Edits, type Marks, toDepositCsv, withEdits } from "./sandbox";
+import {
+  assumptionsOf,
+  changedCount,
+  type Edits,
+  type Marks,
+  toDepositCsv,
+  withEdits,
+} from "./sandbox";
 import { SCALE_VAR } from "./theme";
 import { useDialogRegion } from "./useDialogRegion";
 
@@ -275,6 +282,8 @@ function MarksEditor({
     marks ??
     runs.map(({ evidence, capture, deployed, basis }) => ({ evidence, capture, deployed, basis }));
   const mine = withEdits(paper, current);
+  // a Strong the paper did not give rests on the reader's own marks; say which
+  const assumed = assumptionsOf(paper, current);
   const set = (i: number, patch: Partial<Marks>) =>
     onChange(current.map((m, j) => (j === i ? { ...m, ...patch } : m)));
 
@@ -283,7 +292,10 @@ function MarksEditor({
       {/* announced as the reader changes a mark */}
       <p className="cvt-marks-verdict" role="status">
         Your rating: {maturityName(mine)}
-        <span>{`. The paper’s: ${maturityName(paper)}`}</span>
+        <span>
+          {`. The paper’s: ${maturityName(paper)}`}
+          {assumed.length > 0 && `. ${assumed.join(" ")}`}
+        </span>
       </p>
       {runs.map((run, i) => {
         const m = current[i];

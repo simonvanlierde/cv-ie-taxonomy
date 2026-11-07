@@ -223,11 +223,14 @@ describe("What if?", () => {
     const detail = screen.getByRole("complementary", { name: /product · identity/i });
     const field = within(detail).getByRole("group", { name: /shown to work on field photos/i });
     await user.click(within(field).getByRole("radio", { name: "Yes" }));
-    expect(within(detail).getByRole("status")).toHaveTextContent(/^Your rating: Strong/);
+    expect(within(detail).getByRole("status")).toHaveTextContent(
+      "Your rating: Strong. The paper’s: Partial. You marked field photos as tested here; the paper found they fall short.",
+    );
     const used = within(detail).getByRole("group", { name: /in use for this task/i });
     await user.click(within(used).getByRole("radio", { name: "No" }));
     expect(within(used).getByRole("radio", { name: "No" })).toBeChecked();
     expect(within(detail).getByRole("status")).toHaveTextContent(/^Your rating: (?!Strong)/);
+    expect(within(detail).getByRole("status")).not.toHaveTextContent(/You marked/);
   });
 
   it("downloads the reader's marks as a CSV in the deposit's format", async () => {
