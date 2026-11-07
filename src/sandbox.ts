@@ -59,7 +59,7 @@ const PAPER_EVIDENCE: Record<Exclude<Evidence, "B">, string> = {
 };
 const PAPER_FIELD: Record<NonNullable<Run["basis"]>, string> = {
   measured: "found they fall short",
-  inferred: "infers from related research that they fall short",
+  inferred: "infers from related research that they are likely to fall short",
   untested: "found they were not tested",
 };
 
