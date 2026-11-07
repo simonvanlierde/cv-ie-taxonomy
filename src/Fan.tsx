@@ -88,23 +88,23 @@ export const CHIP_LAYOUT: {
   strike?: boolean;
 }[] = [
   // product (assembled fan)
-  { id: "product-identity", x: CHIP_LEFT_EDGE, y: 770, text: "OCR + db-match ok" },
-  { id: "product-quantity", y: 430, text: "H ~ 430 · Ø ~ 300" },
-  { id: "product-condition", x: CHIP_LEFT_EDGE, y: 580, text: "wear? (narrow class)" },
+  { id: "product-identity", x: CHIP_LEFT_EDGE, y: 770, text: "read label · find model" },
+  { id: "product-quantity", y: 430, text: "~430 mm tall · ~300 mm wide" },
+  { id: "product-condition", x: CHIP_LEFT_EDGE, y: 580, text: "wear? (one product type)" },
   // clear of the HUD's scale indicator, which owns the bottom-left corner
-  { id: "product-structure", x: CHIP_LEFT_EDGE, y: 676, text: "structure -> component" },
+  { id: "product-structure", x: CHIP_LEFT_EDGE, y: 676, text: "see parts for connections" },
   // component (exploded fan)
-  { id: "component-identity", x: CHIP_LEFT_EDGE, y: 140, text: "detect > 6 parts" },
-  { id: "component-structure", y: 300, text: "segment · attached-to? E" },
-  { id: "component-quantity", x: CHIP_LEFT_EDGE, y: 560, text: "dims > motor ~ 135 mm" },
-  { id: "component-condition", x: CHIP_LEFT_EDGE, y: 690, text: "bearing wear? (unvalidated)" },
+  { id: "component-identity", x: CHIP_LEFT_EDGE, y: 140, text: "find > 6 parts" },
+  { id: "component-structure", y: 300, text: "outline parts · joints?" },
+  { id: "component-quantity", x: CHIP_LEFT_EDGE, y: 560, text: "motor ~ 135 mm" },
+  { id: "component-condition", x: CHIP_LEFT_EDGE, y: 690, text: "bearing wear? (unproven)" },
   // material (drifted parts)
-  { id: "material-identity", y: 170, text: "steel · ABS · Cu · PCB" },
-  { id: "material-quantity", x: CHIP_LEFT_EDGE, y: 140, text: "mass (derived only)", strike: true },
+  { id: "material-identity", y: 170, text: "steel · plastic · copper" },
+  { id: "material-quantity", x: CHIP_LEFT_EDGE, y: 140, text: "mass (calculated)", strike: true },
   // the left gutter, under the mass chip: in the right gutter it sat on the
   // drifted motor's corrosion tag
-  { id: "material-structure", x: CHIP_LEFT_EDGE, y: 250, text: "structure -> component" },
-  { id: "material-condition", y: 640, text: "corrosion? (unvalidated)" },
+  { id: "material-structure", x: CHIP_LEFT_EDGE, y: 250, text: "see parts for connections" },
+  { id: "material-condition", y: 640, text: "corrosion? (unproven)" },
 ];
 
 /** A chip's plate as a frame in viewBox units, or null for an unknown id. The
@@ -117,7 +117,7 @@ export function chipFrame(id: string): Frame | null {
   return { x: c.x ?? CHIP_RIGHT_EDGE - w, y: c.y - 23, w, h: CHIP_H };
 }
 
-const OCR_TEXT = 'OCR > "TYP 4212/A"';
+const OCR_TEXT = 'label: "TYP 4212/A"';
 const OCR_W = monoWidth(OCR_TEXT, TAG_FONT) + 10;
 
 // ---- CV-annotation primitives -----------------------------------------------------
@@ -306,7 +306,7 @@ function Callout({
   onSelect: (cell: Cell, focusId: string) => void;
   onHover: (cell: Cell | null) => void;
 }) {
-  const letter = VERDICT_LETTER[cell.maturity];
+  const letter = cell.structurallyEmpty ? "" : VERDICT_LETTER[cell.maturity];
   // The zoom frames are tighter than the chip ring by construction, so while a
   // detail is open most sibling chips sit outside the drawing's frame. A chip the
   // reader cannot see is not a tab stop. Its visible fragment stays clickable, so
@@ -332,7 +332,7 @@ function Callout({
       inert={!active}
       tabIndex={selected || inFrame ? 0 : -1}
       // starts with what the chip shows, so a voice user can say what they see
-      aria-label={`${letter} ${text}. ${cell.scale} · ${cell.informationType}: ${taskName(cell)}. Maturity: ${maturityName(cell)}. Open details.`}
+      aria-label={`${letter} ${text}. ${cell.scale} · ${cell.informationType}: ${taskName(cell)}. ${cell.structurallyEmpty ? "Not applicable" : `Maturity: ${maturityName(cell)}`}. Open details.`}
       style={{
         top: pctY(y - 6),
         ...(x === undefined
@@ -503,7 +503,7 @@ export function Fan({
 
   // On the phone the read-outs grow: same viewBox units, roughly half the pixels.
   const ts = compact ? 1.6 : 1;
-  // the phone's taller "anomaly?" tag reaches down to the OCR read-out; drop it clear
+  // the phone's taller "wear?" tag reaches down to the OCR read-out; drop it clear
   const ocrY = P.sy(728) + (ts - 1) * 30;
 
   // Leader targets per chip, read off each scale's part centres; the chips' own
@@ -640,7 +640,7 @@ export function Fan({
             y={P.fgC[1] - 132 * P.s}
             w={P.sx(455) - P.sx(150)}
             h={P.baC[1] + 40 * P.s - (P.fgC[1] - 132 * P.s)}
-            label="desk_fan · 0.94"
+            label="desk fan · 0.94"
             color={SCALE_VAR.Product}
             s={ts}
           />
@@ -701,7 +701,7 @@ export function Fan({
           <Tag
             x={P.baC[0] - 90 * P.s}
             y={P.baC[1] + 20 * P.s}
-            label="anomaly? · 0.4"
+            label="wear? · 0.4"
             color={SEG.warn}
             s={ts}
           />
@@ -758,9 +758,9 @@ export function Fan({
           {/* right edge 6 units clear of the motor box's left edge (moC − 62), at
               either tag scale */}
           <Tag
-            x={Cg.moC[0] - 68 - tagWidth("anomaly? · 0.6", ts)}
+            x={Cg.moC[0] - 68 - tagWidth("wear? · 0.6", ts)}
             y={Cg.moC[1] + 2}
-            label="anomaly? · 0.6"
+            label="wear? · 0.6"
             color={SEG.warn}
             s={ts}
           />
@@ -775,9 +775,21 @@ export function Fan({
             color="var(--cvt-tag-steel)"
             s={ts}
           />
-          <Tag x={M.blC[0] - 96} y={M.blC[1] + 26} label="ABS" color="var(--cvt-tag-abs)" s={ts} />
-          <Tag x={M.moC[0] + 8} y={M.moC[1] - 6} label="Cu" color="var(--cvt-tag-cu)" s={ts} />
-          <Tag x={M.baC[0] - 20} y={M.baC[1] - 8} label="PCB" color="var(--cvt-tag-pcb)" s={ts} />
+          <Tag
+            x={M.blC[0] - 96}
+            y={M.blC[1] + 26}
+            label="ABS plastic"
+            color="var(--cvt-tag-abs)"
+            s={ts}
+          />
+          <Tag x={M.moC[0] + 8} y={M.moC[1] - 6} label="copper" color="var(--cvt-tag-cu)" s={ts} />
+          <Tag
+            x={M.baC[0] - 20}
+            y={M.baC[1] - 8}
+            label="circuit board"
+            color="var(--cvt-tag-pcb)"
+            s={ts}
+          />
         </Layer>
         <Layer scale="Material" focus={deco("material-condition")}>
           <ellipse className="ov-blob" cx={M.moC[0] + 42} cy={M.moC[1] - 24} rx="16" ry="11" />

@@ -24,10 +24,14 @@ export type Reading =
 export interface RealModel {
   /** the model as the reader sees it named */
   name: string;
+  /** what kind of tool it is, in plain words */
+  what: string;
   /** what it is asked to do, in plain words */
   task: string;
-  /** what the first run downloads and from where, said plainly */
-  download: string;
+  /** how much the first run downloads, said beside the button that opens the tool */
+  size: string;
+  /** where that download comes from, said plainly */
+  source: string;
   run(image: HTMLImageElement): Promise<Reading>;
 }
 
@@ -103,17 +107,21 @@ async function readText(image: HTMLImageElement): Promise<Reading> {
 }
 
 const owl = {
-  name: "OWL-ViT (base, patch 32)",
-  download:
-    "about 165 MB: the model from Hugging Face, a US company, through its Amazon CloudFront servers, and the rest from this site. Hugging Face sees your IP address and browser, as any website does",
+  name: "OWL-ViT",
+  what: "an open model from Google that finds objects named in words",
+  size: "about 165 MB",
+  source:
+    "the model from Hugging Face, a US company, through its Amazon CloudFront servers, and the rest from this site. Hugging Face sees your IP address and browser, as any website does",
 };
 
 export const REAL_MODELS: Record<Scale, RealModel> = {
   Product: {
-    name: "Tesseract 5 (tesseract.js), English",
+    name: "Tesseract 5",
+    what: "an open-source text reader, set to English",
     task: "read the text on the rating label",
     // the WebAssembly core (3.9 MB), English data (2.8 MB) and its worker
-    download: "about 7 MB, all from this site",
+    size: "about 7 MB",
+    source: "all from this site",
     run: readText,
   },
   Component: {
