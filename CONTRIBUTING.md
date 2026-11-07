@@ -38,9 +38,25 @@ rules, marks and citation keys against the stored deposit data. Open an issue fi
 a rating or number is wrong. For page copy, explain each finding in words a reader
 without computer-vision training can follow. Keep the evidence and its limits intact.
 
+## Tests and code style
+
+A pull request that adds major functionality must add automated tests for it.
+Update tests when behaviour changes. A bug fix must include a regression test
+that fails before the fix.
+
+Use Vitest for logic and component tests. Use the Chromium test project when a
+test needs real browser layout, focus or accessibility behaviour. The commands
+above run both projects. TypeScript and React code must follow the rules in
+[`biome.jsonc`](biome.jsonc); `pnpm format` applies the formatting rules.
+`pnpm check` enforces lint and format in CI. `pnpm build` enforces the strict
+TypeScript settings in [`tsconfig.json`](tsconfig.json).
+
+Update the documentation when a change affects the instructions or behaviour it
+describes. Keep any earned badges in the README linked to their evidence; add a
+newly awarded badge within 48 hours of public recognition.
+
 ## Who maintains this
 
 Simon van Lierde ([@simonvanlierde](https://github.com/simonvanlierde)) maintains the
-site and reviews pull requests. Only he can merge to `main`. A new maintainer would
-be named here first. If he stops maintaining it, the README says so and the repository
-is archived. Anyone may fork it under its licences: MIT for code, CC BY 4.0 for content.
+site and reviews pull requests. [Governance](GOVERNANCE.md) defines his responsibilities,
+how decisions are made and the limits of continuity with one maintainer.
