@@ -796,3 +796,18 @@ describe("the plain-table twin", () => {
     expect(dialog.hasAttribute("open")).toBe(false);
   });
 });
+
+describe("the footer", () => {
+  it("links the accessibility statement and the privacy page", () => {
+    render(<CvTaxonomy />);
+    const footer = document.querySelector(".cvt-footer") as HTMLElement;
+    expect(within(footer).getByRole("link", { name: "Statement" })).toHaveAttribute(
+      "href",
+      expect.stringMatching(/\/accessibility\.html$/),
+    );
+    expect(within(footer).getByRole("link", { name: "No tracking" })).toHaveAttribute(
+      "href",
+      expect.stringMatching(/\/privacy\.html$/),
+    );
+  });
+});

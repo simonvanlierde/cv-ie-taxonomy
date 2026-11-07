@@ -59,6 +59,8 @@ print add textures. Each task is a named button, and `Esc` closes its details.
 The page respects reduced-motion settings. Chromium tests run axe WCAG 2.2 AA
 checks, including the assessment editor and model panels. Automated checks do
 not cover every accessibility need; axe cannot judge text contrast over the grid.
+The [accessibility statement](https://simonvanlierde.com/cv-ie-taxonomy/accessibility.html)
+lists the known limits and how to report a problem.
 
 ## Development
 
