@@ -44,8 +44,8 @@ function RunLine({ run }: { run: Run }) {
           mark={run.capture === "pass" ? "✓" : "✗"}
           text={
             run.capture === "pass"
-              ? "survives end-of-life photos"
-              : (basisText(run.basis) ?? "field gate not passed")
+              ? "works on photos taken after use"
+              : (basisText(run.basis) ?? "not shown to work on photos taken after use")
           }
         />
         <Seg

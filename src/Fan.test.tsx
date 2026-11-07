@@ -38,6 +38,17 @@ const COMPONENT_CHIPS = [
 ];
 
 describe("chip operability", () => {
+  it.each(["Product", "Material"] as const)(
+    "does not rate the %s connections placeholder",
+    (scale) => {
+      const { container } = renderFan({ chapter: scale });
+      const button = chip(container, `${scale.toLowerCase()}-structure`);
+      expect(button).toHaveAccessibleName(/not applicable/i);
+      expect(button).not.toHaveAccessibleName(/absent/i);
+      expect(button.querySelector(".cvt-co-letter")).toBeEmptyDOMElement();
+    },
+  );
+
   it("drops chips outside the camera frame from the tab ring, but never the selected one", () => {
     // component-quantity's frame is tight around the motor: the identity chip in
     // the left gutter is not on the sheet while that detail is open, and a chip
@@ -157,7 +168,7 @@ describe("compact fan", () => {
     expect(container.querySelectorAll(".cvt-co")).toHaveLength(0);
     // the phone lists the cells in the text; the drawing still shows the read-outs
     expect(container.querySelectorAll(".ov-layer")).toHaveLength(9);
-    expect(within(container).getByText(/desk_fan/)).toBeInTheDocument();
+    expect(within(container).getByText(/desk fan/)).toBeInTheDocument();
   });
 });
 
@@ -176,10 +187,8 @@ describe("chip read-outs", () => {
   // verdict change in taxonomy.json must reach the chip text too.
   it.each(CHIP_LAYOUT)("$id: hedge words agree with the verdict", ({ id, text, strike }) => {
     const cell = cellById(id);
-    expect(text.includes("(unvalidated)"), text).toBe(
-      cell.maturity === "Plausible-but-unvalidated",
-    );
-    expect(text.includes("(narrow class)"), text).toBe(cell.maturity === "Emerging-but-narrow");
+    expect(text.includes("(unproven)"), text).toBe(cell.maturity === "Plausible-but-unvalidated");
+    expect(text.includes("(one product type)"), text).toBe(cell.maturity === "Emerging-but-narrow");
     expect(Boolean(strike), text).toBe(cell.maturity === "Absent" && !cell.structurallyEmpty);
   });
 });

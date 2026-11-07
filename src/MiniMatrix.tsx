@@ -99,7 +99,7 @@ function MiniMatrixRow({
             aria-pressed={cell.id === selectedId}
             aria-label={
               cell.structurallyEmpty
-                ? `${scale} · ${info}: structurally empty, answered at the component scale`
+                ? `${scale} · ${info}: see parts for connections`
                 : split
                   ? `${shown} ${scale} · ${info}: ${cell.subVerdicts?.map((s) => `${s.label} ${s.maturity}`).join("; ")}${said}`
                   : `${shown} ${scale} · ${info}: ${cell.maturity}${said}`
@@ -140,7 +140,7 @@ function MiniMatrixRow({
             {/* under the block, what it is missing; the verdict is in the letter
                 and the key above the matrix */}
             <span className="cvt-mx-name">
-              {cell.structurallyEmpty ? "structurally empty" : missing.join(" · ")}
+              {cell.structurallyEmpty ? "see parts for connections" : missing.join(" · ")}
             </span>
           </button>
         );

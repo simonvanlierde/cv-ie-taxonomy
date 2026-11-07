@@ -63,13 +63,13 @@ describe("WCAG 2.2 AA (axe)", () => {
     const user = userEvent.setup();
     render(<CvTaxonomy debugChapter={scale} />);
     const chapter = document.getElementById(`cvt-ch-${scale}`) as HTMLElement;
-    const toggle = within(chapter).getByRole("button", { name: /try a real model/i });
+    const toggle = within(chapter).getByRole("button", { name: /try your own photo/i });
     await user.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "true");
     expect(within(chapter).getByLabelText(/use your own photo/i)).toBeInTheDocument();
-    expect(
-      within(chapter).getByRole("button", { name: /remove downloaded models/i }),
-    ).toBeVisible();
+    const remove = within(chapter).queryByRole("button", { name: /remove OWL-ViT downloads/i });
+    if (scale === "Product") expect(remove).toBeNull();
+    else expect(remove).toBeVisible();
     expect(await violations()).toEqual([]);
   });
 

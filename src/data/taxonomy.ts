@@ -57,4 +57,4 @@ export const maturityName = (cell: Cell) => splitOf(cell)?.join(" and ") ?? cell
 /** A cell's task as a heading or label; the two structurally empty cells have
  *  no task of their own, and "(structurally empty)" is not a name. */
 export const taskName = (cell: Cell) =>
-  cell.structurallyEmpty ? "Structurally empty: answered at the component scale" : cell.task;
+  cell.structurallyEmpty ? "Connections are assessed at the parts level" : cell.task;
