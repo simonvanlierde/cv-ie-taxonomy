@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="referrer" content="no-referrer" />
+    <title>Accessibility · CV × industrial ecology</title>
+    <style>
+      :root { color-scheme: light dark; --ink: #1a1a1a; --paper: #fbfaf7; }
+      @media (prefers-color-scheme: dark) { :root { --ink: #e8eef6; --paper: #0d2240; } }
+      body { margin: 0 auto; max-width: 40rem; padding: 2rem 16px; font: 19px/1.55 system-ui, sans-serif; color: var(--ink); background: var(--paper); }
+      a { color: inherit; }
+      h1 { font-size: 1.6rem; line-height: 1.2; }
+      h2 { font-size: 1.1rem; margin-top: 2rem; }
+    </style>
+  </head>
+  <body>
+    <p><a href="./">Back to the map</a></p>
+    <h1>Accessibility statement</h1>
+    <p>
+      This page covers the interactive map at
+      <a href="https://simonvanlierde.com/cv-ie-taxonomy/">simonvanlierde.com/cv-ie-taxonomy</a>.
+      Simon van Lierde builds it and is responsible for this statement.
+    </p>
+
+    <h2>Using the map</h2>
+    <p>You can:</p>
+    <ul>
+      <li>
+        read each rating as a letter and an ink weight, not only as a colour. In high-contrast
+        mode and in print, the ratings also get textures;
+      </li>
+      <li>
+        open every task with the keyboard. Each task is a named button. The scene list has a
+        button for each scene, so the keyboard reaches every scene;
+      </li>
+      <li>
+        close a task's details with Esc. The focus goes back to the task that opened it. While
+        the details have the focus, the left and right arrow keys move to the next task in the
+        same scene;
+      </li>
+      <li>
+        read all the ratings as text in <b>Plain table</b>. Esc closes it and puts the focus
+        back on its button;
+      </li>
+      <li>
+        open a source's full reference with the keyboard. Esc closes the reference first, then
+        the details;
+      </li>
+      <li>
+        skip the moving drawing: if your device asks for reduced motion, the fan no longer
+        follows the scroll, and each scene shows its finished drawing at once;
+      </li>
+      <li>
+        use a dark theme, which follows your device's setting;
+      </li>
+      <li>
+        use it on a phone. Each scene lists its tasks as buttons, and a task's details open as
+        a sheet that keeps the keyboard focus inside it until you close it;
+      </li>
+      <li>
+        read the result of <b>Analyse photo</b> as text. It sits in a status region, so
+        screen readers can announce it when it arrives.
+      </li>
+    </ul>
+
+    <h2>How accessible the map is</h2>
+    <p>
+      The map aims to meet <a href="https://www.w3.org/TR/WCAG22/">WCAG 2.2</a> at level AA,
+      the usual standard for accessible websites.
+    </p>
+    <p>
+      Its conformance is <b>not assessed</b>: nobody has checked it against every WCAG 2.2
+      rule yet. No outside expert has tested it.
+    </p>
+
+    <h2>Known problems</h2>
+    <p>
+      None are recorded. The checks below leave gaps, so there may be problems we haven't
+      found. Please tell us about any you meet.
+    </p>
+
+    <h2>Tell us about a problem</h2>
+    <p>
+      If any part of the map is hard or impossible for you to use, email
+      <a href="mailto:code@duinlab.nl">code@duinlab.nl</a>. Tell us what you tried to do, what
+      happened, and which browser and assistive technology you use, if any. If you have a
+      GitHub account, you can also
+      <a href="https://github.com/simonvanlierde/cv-ie-taxonomy/issues">open an issue</a>.
+    </p>
+    <p>
+      We'll reply within 10 working days. If you need the research in another format, ask and
+      we'll send it.
+    </p>
+
+    <h2>How we check</h2>
+    <p>These automatic checks run on every proposed change:</p>
+    <ul>
+      <li>
+        <a href="https://github.com/dequelabs/axe-core">axe-core</a> scans each scene, an open
+        task, the <b>What if?</b> editor, each photo panel and the phone layout for WCAG 2.0,
+        2.1 and 2.2 level A and AA problems.
+      </li>
+      <li>
+        Tests use the keyboard on the tasks, the scene list, the plain table and the source
+        references. They check that Esc closes each one, and where the focus goes when a task
+        or the plain table closes.
+      </li>
+      <li>
+        Tests check reduced motion and high-contrast mode in a real browser.
+      </li>
+      <li>
+        Tests check the contrast of the drawing's colours, its labels and the status text, in
+        the light and the dark theme.
+      </li>
+    </ul>
+    <p>
+      Automatic tools find only some problems, so passing them doesn't mean there are none.
+      These checks also leave gaps:
+    </p>
+    <ul>
+      <li>The browser tests run in Chromium only, not in Firefox or Safari.</li>
+      <li>axe scans the light theme only.</li>
+      <li>axe can't measure the contrast of text that sits over the drawing's grid.</li>
+      <li>There is no record of a test by hand with a screen reader.</li>
+    </ul>
+    <p>The map needs HTML, CSS and JavaScript to work.</p>
+
+    <h2>About this statement</h2>
+    <p>
+      Prepared: 7 November 2026<br />
+      Last reviewed: 7 November 2026<br />
+      Next review: within 12 months of the last review<br />
+      Method: self-assessment, using the checks under How we check
+    </p>
+  </body>
+</html>

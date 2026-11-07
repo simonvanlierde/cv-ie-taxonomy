@@ -684,6 +684,12 @@ function SheetFooter({ inert }: { inert: boolean }) {
             <a href={`${import.meta.env.BASE_URL}privacy.html`}>No tracking</a>
           </dd>
         </div>
+        <div className="cvt-tb-row">
+          <dt>accessibility</dt>
+          <dd>
+            <a href={`${import.meta.env.BASE_URL}accessibility.html`}>Statement</a>
+          </dd>
+        </div>
       </dl>
     </footer>
   );
