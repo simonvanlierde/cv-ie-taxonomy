@@ -19,6 +19,9 @@ Changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   and recycling, while preserving study scope and distinguishing missing evidence
   from demonstrated failure. Research ratings and numbers are unchanged; see
   [the research and illustration](README.md#what-the-page-shows).
+- When your **What if?** marks raise a task to Strong, the page names the marks
+  the paper did not give. Map blocks now move to their new height instead of
+  jumping. See [what the page shows](README.md#what-the-page-shows).
 
 ### Fixed
 
