@@ -3,10 +3,9 @@ import { CHAPTER_COPY, FIELD_SPLIT, SCENE_DROP } from "./chapters";
 import { cells, SCALES } from "./data/taxonomy";
 
 /**
- * The chapter prose quotes the paper's figures. taxonomy.json is the source of
- * truth, so a figure in the prose that is not in the
- * JSON is either invented or has drifted from a corrected verdict. Either way
- * it must not ship: this is the one place the viz makes an unhedged claim.
+ * The chapter percentages quote the paper's figures. taxonomy.json is the
+ * source of truth for those percentages. Label-reading counts come from the
+ * cited study's Table 3 and are checked in Fan.test.tsx.
  */
 
 /** every percentage in a string: "95.7%", "~82%", "39.7%" → "95.7", "82", "39.7" */
@@ -35,7 +34,7 @@ describe("chapter prose is backed by taxonomy.json", () => {
   });
 
   it.each(["Product", "Component"] as const)(
-    "every figure the %s scene draws appears in its notes",
+    "every percentage the %s scene draws appears in its notes",
     (scale) => {
       const drop = SCENE_DROP[scale];
       if (!drop) throw new Error(`no drop for ${scale}`);

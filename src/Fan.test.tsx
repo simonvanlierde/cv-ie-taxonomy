@@ -38,6 +38,15 @@ const COMPONENT_CHIPS = [
 ];
 
 describe("chip operability", () => {
+  it("shows the verified label-reading counts beneath the Product percentages", () => {
+    const { container } = renderFan({ chapter: "Product" });
+    const marks = container.querySelectorAll(".cvt-drop-mark");
+    expect(marks[0]).toHaveTextContent("95.7%");
+    expect(marks[0]).toHaveTextContent("446 of 466 photos");
+    expect(marks[1]).toHaveTextContent("39.7%");
+    expect(marks[1]).toHaveTextContent("306 of 771 photos");
+  });
+
   it.each(["Product", "Material"] as const)(
     "does not rate the %s connections placeholder",
     (scale) => {

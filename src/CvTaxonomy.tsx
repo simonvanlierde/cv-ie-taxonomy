@@ -942,6 +942,10 @@ export const Outro = memo(function Outro() {
             evidence.
           </p>
           <p>
+            The review used targeted searches, with assessments recorded by one researcher. A
+            missing method means the review did not find one.
+          </p>
+          <p>
             Finding parts and identifying how they attach are rated separately, so ten tasks give
             eleven assessments. The two hatched cells have no rating of their own: connections are
             assessed at the parts level.
@@ -960,13 +964,25 @@ export const Outro = memo(function Outro() {
             taken where used products are handled.
           </p>
           <p>
-            Only label reading has been piloted at collection sites, by one research group. For the
-            other tasks, evidence is missing across the whole workflow: how photos are taken where
-            used products are handled, what the software reads from them, and where a person checks
-            the result before it enters an inventory. Industrial ecologists can start at the first
-            step: photographs from repair shops, collection points and recyclers, each paired with
-            checked values for the information that reuse and recycling need, so that tools can be
-            tested on them.
+            For the reviewed tasks using ordinary field photos, only label reading has
+            collection-site pilot evidence, from one research group. Reliable product data need
+            tests of the whole workflow, from taking photos to checking what the software reads and
+            what a person confirms.
+          </p>
+          <p>
+            Help build that evidence:{" "}
+            <a href="https://r9lab.io/">contribute a product record through R9lab</a>, a platform
+            for documenting products as they are taken apart. Pair your own photographs with
+            measurements and notes on how you checked each value. Follow its{" "}
+            <a href="https://docs.r9lab.io/user-guides/data-collection/">collection guide</a> for
+            what to photograph and record. These records can support research. Comparing methods on
+            the same products still needs clean and field photographs of each item, paired with
+            checked model numbers, material names or measurements.
+          </p>
+          <p>
+            R9lab uploads are public. Keep people and personal details out of your photographs, and
+            read its <a href="https://r9lab.io/terms/">contributor terms</a> and{" "}
+            <a href="https://r9lab.io/privacy/">privacy policy</a> before uploading.
           </p>
         </div>
         <TableView />

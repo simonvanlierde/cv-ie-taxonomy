@@ -395,9 +395,11 @@ function Drop({ scale }: { scale: Scale }) {
     >
       <span className="cvt-drop-mark" style={{ "--v": share(d.from) }}>
         <b>{d.from}</b> {d.fromLabel}
+        {d.fromCount && <span>{d.fromCount}</span>}
       </span>
       <span className="cvt-drop-mark" style={{ "--v": share(d.to) }}>
         <b>{d.to}</b> {d.toLabel}
+        {d.toCount && <span>{d.toCount}</span>}
       </span>
     </div>
   );
