@@ -61,7 +61,7 @@
       "task": "Identify the product and read its label details",
       "methodFamily": "Reading the label's text (OCR) and matching it to a database; matching the photo against reference images (retrieval, one-shot recognition)",
       "maturity": "Partial",
-      "maturityNote": "The method is in use, but labels become harder to read as products move toward recycling. Software read model numbers from 95.7% of images with a visible label at repair, 90.8% at reuse and 39.7% at recycler intake. Both the study of this drop and the collection-site pilot come from one research group. Independent confirmation is still missing.",
+      "maturityNote": "The method is in use, but labels become harder to read as products move toward recycling. Software recognised model numbers in 95.7% of images with a visible model number at repair, 90.8% at reuse and 39.7% at recycler intake. The study allowed character mismatches, so these are not rates of exact transcription. Both the study of this drop and the collection-site pilot come from one research group. Independent confirmation is still missing.",
       "rubricMarks": "B · ✗ᵐ · ✓",
       "hardware": "Photos are taken on the device; recognition is better run on a server.",
       "failureMode": "End-of-life labels are damaged, dirty, skewed or too far away. The database may not cover the product. It is not automatic: a person picks the final match.",

@@ -751,6 +751,9 @@ html[data-theme="dark"] {
 .cvt-drop-mark > * {
   background: var(--cvt-bg);
 }
+.cvt-drop-mark > span {
+  display: block;
+}
 .cvt-drop-mark::before {
   content: "";
   position: absolute;

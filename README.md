@@ -18,8 +18,9 @@ photos taken in those settings.
 
 Follow a desk fan from the whole product to its parts and materials. Select a
 label or a cell to see the evidence for one task. No task earns the review's
-highest rating, Strong. In one washing-machine study, model numbers were read
-from 95.7% of photos with a visible label at repair, and 39.7% at recycler intake.
+highest rating, Strong. In one washing-machine study, software recognised model
+numbers in 95.7% of photos at repair and 39.7% at recycler intake. Only photos with
+a visible model number counted, and recognition allowed some character errors.
 
 The page accompanies the review article _Benchmarked, Rarely Field-Tested:
 Computer Vision for End-of-Life Product Data in Industrial Ecology_ (van Lierde
