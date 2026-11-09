@@ -141,10 +141,10 @@ export const REAL_MODELS: Record<Scale, RealModel> = {
  * Removes the detector's files from this browser: transformers.js keeps the
  * weights and its runtime in the Cache Storage "transformers-cache". The model
  * loaded in this tab is dropped too, so the next run downloads it again.
- * Callers must not call this while a model is loading: the download would write
- * its files back after the delete.
+ * A download still in flight finishes first, so its files cannot land after the delete.
  */
 export async function removeDownloads(): Promise<void> {
+  await detector?.catch(() => undefined);
   detector = null;
   if (typeof caches !== "undefined") await caches.delete("transformers-cache");
 }

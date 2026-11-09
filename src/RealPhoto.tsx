@@ -147,7 +147,8 @@ function RealPhotoPanel({ scale, model }: { scale: Scale; model: RealModel }) {
         {scale !== "Product" && (
           <button
             type="button"
-            // a download still running would write its files back after the delete
+            // removeDownloads waits for any download in flight; this only keeps the
+            // button quiet while this panel's own run is going
             aria-disabled={state.status === "running"}
             onClick={async () => {
               if (state.status === "running") return;
