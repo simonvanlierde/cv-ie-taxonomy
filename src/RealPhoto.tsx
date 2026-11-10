@@ -92,6 +92,10 @@ function RealPhotoPanel({ scale, model }: { scale: Scale; model: RealModel }) {
   return (
     <div className="cvt-real-panel">
       <p className="cvt-real-what">
+        This demo does not reproduce the cited studies. Check its result against the product; one
+        photo cannot establish reliability.
+      </p>
+      <p className="cvt-real-what">
         {model.name}, {model.what}, will {model.task}. The first run downloads {model.size},{" "}
         {model.source}. Your browser keeps the files for next time.{" "}
         <a href={`${import.meta.env.BASE_URL}privacy.html`}>Privacy</a>

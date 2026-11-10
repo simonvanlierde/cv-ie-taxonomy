@@ -33,6 +33,21 @@ async function openWithPhoto(model: RealModel) {
 }
 
 describe("real-model mode", () => {
+  it.each(["Product", "Component", "Material"] as const)(
+    "reader-check: explains the %s demo's limits before choosing a photo or running a model",
+    async (scale) => {
+      const user = userEvent.setup();
+      const run = vi.fn();
+      render(<RealPhoto scale={scale} model={fake(run)} />);
+      await user.click(screen.getByRole("button", { name: /try your own photo/i }));
+      expect(
+        screen.getByText(/this demo does not reproduce the cited studies/i),
+      ).toBeInTheDocument();
+      expect(screen.getByText(/one photo cannot establish reliability/i)).toBeInTheDocument();
+      expect(run).not.toHaveBeenCalled();
+    },
+  );
+
   it("stays folded away, and runs nothing, until the reader asks", () => {
     const run = vi.fn();
     render(<RealPhoto scale="Component" model={fake(run)} />);

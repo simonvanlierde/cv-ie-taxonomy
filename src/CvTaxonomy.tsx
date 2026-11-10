@@ -793,6 +793,12 @@ const Rail = memo(function Rail({
             <div className="cvt-chapter-inner">
               <h2>{copy.title}</h2>
               <p className="cvt-body">{copy.body}</p>
+              {scale === "Product" && (
+                <Cite
+                  citeKey="sterkensProductLabelIdentification2023"
+                  label="Sterkens et al., 2023, Table 3"
+                />
+              )}
               {phone && <CellList scale={scale} onOpen={onOpen} />}
               <RealPhoto scale={scale} />
             </div>
@@ -833,7 +839,8 @@ export function MaturityKey() {
         .filter((level) => level.verdict !== "Strong")
         .map((level) => (
           <li key={level.verdict}>
-            <b>{level.letter}</b> {level.verdict}: <span>{shortGloss(level.gloss)}</span>
+            <b>{level.letter}</b> {level.verdict}:{" "}
+            <span>{level.verdict === "Partial" ? level.gloss : shortGloss(level.gloss)}</span>
           </li>
         ))}
     </ul>
