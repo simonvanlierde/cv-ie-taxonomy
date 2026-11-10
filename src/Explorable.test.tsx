@@ -265,4 +265,27 @@ describe("What if?", () => {
       click.mockRestore();
     }
   });
+
+  it("names a first cell that opens label reading", async () => {
+    const user = userEvent.setup();
+    render(<Explorable />);
+    await user.click(screen.getByRole("button", { name: "Start with reading a product label" }));
+    expect(
+      await screen.findByRole("complementary", { name: /product · identity/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("tells a first-time What if? reader what to do, until a mark changes", async () => {
+    const user = userEvent.setup();
+    render(<Explorable />);
+    await user.click(screen.getByRole("button", { name: "What if?" }));
+    const note = document.querySelector(".cvt-whatif-note");
+    expect(note).toHaveTextContent("Open a cell and change its evidence marks");
+    await user.click(cell());
+    const detail = screen.getByRole("complementary", { name: /product · identity/i });
+    const field = within(detail).getByRole("group", { name: /shown to work on field photos/i });
+    await user.click(within(field).getByRole("radio", { name: "Yes" }));
+    expect(note).toHaveTextContent("1 rating differs from the paper");
+    expect(note).not.toHaveTextContent("Open a cell");
+  });
 });
