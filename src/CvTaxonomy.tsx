@@ -214,6 +214,52 @@ export function flyIntoMap(ids: readonly string[]): void {
   t?.finished?.then(clear, clear);
 }
 
+/**
+ * The map's opening move, the reverse of the closing flight: the bay the reader
+ * pressed morphs into the head of the detail it opens. One view-transition-name
+ * sits on the bay for the old snapshot and on the detail's head for the new one,
+ * and both come off when the transition ends or is aborted. The fan's chips are
+ * not on screen at the map (the stage has unpinned), so the detail's head is the
+ * label the bay becomes. Without the API, or under reduced motion, it just runs.
+ */
+export function morphBayIntoDetail(bay: HTMLElement | null, run: () => void): void {
+  const doc = document as ViewTransitionDocument;
+  if (
+    !bay ||
+    typeof doc.startViewTransition !== "function" ||
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  ) {
+    run();
+    return;
+  }
+  let head: HTMLElement | null = null;
+  const root = document.documentElement;
+  const clear = () => {
+    root.classList.remove("cvt-bay-morphing");
+    bay.style.removeProperty("view-transition-name");
+    bay.style.removeProperty("view-transition-class");
+    head?.style.removeProperty("view-transition-name");
+    head?.style.removeProperty("view-transition-class");
+  };
+  bay.style.setProperty("view-transition-name", "cvt-bay");
+  bay.style.setProperty("view-transition-class", "cvt-bay");
+  // the page cuts over at once: only the bay moves, so nothing else is doubled mid-fade
+  root.classList.add("cvt-bay-morphing");
+  const t = doc.startViewTransition(() => {
+    bay.style.removeProperty("view-transition-name");
+    flushSync(run);
+    head = document.querySelector<HTMLElement>(".cvt-inline-head");
+    head?.style.setProperty("view-transition-name", "cvt-bay");
+    head?.style.setProperty("view-transition-class", "cvt-bay");
+  });
+  if (!t) {
+    clear();
+    return;
+  }
+  t.ready?.catch(() => {});
+  t.finished?.then(clear, clear);
+}
+
 // ---- main -------------------------------------------------------------------------
 export function CvTaxonomy({
   theme,
