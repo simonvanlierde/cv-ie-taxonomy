@@ -125,6 +125,15 @@ function MiniMatrixRow({
             >
               {subRule(split)}
             </span>
+            {/* the distance still to Strong, drawn as a dimension line when the bay
+                is pointed at: the gap the paper describes, measured on the drawing */}
+            {!cell.structurallyEmpty && standsAt !== "Strong" && (
+              <span
+                className="cvt-mx-gap"
+                style={{ "--h": VERDICT_HEIGHT[standsAt] }}
+                aria-hidden
+              />
+            )}
             {ghost && (
               <span className="cvt-mx-ghost" style={{ "--h": VERDICT_HEIGHT[ghost] }} aria-hidden />
             )}

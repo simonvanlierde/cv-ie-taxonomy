@@ -760,7 +760,7 @@ const Rail = memo(function Rail({
           hint={
             phone
               ? "Tap a task in each scene to see what the research found."
-              : "Select a label on the fan to see what the research found."
+              : "Then select any label on the fan to see what the research found."
           }
         />
         <p className="cvt-scrollhint" aria-hidden>

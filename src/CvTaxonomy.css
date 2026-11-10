@@ -259,10 +259,11 @@ html[data-theme="dark"] {
   background-size: 32px 32px;
   /* clear of the coordinate ruler and the mat's fade above, and of the scale bar
      at the field's foot below: the drawing's own read-outs run to the frame's
-     edges, so the field has to start inside the sheet's furniture, not under it */
+     edges, so the field has to start inside the sheet's furniture, not under it.
+     The foot band also holds the four-line disclosure, so the fan never prints over it. */
   padding-top: 62px;
-  padding-bottom: 46px;
-  --cvt-stage-h: calc(100dvh - 108px);
+  padding-bottom: 108px;
+  --cvt-stage-h: calc(100dvh - 170px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1332,6 +1333,37 @@ html[data-theme="dark"] {
   outline: 1.5px solid var(--cvt-ink);
   outline-offset: 2px;
 }
+/* The gap to Strong as a drafting dimension: a hairline with end ticks from the
+   block's top to the shelf, plotted upward when the bay is pointed at. The
+   verdict is in the letter and the name; this only draws the distance. */
+.cvt-mx-gap {
+  position: absolute;
+  right: 16px;
+  width: 9px;
+  bottom: calc(var(--cvt-mx-floor) + var(--h, 0) * (100% - var(--cvt-mx-floor)));
+  height: calc((1 - var(--h, 0)) * (100% - var(--cvt-mx-floor)) - 3px);
+  border-block: 1px solid var(--cvt-ink);
+  background: linear-gradient(var(--cvt-ink), var(--cvt-ink)) center / 1px 100% no-repeat;
+  transform: scaleY(0);
+  transform-origin: bottom;
+  opacity: 0;
+  transition:
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.15s ease,
+    --h 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+.cvt-mx-cell:hover .cvt-mx-gap,
+.cvt-mx-cell:focus-visible .cvt-mx-gap,
+.cvt-mx-cell[aria-pressed="true"] .cvt-mx-gap {
+  transform: scaleY(1);
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cvt-mx-gap {
+    transition: none;
+  }
+}
 /* the instrument shows its state: the selected bay is ruled on all four sides */
 .cvt-mx-cell[aria-pressed="true"] {
   background: var(--cvt-card);
@@ -1401,6 +1433,15 @@ html[data-theme="dark"] {
 .cvt-foot p {
   margin: 0;
 }
+/* outbound links in ink, solid-underlined: dotted is the citation chips' mark */
+.cvt-foot a {
+  color: var(--cvt-ink);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.cvt-foot a:hover {
+  text-decoration-thickness: 2px;
+}
 .cvt-foot p + p {
   margin-top: 0.8rem;
   padding-top: 0.8rem;
@@ -1423,7 +1464,7 @@ html[data-theme="dark"] {
   color: var(--cvt-ink);
   background: var(--cvt-card);
   border: 1px solid var(--cvt-line);
-  border-radius: 999px;
+  border-radius: 8px;
   padding: 0.45rem 0.95rem;
   cursor: pointer;
 }
@@ -1629,7 +1670,7 @@ html[data-theme="dark"] {
   gap: 0.5rem;
   background: var(--cvt-card);
   border: 1px solid var(--cvt-line);
-  border-radius: 999px;
+  border-radius: 8px;
   padding: 0.45rem 0.95rem;
   font-family: var(--cvt-mono);
   font-size: var(--cvt-t-2);
@@ -2097,8 +2138,9 @@ html[data-theme="dark"] {
   }
   .cvt-sticky {
     position: relative;
-    height: 55svh;
-    padding: 0.5rem 0 1.6rem;
+    height: calc(55svh + 2.3rem);
+    /* the foot band holds the disclosure under the figure, not over it */
+    padding: 0.5rem 0 3.9rem;
     --cvt-stage-h: calc(55svh - 2.1rem);
     background-color: var(--cvt-bg);
     border-bottom: 1px solid var(--cvt-line);
@@ -2126,7 +2168,7 @@ html[data-theme="dark"] {
   .cvt-hero,
   .cvt-outro,
   .cvt-mcell {
-    scroll-margin-top: calc(55svh + 1rem);
+    scroll-margin-top: calc(55svh + 3.3rem);
   }
   .cvt-outro {
     min-height: auto;
