@@ -6,7 +6,7 @@ import { CvTaxonomy } from "./CvTaxonomy";
 /**
  * The layout seam (BREAKPOINT_PX), measured rather than declared.
  *
- * `useContainerSize` reads the page's own width through a ResizeObserver. jsdom
+ * `useContainerNarrow` reads the page's own width through a ResizeObserver. jsdom
  * reports every box as 0×0 and never fires the observer, which leaves the unit
  * project no choice but to fake the seam through matchMedia — and a faked seam
  * proves the fallback, not the measurement. Here Chromium does the layout and
@@ -58,15 +58,25 @@ describe("the layout seam, on real layout", () => {
 });
 
 describe("the title on a laptop screen", () => {
-  it("starts below the sheet's mat and its fade, where the hero is taller than the screen", async () => {
+  it("starts below the scene navigation, where the hero is taller than the screen", async () => {
     await page.viewport(1280, 720);
     render(<CvTaxonomy />);
     await vi.waitFor(() => expect(layout()).toBe("sheet"));
     const title = document.querySelector("h1") as HTMLElement;
-    const sheet = document.querySelector(".cvt-sheet") as HTMLElement;
-    // the mat is --cvt-edge thick and the fade under it is ::after's height
-    const fade = getComputedStyle(sheet, "::after");
-    const covered = Number.parseFloat(fade.top) + Number.parseFloat(fade.height);
-    expect(title.getBoundingClientRect().top).toBeGreaterThanOrEqual(covered);
+    const navigation = document.querySelector(".cvt-hud-top") as HTMLElement;
+    expect(title.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+      navigation.getBoundingClientRect().bottom,
+    );
+  });
+});
+
+describe("the map on a phone", () => {
+  it("lands at the top without reserving space for the released figure", async () => {
+    await page.viewport(PHONE.w, PHONE.h);
+    render(<CvTaxonomy debugChapter="outro" />);
+    await vi.waitFor(() => expect(layout()).toBe("phone"));
+    const map = document.getElementById("cvt-matrix") as HTMLElement;
+    map.scrollIntoView({ behavior: "instant" });
+    expect(map.getBoundingClientRect().top).toBeLessThan(80);
   });
 });

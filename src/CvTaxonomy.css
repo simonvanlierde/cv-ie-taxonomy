@@ -2,9 +2,8 @@
    CV × Industrial Ecology — one drawing sheet, scroll-driven
 
    The page is not a web page containing a drawing. It is a single sheet, and
-   the reader is on it: ruled border, a graticule that carries printed
-   coordinates rather than texture, a title block in the ISO 7200 corner, and
-   the maturity ramp as a permanent margin instrument. The exploded fan holds
+   the reader is on it: a single ruled border, a graticule, a footer title block,
+   and the maturity ramp as a permanent margin instrument. The exploded fan holds
    the drawing field, and the CV read-outs docked to its parts ARE the controls.
 
    Light is drafting paper with Prussian-blue linework, so the cyanotype is
@@ -13,7 +12,7 @@
    colour; a texture layer stands in where fills flatten.
 
    Two faces, self-hosted (OFL): Overpass for display and body, Overpass Mono
-   for every read-out, coordinate and title-block field — one drafting hand,
+   for every read-out and title-block field — one drafting hand,
    never left to a system fallback.
 
    No cards, no shadows, no rounded panels. The component language is ruled
@@ -101,7 +100,6 @@ html[data-theme="dark"] {
      piece of fixed furniture keeps from the viewport edge. One number, because a
      drawing's margin is one margin — and because it was five numbers that had to
      agree. */
-  --cvt-edge: 28px;
 
   /* the surface; must equal SURFACE in theme.ts, which the contrast tests read (check:theme) */
   --cvt-bg: light-dark(#f7f8f5, #0d3b5e);
@@ -125,8 +123,7 @@ html[data-theme="dark"] {
   --cvt-ok: light-dark(#1a6b37, #4ade80);
 
   /* Five steps, and every rule picks one. The floor is 13px (t-2): nothing that
-     carries meaning is set smaller. Only the sheet's ruler letters, which are
-     decoration, go below it. Below t-4 the steps sit ~2px apart, which is the
+     carries meaning is set smaller. Below t-4 the steps sit ~2px apart, which is the
      smallest gap that still reads as a step rather than a rounding error. */
   --cvt-t-2: 0.8125rem;
   --cvt-t-3: 0.9375rem;
@@ -243,7 +240,7 @@ html[data-theme="dark"] {
   }
 }
 
-/* clear of the sheet's 24px margin spine */
+/* Align the drawing field with the map below. */
 .cvt-stagecol {
   position: relative;
   min-width: 0;
@@ -257,10 +254,7 @@ html[data-theme="dark"] {
     linear-gradient(var(--cvt-grid) 1px, transparent 1px),
     linear-gradient(90deg, var(--cvt-grid) 1px, transparent 1px);
   background-size: 32px 32px;
-  /* clear of the coordinate ruler and the mat's fade above, and of the scale bar
-     at the field's foot below: the drawing's own read-outs run to the frame's
-     edges, so the field has to start inside the sheet's furniture, not under it.
-     The foot band also holds the four-line disclosure, so the fan never prints over it. */
+  /* Keep read-outs below the scene navigation and above the scale bar and disclosure. */
   padding-top: 62px;
   padding-bottom: 108px;
   --cvt-stage-h: calc(100dvh - 170px);
@@ -897,8 +891,7 @@ html[data-theme="dark"] {
 /* ---- HUD --------------------------------------------------------------------------- */
 .cvt-hud {
   position: absolute;
-  /* clear of the sheet's ruled border, its coordinate rulers, and the fade
-     under the mat — the chapter rail sat in that fade and read as dimmed */
+  /* Keep the disclosure inside the sheet's border. */
   inset: 44px 0 0;
   display: flex;
   flex-direction: column;
@@ -941,83 +934,62 @@ html[data-theme="dark"] {
   margin-top: auto;
   padding-bottom: 14px;
 }
-/* The chapters are a section index down the ruler band at every desktop width:
-   a hairline spine with a tick per stop and the name set along it, the way a
-   drawing indexes its views. No box and no ground — nothing scrolls through the
-   margin, and the drawing starts clear of it, so neither is needed. */
+/* The scene index reads in the same direction as the page. */
 .cvt-ind {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0.9rem;
-  border-left: 1px solid var(--cvt-grid);
+  align-items: center;
+  gap: 1.5rem;
 }
 .cvt-ind li {
   display: flex;
-  align-items: center;
   pointer-events: auto;
 }
 .cvt-ind button,
 .cvt-ind a {
-  font-family: var(--cvt-mono);
-  font-size: var(--cvt-t-2);
-  letter-spacing: 0.14em;
-  /* set along the spine, reading up the sheet */
-  writing-mode: vertical-rl;
-  /* a stop that wraps stops being a stop: "THE MAP" broke over two lines and
-     pushed the rail out of alignment */
+  font-family: var(--cvt-sans);
+  font-size: var(--cvt-t-3);
   white-space: nowrap;
-  text-transform: uppercase;
   color: var(--cvt-ink-dim);
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  min-height: 44px;
   background: none;
   border: 0;
-  padding: 0 0 0 0.45rem;
+  padding: 0;
   cursor: pointer;
   text-decoration: none;
   transition: color 0.3s;
 }
-/* the tick across the spine: it owns its full measure and scales from the spine,
-   so the active state draws outward without animating layout */
 .cvt-ind button::before,
 .cvt-ind a::before {
   content: "";
-  width: 3px;
-  height: 14px;
-  border-radius: 2px;
+  width: 6px;
+  height: 6px;
   background: var(--cvt-line);
-  transform: scaleY(0.55);
-  transform-origin: center top;
-  transition:
-    background 0.3s,
-    transform 0.3s;
 }
 .cvt-ind [data-active="true"] {
   color: var(--cvt-ink);
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 .cvt-ind [data-active="true"]::before {
   background: var(--hue);
-  transform: scaleY(1);
 }
 .cvt-ind button:hover,
 .cvt-ind a:hover {
   color: var(--cvt-ink);
 }
-/* the closing figure has no scale hue of its own; it takes the sheet's ink */
 .cvt-ind-end {
   --hue: var(--cvt-ink);
 }
-/* the spine stands in the sheet's left margin band, under the coordinate ruler */
 .cvt-hud-top {
   position: fixed;
-  left: var(--cvt-edge);
-  top: 80px;
-  width: 24px;
+  left: 44px;
+  top: 22px;
 }
 
 /* The scale bar belongs to the drawing: once the stage unpins, its foot would
@@ -1037,9 +1009,7 @@ html[data-theme="dark"] {
   flex-direction: column;
   justify-content: center;
 }
-/* On a laptop the hero is taller than the screen, so it starts at the very top,
-   under the sheet's mat (28px) and its fade (26px). The drawing keeps the same
-   62px clear (.cvt-sticky). */
+/* Keep a tall hero below the scene navigation. */
 @container cvt (width >= 1180px) {
   .cvt-hero {
     padding-top: 62px;
@@ -1091,18 +1061,6 @@ html[data-theme="dark"] {
 .cvt-maturity-key span {
   font-family: var(--cvt-sans);
 }
-.cvt-scrollhint {
-  font-family: var(--cvt-mono);
-  font-size: var(--cvt-t-2);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--cvt-ink-dim);
-  margin: 0;
-}
-.cvt-scrollhint-arrow {
-  display: inline-block;
-  animation: cvt-nudge 1.6s ease-in-out infinite;
-}
 .cvt-skip {
   display: inline-block;
   margin-top: 0.9rem;
@@ -1117,12 +1075,6 @@ html[data-theme="dark"] {
 .cvt-skip:hover {
   color: var(--cvt-ink);
 }
-@keyframes cvt-nudge {
-  50% {
-    transform: translateY(5px);
-  }
-}
-
 /* About 1.4 viewports tall: the scrub keyframes (cvt-explode, cvt-drift) finish
    as a scene's top reaches the middle of the screen at that height. Retune the
    two together. */
@@ -1190,15 +1142,14 @@ html[data-theme="dark"] {
   grid-column: 1 / -1;
   /* the closing figure is one screen: thesis over it, figure and caption side
      by side under, so the skip link lands on the whole argument at once */
-  /* clear of the fixed coordinate ruler when the page is at its end */
+  /* Leave room for the fixed scene navigation. */
   padding: max(8vh, 72px) 0 10vh;
   scroll-margin-top: 0;
 }
 .cvt-outro:focus {
   outline: none;
 }
-/* The closing figure takes the whole sheet, but the section index stays where it
-   has been all the way down the page: clear its strip, and nothing else. */
+/* Align the map with the drawing field. */
 .cvt-outro {
   padding-left: 44px;
 }
@@ -1252,8 +1203,7 @@ html[data-theme="dark"] {
   padding: 1.3rem 1.2rem 1.6rem;
   border: 1.5px solid var(--cvt-line);
   background: var(--cvt-panel);
-  /* focus-in scrolls the region into view; keep it below the fixed ruler rather
-     than flush under it */
+  /* Focus scrolls the region below the scene navigation. */
   scroll-margin-top: 5rem;
 }
 /* the leader, drawn by the scroll container: the region scrolls inside itself,
@@ -2280,7 +2230,6 @@ html[data-theme="dark"] {
   /* anything focused or scrolled to lands below the sticky figure, not under it */
   .cvt-chapter,
   .cvt-hero,
-  .cvt-outro,
   .cvt-mcell {
     scroll-margin-top: calc(55svh + 3.3rem);
   }
@@ -2584,93 +2533,19 @@ html[data-theme="dark"] {
   border-color: var(--cvt-ink-dim);
 }
 
-/* ---- sheet furniture ---------------------------------------------------------
-   Fixed to the viewport, not the document: the reader stays on one sheet while
-   the drawing moves under it. All of it is aria-hidden decoration over a live
-   document, so it never takes a pointer event and never enters the tab order. */
+/* The single sheet rule and opaque margin frame the scrolling drawing. */
 .cvt-sheet {
   position: fixed;
+  inset: 0;
   z-index: 3;
   pointer-events: none;
-  font-family: var(--cvt-mono);
-  /* the ruler letters: decoration, so below the 13px floor */
-  font-size: 0.6875rem;
-  letter-spacing: 0.08em;
-  color: var(--cvt-ink-dim);
+  border: 15px solid var(--cvt-bg);
 }
-.cvt-sheet {
-  inset: 0;
-  overflow: hidden;
-}
-/* the sheet's mat: an opaque margin the width of the ruler bands, so whatever
-   scrolls under the frame — the drawing on its way out, the closing thesis on
-   its way in — slides under the sheet's edge instead of through its refs.
-   The two banded edges take the full band: 31px stopped short of the reference
-   letters themselves (x-refs sit at 26 and set ~11px of type, y-refs at 27), so
-   a line of prose scrolling up came to rest among them before it was covered.
-   The refs are children and paint over the mat, so widening it hides the prose
-   without dimming the sheet's own furniture. */
 .cvt-sheet::before {
   content: "";
   position: absolute;
   inset: 0;
-  box-sizing: border-box;
-  border: 22px solid var(--cvt-bg);
-  border-top-width: var(--cvt-edge);
-  border-left-width: var(--cvt-edge);
-}
-/* A hard mat edge alone only moves the artefact: a line of prose crossing it is
-   cut in half wherever the scroll happens to stop, which reads as clipping
-   rather than as the sheet's edge. Below the opaque band the ground fades out
-   over one line, so prose arrives from under the sheet edge instead of being
-   sliced by it — the same fog the detail already uses on its own scroll edge. */
-.cvt-sheet::after {
-  content: "";
-  position: absolute;
-  top: var(--cvt-edge);
-  left: var(--cvt-edge);
-  right: 22px;
-  height: 26px;
-  background: linear-gradient(var(--cvt-bg), transparent);
-}
-.cvt-sheet-border {
-  position: absolute;
-  inset: 15px;
-  border: 1.5px solid var(--cvt-line);
-}
-/* the second rule inside the first is what makes it read as a drawn sheet edge
-   rather than a CSS box */
-.cvt-sheet-border::after {
-  content: "";
-  position: absolute;
-  inset: 9px;
-  border: 0.5px solid var(--cvt-grid);
-}
-/* One reference every three 32px divisions, so a callout can be cited as F4. */
-.cvt-ruler {
-  position: absolute;
-  display: flex;
-  /* a reference past the sheet's frame is not on the sheet */
-  overflow: hidden;
-}
-.cvt-ruler-x {
-  top: 19px;
-  left: 26px;
-  right: 26px;
-}
-.cvt-ruler-x span {
-  width: 96px;
-  flex: 0 0 96px;
-}
-.cvt-ruler-y {
-  flex-direction: column;
-  top: 26px;
-  bottom: 26px;
-  left: 20px;
-}
-.cvt-ruler-y span {
-  height: 96px;
-  flex: 0 0 96px;
+  border: 1px solid var(--cvt-line);
 }
 
 /* ISO 7200 puts the title block bottom-right; on this sheet bottom-right is the
@@ -2846,8 +2721,7 @@ html[data-theme="dark"] {
    every scene under the reader). */
 .cvt-detail-slot {
   position: sticky;
-  /* inside the sheet's ruled border and clear of the coordinate ruler: the one
-     element rebuilt to live ON the sheet must not punch through its frame */
+  /* Keep the docked detail inside the sheet's frame. */
   top: 48px;
   height: 0;
   z-index: 2;
@@ -2916,7 +2790,7 @@ html[data-theme="dark"] {
    never reflows when one opens — a drawing resizing during a camera move is two
    motions fighting. */
 @container cvt (width >= 1700px) {
-  /* The enlargement claims its strip only while it is docked, beside the spine.
+  /* The enlargement claims its strip only while it is docked.
      Reserving it permanently spent the sheet on empty margin; the field re-fits
      once, at the same moment the camera moves to the part, so the two moves read
      as one. */
@@ -2925,7 +2799,7 @@ html[data-theme="dark"] {
   }
   .cvt-detail-slot {
     position: fixed;
-    /* beside the spine, from under the ruler down to the sheet's bottom margin */
+    /* Below the scene navigation, inside the sheet's margins. */
     left: 80px;
     top: 80px;
     /* the rubric run is three segments wide and was tuned to the narrative

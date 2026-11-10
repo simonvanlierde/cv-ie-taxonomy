@@ -754,6 +754,18 @@ describe("the chapter rail is navigation, not decoration", () => {
   });
 });
 
+describe("the map caption", () => {
+  it("keeps contribution guidance and its privacy warning in one closed disclosure", () => {
+    render(<Outro />);
+    const disclosure = screen.getByText("Contribute product evidence").closest("details");
+    expect(disclosure).not.toHaveAttribute("open");
+    expect(disclosure).toContainElement(screen.getByText(/R9lab uploads are public/));
+    expect(disclosure).toContainElement(
+      screen.getByRole("link", { name: "collection guide", hidden: true }),
+    );
+  });
+});
+
 describe("the plain-table twin", () => {
   it.each(["Product", "Material"])(
     "does not give %s connections an Absent rating",
