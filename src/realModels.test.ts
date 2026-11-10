@@ -134,4 +134,19 @@ describe("removing the downloads", () => {
     await REAL_MODELS.Component.run(image());
     expect(pipeline).toHaveBeenCalledTimes(2);
   });
+
+  it("waits for a download in flight, so its files cannot land after the delete", async () => {
+    const del = vi.fn().mockResolvedValue(true);
+    vi.stubGlobal("caches", { delete: del });
+    let finish = (_: unknown) => {};
+    pipeline.mockReturnValue(new Promise((resolve) => (finish = resolve)));
+    const { REAL_MODELS, removeDownloads } = await load();
+    const run = REAL_MODELS.Material.run(image());
+    const removed = removeDownloads();
+    await vi.waitFor(() => expect(pipeline).toHaveBeenCalled());
+    expect(del).not.toHaveBeenCalled();
+    finish(detector);
+    await Promise.all([run, removed]);
+    expect(del).toHaveBeenCalledExactlyOnceWith("transformers-cache");
+  });
 });
