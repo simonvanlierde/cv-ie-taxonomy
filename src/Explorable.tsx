@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 import { DetailBody, morphBayIntoDetail } from "./CvTaxonomy";
-import { cells, maturityName } from "./data/taxonomy";
+import { cellById, cells, maturityName } from "./data/taxonomy";
 import type { Cell } from "./data/types";
 import { MiniMatrix } from "./MiniMatrix";
 import { RubricCircuit } from "./RubricCircuit";
@@ -31,6 +31,9 @@ import { useDialogRegion } from "./useDialogRegion";
  *  there, and scanning between them is the whole point of the instrument.
  *  `children` is what the column holds while nothing is selected (the caption
  *  and the table twin); the detail takes its place, as act one's takes the prose's. */
+/** The cell the idle column names as a way in. */
+const FIRST_CELL = "product-identity";
+
 export function Explorable({ children }: { children?: ReactNode }) {
   const [selected, setSelected] = useState<Cell | null>(null);
   // Held in a ref, not derived from `selected`: closing clears the selection on
@@ -108,6 +111,14 @@ export function Explorable({ children }: { children?: ReactNode }) {
             <p className="cvt-inline-prompt">
               Select a task to see what has been tested and what is still missing.
             </p>
+            {/* a named way in: label reading is the one task with collection-site evidence */}
+            <button
+              type="button"
+              className="cvt-skip cvt-start-cell"
+              onClick={() => pressBay(cellById(FIRST_CELL))}
+            >
+              Start with reading a product label
+            </button>
             {children}
           </div>
         )}
@@ -208,7 +219,9 @@ function WhatIfBar({
       {/* always there, so turning the switch on is announced */}
       <p className="cvt-whatif-note" role="status">
         {on
-          ? `${changed === 1 ? "1 rating differs" : `${changed} ratings differ`} from the paper. The dashed outline shows the paper’s rating.`
+          ? edited
+            ? `${changed === 1 ? "1 rating differs" : `${changed} ratings differ`} from the paper. The dashed outline shows the paper’s rating.`
+            : "0 ratings differ from the paper. Open a cell and change its evidence marks to see its block move."
           : "Try different evidence and see how the rating changes."}
       </p>
       {on && (

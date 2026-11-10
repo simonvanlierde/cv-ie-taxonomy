@@ -1282,6 +1282,22 @@ html[data-theme="dark"] {
   line-height: 1.2;
   margin: 0 0 0.9rem;
 }
+/* a named way into the map: the skip link's look, on a button */
+.cvt-start-cell {
+  margin: 0 0 1.4rem;
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: var(--cvt-ink);
+}
+/* the caption's disclosure takes the panel's summary look (.cvt-panel-more),
+   ruled off like the caption's paragraphs */
+.cvt-foot-more {
+  margin-top: 0.8rem;
+  padding-top: 0.3rem;
+  border-top: 1px solid var(--cvt-grid);
+}
 .cvt-inline-prompt {
   color: var(--cvt-ink);
   font-size: var(--cvt-t-3);

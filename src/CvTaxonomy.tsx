@@ -988,33 +988,38 @@ export const Outro = memo(function Outro() {
             evidence.
           </p>
           <p>
-            The review used targeted searches, with assessments recorded by one researcher. A
-            missing method means the review did not find one.
-          </p>
-          <p>
-            Finding parts and identifying how they attach are rated separately, so ten tasks give
-            eleven assessments. The two hatched cells have no rating of their own: connections are
-            assessed at the parts level.
-          </p>
-          <p>
             The dashed line marks Strong, the highest rating, and no task reaches it. Strong needs a
             method meant for many product types, evidence that it works on recycler-intake photos,
             and documented use for the task. A missing test leaves a requirement unmet; it does not
             show failure.
           </p>
-          <p>{FIELD_SPLIT}</p>
-          <p>
-            Some gaps need more than another test. Describing damage across product types, or how
-            parts connect, needs agreed categories first. Measuring hidden material composition
-            needs a method. The remaining gaps are about how existing methods perform on photos
-            taken where used products are handled.
-          </p>
-          <p>
-            For the reviewed tasks using ordinary field photos, only label reading has
-            collection-site pilot evidence, from one research group. Reliable product data need
-            tests of the whole workflow, from taking photos to checking what the software reads and
-            what a person confirms.
-          </p>
+          {/* the method and the gap analysis on demand: three chunks stay in view,
+              so the map, not the caption, is what the eye lands on */}
+          <details className="cvt-panel-more cvt-foot-more">
+            <summary>How the ratings were reached</summary>
+            <p>
+              The review used targeted searches, with assessments recorded by one researcher. A
+              missing method means the review did not find one.
+            </p>
+            <p>
+              Finding parts and identifying how they attach are rated separately, so ten tasks give
+              eleven assessments. The two hatched cells have no rating of their own: connections are
+              assessed at the parts level.
+            </p>
+            <p>{FIELD_SPLIT}</p>
+            <p>
+              Some gaps need more than another test. Describing damage across product types, or how
+              parts connect, needs agreed categories first. Measuring hidden material composition
+              needs a method. The remaining gaps are about how existing methods perform on photos
+              taken where used products are handled.
+            </p>
+            <p>
+              For the reviewed tasks using ordinary field photos, only label reading has
+              collection-site pilot evidence, from one research group. Reliable product data need
+              tests of the whole workflow, from taking photos to checking what the software reads
+              and what a person confirms.
+            </p>
+          </details>
           <p>
             Help build that evidence:{" "}
             <a href="https://r9lab.io/">contribute a product record through R9lab</a>, a platform
