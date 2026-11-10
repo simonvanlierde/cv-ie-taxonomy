@@ -7,6 +7,7 @@ import {
   cameraTransform,
   flyIntoMap,
   frameFor,
+  MaturityKey,
   morphBayIntoDetail,
   Outro,
   withViewTransition,
@@ -751,6 +752,25 @@ describe("the chapter rail is navigation, not decoration", () => {
     } finally {
       delete (Element.prototype as { scrollIntoView?: unknown }).scrollIntoView;
     }
+  });
+});
+
+describe("reader-check guidance", () => {
+  it("keeps the checks and adjustment qualification in the map's Partial key", () => {
+    render(<MaturityKey />);
+    expect(
+      screen.getByText(
+        /a method exists\. It needs adjustment or human checks, or works less well in a different setting\./i,
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("links the label-reading counts to the study and table beside the scene", () => {
+    render(<CvTaxonomy debugChapter="Product" />);
+    const scene = document.getElementById("cvt-ch-Product") as HTMLElement;
+    expect(
+      within(scene).getByRole("button", { name: "Sterkens et al., 2023, Table 3" }),
+    ).toHaveAttribute("popovertarget");
   });
 });
 
