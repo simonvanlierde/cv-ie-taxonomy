@@ -107,36 +107,20 @@ function useMediaQuery(query: string): boolean {
   );
 }
 
-/** I is skipped, as on a real drawing: it reads as a 1 against the row numbers. */
-// biome-ignore lint/security/noSecrets: the drawing sheet's column references
-const COLUMN_REFS = "ABCDEFGHJKLMNPQRSTUVWXYZ".split("");
-/** one ruler column, matching `.cvt-ruler-x span` in the stylesheet */
-const RULER_STEP_PX = 96;
-
-/** The component root's width, measured via ResizeObserver and stored quantised:
- *  whether it is narrower than the layout breakpoint, and how many 96px ruler
- *  columns it holds. Not the raw width, so a resize drag only re-renders on the
- *  frames a threshold is crossed. `narrow` is null until the first measurement,
- *  so callers fall back to a viewport guess for the first paint. */
-function useContainerSize(ref: RefObject<HTMLElement | null>): {
-  narrow: boolean | null;
-  columns: number;
-} {
+/** Observe only the layout breakpoint; intermediate widths need no render. */
+function useContainerNarrow(ref: RefObject<HTMLElement | null>): boolean | null {
   const [narrow, setNarrow] = useState<boolean | null>(null);
-  const [columns, setColumns] = useState(COLUMN_REFS.length);
   useEffect(() => {
     const el = ref.current;
     if (!el || typeof ResizeObserver === "undefined") return;
     const ro = new ResizeObserver((entries) => {
       const w = entries[0]?.contentRect.width;
-      if (typeof w !== "number") return;
-      setNarrow(w < BREAKPOINT_PX);
-      setColumns(Math.min(COLUMN_REFS.length, Math.ceil(w / RULER_STEP_PX)));
+      if (typeof w === "number") setNarrow(w < BREAKPOINT_PX);
     });
     ro.observe(el);
     return () => ro.disconnect();
   }, [ref]);
-  return { narrow, columns };
+  return narrow;
 }
 
 /** Lock page scroll while a modal is open, so the scrub and camera stay put
@@ -296,7 +280,7 @@ export function CvTaxonomy({
   // The container's own width picks the layout; the viewport query only stands in
   // for the first paint, before anything is measured.
   const viewportIsMobile = useMediaQuery(`(max-width: ${BREAKPOINT_PX - 1}px)`);
-  const { narrow: containerNarrow, columns } = useContainerSize(rootRef);
+  const containerNarrow = useContainerNarrow(rootRef);
   const isMobile = containerNarrow ?? viewportIsMobile;
 
   // Theme has one owner, resolved here: `?theme=` beats the OS. There is no
@@ -559,7 +543,7 @@ export function CvTaxonomy({
         // tree with them: a browse cursor walks past a focus trap
         inert={isMobile && selected !== null}
       >
-        {!isMobile && <SheetFrame columns={columns} />}
+        {!isMobile && <div className="cvt-sheet" aria-hidden />}
         {/* ---- sticky figure: the fan IS the interface ---- */}
         <div className="cvt-stagecol">
           <div className="cvt-sticky">
@@ -660,41 +644,7 @@ export function CvTaxonomy({
   );
 }
 
-// ---- sheet furniture ---------------------------------------------------------
-// The page is one drawing sheet, so its border, graticule references, title block
-// and maturity instrument are fixed to the viewport rather than scrolling with the
-// content: you stay on the sheet and the drawing moves under it. All of it is
-// decorative chrome over a live document, so it takes no pointer events and is
-// hidden from the accessibility tree — every fact it shows is stated in the
-// document proper (the title block repeats the figure caption's provenance, the
-// instrument repeats the legend).
-
-const ROW_REFS = Array.from({ length: 20 }, (_, i) => i + 1);
-
-/** `columns`: how many column references the sheet is wide enough to show,
- *  from the container measurement — the rest were DOM under overflow: hidden. */
-const SheetFrame = memo(function SheetFrame({ columns }: { columns: number }) {
-  return (
-    <div className="cvt-sheet" aria-hidden>
-      <div className="cvt-sheet-border" />
-      <div className="cvt-ruler cvt-ruler-x">
-        {COLUMN_REFS.slice(0, columns).map((c) => (
-          <span key={c}>{c}</span>
-        ))}
-      </div>
-      <div className="cvt-ruler cvt-ruler-y">
-        {ROW_REFS.map((r) => (
-          <span key={r}>{r}</span>
-        ))}
-      </div>
-    </div>
-  );
-});
-
-/** The title block's fields, once: the fixed ISO 7200 block on the sheet and the
- *  page footer both draw them, so the two cannot disagree. The DOI row is
- *  deliberately empty rather than absent: the deposit is planned, and a
- *  labelled blank says so without implying one exists. */
+/** The labelled DOI blank records a planned deposit without implying one exists. */
 function TitleRows() {
   return (
     <>
@@ -710,9 +660,7 @@ function TitleRows() {
   );
 }
 
-/** The sheet's end: the title block again, laid along the bottom edge as one
- *  strip, with the page's own two fields (©, code) added. The fixed block fades
- *  as the closing figure rises, and this is where its content lands. */
+/** Provenance and site links share the footer's ruled title block. */
 function SheetFooter({ inert }: { inert: boolean }) {
   return (
     // behind the phone's sheet, like the scenes
@@ -824,14 +772,8 @@ const Rail = memo(function Rail({
               : "Then select any label on the fan to see what the research found."
           }
         />
-        <p className="cvt-scrollhint" aria-hidden>
-          scroll to take it apart{" "}
-          <span className="cvt-scrollhint-arrow">
-            <ChevronIcon dir="down" />
-          </span>
-        </p>
         <a className="cvt-skip" href="#cvt-matrix">
-          or skip to the map
+          Explore the evidence map
         </a>
       </section>
 
@@ -996,11 +938,10 @@ export const Outro = memo(function Outro() {
       <Explorable>
         <div className="cvt-foot">
           <p>
-            Choose a cell to see the evidence for one task. Columns ask what something is, how much
-            is there, how it is put together and what condition it is in; rows run from the whole
-            product to its parts and materials. Ratings come from the paper&rsquo;s Table&nbsp;S2, a
-            review of the literature as of {taxonomy.meta.scanDate}. Taller blocks mean stronger
-            evidence.
+            Columns ask what something is, how much is there, how it is put together and what
+            condition it is in; rows run from the whole product to its parts and materials. Ratings
+            come from the paper&rsquo;s Table&nbsp;S2, a review of the literature as of{" "}
+            {taxonomy.meta.scanDate}. Taller blocks mean stronger evidence.
           </p>
           <p>
             The dashed line marks Strong, the highest rating, and no task reaches it. Strong needs a
@@ -1035,21 +976,24 @@ export const Outro = memo(function Outro() {
               and what a person confirms.
             </p>
           </details>
-          <p>
-            Help build that evidence:{" "}
-            <a href="https://r9lab.io/">contribute a product record through R9lab</a>, a platform
-            for documenting products as they are taken apart. Pair your own photographs with
-            measurements and notes on how you checked each value. Follow its{" "}
-            <a href="https://docs.r9lab.io/user-guides/data-collection/">collection guide</a> for
-            what to photograph and record. These records can support research. Comparing methods on
-            the same products still needs clean and field photographs of each item, paired with
-            checked model numbers, material names or measurements.
-          </p>
-          <p>
-            R9lab uploads are public. Keep people and personal details out of your photographs, and
-            read its <a href="https://r9lab.io/terms/">contributor terms</a> and{" "}
-            <a href="https://r9lab.io/privacy/">privacy policy</a> before uploading.
-          </p>
+          <details className="cvt-panel-more cvt-foot-more">
+            <summary>Contribute product evidence</summary>
+            <p>
+              Help build that evidence:{" "}
+              <a href="https://r9lab.io/">contribute a product record through R9lab</a>, a platform
+              for documenting products as they are taken apart. Pair your own photographs with
+              measurements and notes on how you checked each value. Follow its{" "}
+              <a href="https://docs.r9lab.io/user-guides/data-collection/">collection guide</a> for
+              what to photograph and record. These records can support research. Comparing methods
+              on the same products still needs clean and field photographs of each item, paired with
+              checked model numbers, material names or measurements.
+            </p>
+            <p>
+              R9lab uploads are public. Keep people and personal details out of your photographs,
+              and read its <a href="https://r9lab.io/terms/">contributor terms</a> and{" "}
+              <a href="https://r9lab.io/privacy/">privacy policy</a> before uploading.
+            </p>
+          </details>
         </div>
         <TableView />
       </Explorable>
@@ -1489,28 +1433,6 @@ function CloseIcon() {
       aria-hidden="true"
     >
       <path d="M6 6l12 12M18 6L6 18" />
-    </svg>
-  );
-}
-
-/** A drawn chevron in the close icon's stroke, for the scroll cue; always beside
- *  words that name the action. */
-export function ChevronIcon({ dir }: { dir: "left" | "right" | "down" }) {
-  const d = { left: "M15 5l-7 7 7 7", right: "M9 5l7 7-7 7", down: "M5 9l7 7 7-7" }[dir];
-  return (
-    <svg
-      className="cvt-chevron"
-      viewBox="0 0 24 24"
-      width="12"
-      height="12"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.4"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d={d} />
     </svg>
   );
 }
