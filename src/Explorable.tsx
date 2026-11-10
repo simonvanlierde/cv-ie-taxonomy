@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { DetailBody } from "./CvTaxonomy";
+import { DetailBody, morphBayIntoDetail } from "./CvTaxonomy";
 import { cells, maturityName } from "./data/taxonomy";
 import type { Cell } from "./data/types";
 import { MiniMatrix } from "./MiniMatrix";
@@ -42,6 +42,15 @@ export function Explorable({ children }: { children?: ReactNode }) {
     setSelected(cell);
   }, []);
   const close = useCallback(() => setSelected(null), []);
+  // A press on a bay with nothing open morphs the bay into the detail; stepping
+  // from one open cell to the next (arrow keys) swaps the detail in place.
+  const pressBay = useCallback(
+    (cell: Cell) => {
+      if (selected) return select(cell);
+      morphBayIntoDetail(document.getElementById(`cvt-mx-${cell.id}`), () => select(cell));
+    },
+    [selected, select],
+  );
   // What if?: the reader's own marks, re-derived through the paper's ladder
   const [whatIf, setWhatIf] = useState(false);
   const [edits, setEdits] = useState<Edits>({});
@@ -91,7 +100,7 @@ export function Explorable({ children }: { children?: ReactNode }) {
           onReset={() => setEdits({})}
           csv={() => toDepositCsv(edits)}
         />
-        <MiniMatrix selectedId={selected?.id ?? null} onSelect={select} view={view} />
+        <MiniMatrix selectedId={selected?.id ?? null} onSelect={pressBay} view={view} />
       </div>
       <div className="cvt-explorable-col">
         {!selected && (

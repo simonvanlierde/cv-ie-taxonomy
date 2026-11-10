@@ -524,6 +524,70 @@ html[data-theme="dark"] {
   stroke-width: 1.4;
 }
 
+/* The plotted fan. Every part's linework is drawn twice (see `art` in Fan.tsx):
+   a faint copy that is always there, and an ink copy on top. Static, the ink
+   covers the faint strokes and the drawing is whole, so a browser or a reader
+   without motion sees exactly the drawing the hero shows. */
+.fan-base :is(rect, circle, path, line) {
+  stroke-opacity: 0.4;
+}
+.fan-ink :is(rect, circle, path, line) {
+  fill: none;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  /* When a scene arrives its parts are re-inked, one after another, like a pen
+     plotter going over the sheet. Each scene has its own keyframes name, so a
+     change of scene restarts the sweep; the hero has none and shows the whole
+     fan at once. `backwards` holds the first frame through the stagger and lets
+     go at the end, so the finished stroke is the static one. */
+  [data-chapter="Product"] .fan-ink :is(rect, circle, path, line) {
+    animation: cvt-plot-product 0.8s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+    /* the stand first, then up the neck to the head */
+    animation-delay: calc(var(--i) * 70ms);
+  }
+  [data-chapter="Component"] .fan-ink :is(rect, circle, path, line) {
+    animation: cvt-plot-component 0.8s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+    /* the front of the stack first, in the order the parts come apart */
+    animation-delay: calc((5 - var(--i)) * 70ms);
+  }
+  [data-chapter="Material"] .fan-ink :is(rect, circle, path, line) {
+    animation: cvt-plot-material 0.8s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+    /* the head's parts, then the motor and the stand: the tinted parts together */
+    animation-delay: calc(var(--i) * 40ms);
+  }
+}
+@keyframes cvt-plot-product {
+  from {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes cvt-plot-component {
+  from {
+    stroke-dasharray: 1;
+    stroke-dashoffset: -1;
+  }
+  to {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes cvt-plot-material {
+  from {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+}
+
 /* idle spin while assembled */
 .fan-spin {
   transform-origin: 300px 400px;
@@ -775,6 +839,40 @@ html[data-theme="dark"] {
 ::view-transition-group(*.cvt-fly) {
   animation-duration: 0.6s;
   animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* The map's morph: a bay becomes the head of the detail it opens (see
+   morphBayIntoDetail). */
+::view-transition-group(*.cvt-bay) {
+  animation-duration: 0.45s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+.cvt-bay-morphing::view-transition-old(root) {
+  animation: none;
+  opacity: 0;
+}
+.cvt-bay-morphing::view-transition-new(root) {
+  animation: none;
+}
+/* the bay's picture and the head's differ in shape, so neither is stretched to
+   the other's box for long: the bay leaves early, the head comes in behind it */
+::view-transition-old(*.cvt-bay) {
+  animation: cvt-bay-out 0.16s ease-in both;
+  mix-blend-mode: normal;
+}
+::view-transition-new(*.cvt-bay) {
+  animation: cvt-bay-in 0.3s 0.1s ease-out both;
+  mix-blend-mode: normal;
+}
+@keyframes cvt-bay-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes cvt-bay-in {
+  from {
+    opacity: 0;
+  }
 }
 
 /* hidden until a keyboard reader lands on it */

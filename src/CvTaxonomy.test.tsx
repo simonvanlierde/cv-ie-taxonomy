@@ -7,6 +7,7 @@ import {
   cameraTransform,
   flyIntoMap,
   frameFor,
+  morphBayIntoDetail,
   Outro,
   withViewTransition,
 } from "./CvTaxonomy";
@@ -809,5 +810,71 @@ describe("the footer", () => {
       "href",
       expect.stringMatching(/\/privacy\.html$/),
     );
+  });
+});
+
+describe("morphBayIntoDetail", () => {
+  type Doc = { startViewTransition?: unknown };
+  const stub = (fn: unknown) => {
+    (document as unknown as Doc).startViewTransition = fn;
+  };
+  afterEach(() => stub(undefined));
+
+  const bay = () => {
+    const el = document.createElement("button");
+    document.body.append(el);
+    return el;
+  };
+
+  it("names the bay for the old snapshot, the detail head for the new, and clears both", async () => {
+    const el = bay();
+    const head = document.createElement("div");
+    head.className = "cvt-inline-head";
+    let finish: () => void = () => {};
+    const finished = new Promise<void>((resolve) => {
+      finish = resolve;
+    });
+    const seen: string[] = [];
+    stub((cb: () => void) => {
+      seen.push(`before: ${el.style.viewTransitionName}`);
+      cb();
+      seen.push(
+        `after: bay ${el.style.viewTransitionName || "none"}, head ${head.style.viewTransitionName}`,
+      );
+      return { ready: Promise.resolve(), finished };
+    });
+    morphBayIntoDetail(el, () => document.body.append(head));
+    expect(seen).toEqual(["before: cvt-bay", "after: bay none, head cvt-bay"]);
+    expect(document.documentElement).toHaveClass("cvt-bay-morphing");
+    finish();
+    await finished;
+    await Promise.resolve();
+    expect(document.documentElement).not.toHaveClass("cvt-bay-morphing");
+    expect(head.style.viewTransitionName).toBe("");
+    expect(el.style.viewTransitionName).toBe("");
+  });
+
+  it("clears the names when the transition is aborted", async () => {
+    const el = bay();
+    stub((cb: () => void) => {
+      cb();
+      return {
+        ready: Promise.reject(new DOMException("x")),
+        finished: Promise.reject(new DOMException("x")),
+      };
+    });
+    morphBayIntoDetail(el, () => {});
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(el.style.viewTransitionName).toBe("");
+  });
+
+  it("skips the transition under reduced motion and just runs the update", () => {
+    window.matchMedia = matchMediaStub((q) => q.includes("reduce"));
+    const start = vi.fn();
+    stub(start);
+    const run = vi.fn();
+    morphBayIntoDetail(bay(), run);
+    expect(start).not.toHaveBeenCalled();
+    expect(run).toHaveBeenCalledOnce();
   });
 });

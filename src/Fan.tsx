@@ -250,7 +250,7 @@ function DimH({
   );
 }
 
-const spokes = (n: number, r0: number, r1: number, cx = 300, cy = 400) =>
+const spokes = (n: number, r0: number, r1: number, cx = 300, cy = 400, ink = false) =>
   Array.from({ length: n }, (_, i) => {
     const a = (i * 2 * Math.PI) / n;
     return (
@@ -260,6 +260,7 @@ const spokes = (n: number, r0: number, r1: number, cx = 300, cy = 400) =>
         y1={cy + r0 * Math.sin(a)}
         x2={cx + r1 * Math.cos(a)}
         y2={cy + r1 * Math.sin(a)}
+        {...(ink ? { pathLength: 1 } : {})}
       />
     );
   });
@@ -443,6 +444,101 @@ function geometry(scale: Scale, compact: boolean) {
 /** A part's explode vector, handed to CSS, which moves it by `--e` and `--m`. */
 const partStyle = (v: readonly [number, number]) => ({ "--vx": v[0], "--vy": v[1] });
 
+/** Ink mode draws the stroke along the shape's own length: the sweep is a dash
+ *  offset, and `pathLength` makes 1 the whole outline whatever its size. */
+const len = (ink: boolean) => (ink ? { pathLength: 1 } : {});
+
+const nkArt = (ink: boolean) => <rect {...nkR} {...len(ink)} />;
+
+const baArt = (ink: boolean) => (
+  <>
+    <rect {...baR} {...len(ink)} />
+    <rect x="222" y="692" width="30" height="6" rx="3" {...len(ink)} />
+    <rect x="348" y="692" width="30" height="6" rx="3" {...len(ink)} />
+    {!ink && (
+      <>
+        <circle className="fan-dot" cx="232" cy="671" r="4" />
+        <circle className="fan-dot" cx="250" cy="671" r="4" />
+      </>
+    )}
+    {/* rating label: the OCR target */}
+    <g className="fan-label">
+      <rect x="336" y="660" width="44" height="16" rx="2" {...len(ink)} />
+      <line x1="340" y1="665" x2="374" y2="665" {...len(ink)} />
+      <line x1="340" y1="670" x2="366" y2="670" {...len(ink)} />
+    </g>
+  </>
+);
+
+const moArt = (ink: boolean) => (
+  <>
+    <rect {...moR} {...len(ink)} />
+    {Array.from({ length: 6 }, (_, i) => 296 + i * 9).map((x) => (
+      <line key={x} className="fan-winding" x1={x} y1="384" x2={x} y2="440" {...len(ink)} />
+    ))}
+    <circle cx="262" cy="412" r="8" {...len(ink)} />
+  </>
+);
+
+const rgArt = (ink: boolean) => (
+  <>
+    <circle {...rgRing} className="fan-ring" {...len(ink)} />
+    <circle cx="300" cy="400" r="60" className="fan-ring-thin" {...len(ink)} />
+    <g className="fan-spokes">{spokes(8, 18, 114, 300, 400, ink)}</g>
+  </>
+);
+
+const fgArt = (ink: boolean) => (
+  <>
+    <circle {...fgRing} className="fan-ring" {...len(ink)} />
+    <circle cx="300" cy="400" r="84" className="fan-ring-thin" {...len(ink)} />
+    <circle cx="300" cy="400" r="46" className="fan-ring-thin" {...len(ink)} />
+    <g className="fan-spokes">{spokes(12, 16, 120, 300, 400, ink)}</g>
+    <circle cx="300" cy="400" r="15" className="fan-hub" {...len(ink)} />
+  </>
+);
+
+/** The blades spin as a group, and the ink copy spins with the faint one so the
+ *  two never part. The segmentation and material overlays live here too: they
+ *  rotate with the petals they cover. */
+const blArt = (ink: boolean, spinning: boolean, segO: string, matO: string) => (
+  <>
+    <g className="fan-spin" data-spin={spinning}>
+      {(ink
+        ? [{ cls: "fan-petal", style: undefined }]
+        : [
+            { cls: "fan-petal", style: undefined },
+            { cls: "ov-segfill", style: { opacity: segO, "--c": SEG.bl } },
+            { cls: "mat-tint mat-abs", style: { opacity: matO } },
+          ]
+      ).map((layer) =>
+        BLADES.map((a) => (
+          <path
+            key={`${layer.cls}-${a}`}
+            d={PETAL}
+            transform={`rotate(${a} 300 400)`}
+            className={layer.cls}
+            style={layer.style}
+            {...len(ink)}
+          />
+        )),
+      )}
+    </g>
+    <circle cx="300" cy="400" r="20" className="fan-hub" {...len(ink)} />
+  </>
+);
+
+/** A part's linework, faint, then its ink copy on top. `i` is the part's place in
+ *  the stagger. */
+const art = (draw: (ink: boolean) => ReactNode, i: number) => (
+  <>
+    <g className="fan-base">{draw(false)}</g>
+    <g className="fan-ink" style={{ "--i": i }}>
+      {draw(true)}
+    </g>
+  </>
+);
+
 export function Fan({
   chapter,
   focus,
@@ -546,42 +642,30 @@ export function Fan({
                Each part carries its own segmentation mask + material tint so the
                annotations ride the explode. ---- */}
         <g className="fan-parts">
+          {/* Each part's linework is drawn twice: `art(false)` is the part itself,
+              its strokes faint; `art(true)` is the same linework as ink, which the
+              stylesheet re-draws like a plotter when a scene arrives. Static, the
+              ink covers the faint strokes exactly, so the drawing is whole. */}
           <g className="fan-part" style={partStyle(V.nk)}>
-            <rect {...nkR} />
+            {art(nkArt, 0)}
             <rect className="ov-segfill" {...nkR} style={{ opacity: segO, "--c": SEG.nk }} />
             <rect className="mat-tint mat-steel" {...nkR} style={{ opacity: matO }} />
           </g>
 
           <g className="fan-part" style={partStyle(V.ba)}>
-            <rect {...baR} />
-            <rect x="222" y="692" width="30" height="6" rx="3" />
-            <rect x="348" y="692" width="30" height="6" rx="3" />
-            <circle className="fan-dot" cx="232" cy="671" r="4" />
-            <circle className="fan-dot" cx="250" cy="671" r="4" />
-            {/* rating label: the OCR target */}
-            <g className="fan-label">
-              <rect x="336" y="660" width="44" height="16" rx="2" />
-              <line x1="340" y1="665" x2="374" y2="665" />
-              <line x1="340" y1="670" x2="366" y2="670" />
-            </g>
+            {art(baArt, 1)}
             <rect className="ov-segfill" {...baR} style={{ opacity: segO, "--c": SEG.ba }} />
             <rect className="mat-tint mat-pcb" {...baR} style={{ opacity: matO }} />
           </g>
 
           <g className="fan-part" style={partStyle(V.mo)}>
-            <rect {...moR} />
-            {Array.from({ length: 6 }, (_, i) => 296 + i * 9).map((x) => (
-              <line key={x} className="fan-winding" x1={x} y1="384" x2={x} y2="440" />
-            ))}
-            <circle cx="262" cy="412" r="8" />
+            {art(moArt, 2)}
             <rect className="ov-segfill" {...moR} style={{ opacity: segO, "--c": SEG.mo }} />
             <rect className="mat-tint mat-cu" {...moR} style={{ opacity: matO }} />
           </g>
 
           <g className="fan-part" style={partStyle(V.rg)}>
-            <circle {...rgRing} className="fan-ring" />
-            <circle cx="300" cy="400" r="60" className="fan-ring-thin" />
-            <g className="fan-spokes">{spokes(8, 18, 114)}</g>
+            {art(rgArt, 3)}
             <circle
               className="ov-segfill"
               {...rgRing}
@@ -591,32 +675,11 @@ export function Fan({
           </g>
 
           <g className="fan-part" style={partStyle(V.bl)}>
-            <g className="fan-spin" data-spin={spinning}>
-              {[
-                { cls: "fan-petal", style: undefined },
-                { cls: "ov-segfill", style: { opacity: segO, "--c": SEG.bl } },
-                { cls: "mat-tint mat-abs", style: { opacity: matO } },
-              ].map((layer) =>
-                BLADES.map((a) => (
-                  <path
-                    key={`${layer.cls}-${a}`}
-                    d={PETAL}
-                    transform={`rotate(${a} 300 400)`}
-                    className={layer.cls}
-                    style={layer.style}
-                  />
-                )),
-              )}
-            </g>
-            <circle cx="300" cy="400" r="20" className="fan-hub" />
+            {art((ink) => blArt(ink, spinning, segO, matO), 4)}
           </g>
 
           <g className="fan-part" style={partStyle(V.fg)}>
-            <circle {...fgRing} className="fan-ring" />
-            <circle cx="300" cy="400" r="84" className="fan-ring-thin" />
-            <circle cx="300" cy="400" r="46" className="fan-ring-thin" />
-            <g className="fan-spokes">{spokes(12, 16, 120)}</g>
-            <circle cx="300" cy="400" r="15" className="fan-hub" />
+            {art(fgArt, 5)}
             <circle
               className="ov-segfill"
               {...fgRing}

@@ -54,7 +54,8 @@ describe("WCAG 2.2 AA (axe)", () => {
     render(<CvTaxonomy debugChapter="outro" />);
     await user.click(screen.getByRole("button", { name: "What if?" }));
     await user.click(document.getElementById(`cvt-mx-${id}`) as HTMLElement);
-    const detail = screen.getByRole("complementary");
+    // the bay morphs into the detail, so the detail lands with the transition's update
+    const detail = await screen.findByRole("complementary");
     expect(within(detail).getAllByRole("radio").length).toBeGreaterThan(0);
     expect(await violations()).toEqual([]);
   });
