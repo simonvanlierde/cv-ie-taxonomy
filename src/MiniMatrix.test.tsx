@@ -27,4 +27,13 @@ describe("MiniMatrix", () => {
 
     expect(screen.queryByText(/strong.*unclaimed/i)).not.toBeInTheDocument();
   });
+
+  it("dimensions the gap to Strong in every rated bay, and none in a hatched one", () => {
+    render(<MiniMatrix selectedId={null} onSelect={() => {}} />);
+    for (const bay of screen.getAllByRole("button")) {
+      const gap = bay.querySelector(".cvt-mx-gap");
+      if (bay.dataset.ghost === "true") expect(gap).toBeNull();
+      else expect(gap).not.toBeNull();
+    }
+  });
 });
