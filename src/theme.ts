@@ -66,8 +66,8 @@ export const VERDICT_RAMP: Record<Theme, Record<Verdict, string | null>> = {
 /** The fan's part slots. One list feeds both the property side (THEME_VARS) and
  *  the consumer side (SEG_VAR), so a renamed slot cannot strand a `var(--seg-…)`
  *  on an undefined custom property — there is no hand-written copy to go stale. */
-export const SEG_SLOTS = ["fg", "bl", "rg", "mo", "nk", "ba", "warn"] as const;
-export type SegSlot = (typeof SEG_SLOTS)[number];
+const SEG_SLOTS = ["fg", "bl", "rg", "mo", "nk", "ba", "warn"] as const;
+type SegSlot = (typeof SEG_SLOTS)[number];
 
 /**
  * Instance-segmentation overlay hues: a deliberate quote of COCO/YOLO output, not

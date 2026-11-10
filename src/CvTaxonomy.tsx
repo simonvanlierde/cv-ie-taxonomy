@@ -813,7 +813,7 @@ const Rail = memo(function Rail({
 // claim-bearing copy and the cell buttons have exactly one source ---------------
 
 /** `scores`: also say what the numbers on the drawing are, once, beside the figure. */
-export function IllustrativeDisclosure({ scores = false }: { scores?: boolean }) {
+function IllustrativeDisclosure({ scores = false }: { scores?: boolean }) {
   return (
     <p className="cvt-illustrative-note">
       Illustration · no photo was analysed
@@ -849,7 +849,7 @@ export function MaturityKey() {
 
 /** The opening's copy. `hint` is the interaction sentence, which differs
  *  between the fan's chips and the phone's cell lists. */
-export function Hero({ hint }: { hint: string }) {
+function Hero({ hint }: { hint: string }) {
   return (
     <>
       <h1 className="cvt-title">

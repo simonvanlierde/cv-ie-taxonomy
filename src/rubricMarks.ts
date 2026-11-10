@@ -107,7 +107,7 @@ export function verdictOf(run: Run): Verdict {
 }
 
 /** One thing a row is missing, in the paper's terms (§2.3.2). */
-export type Gap =
+type Gap =
   | { kind: "ontology" }
   | { kind: "method" }
   | { kind: "field"; basis: NonNullable<Run["basis"]> }

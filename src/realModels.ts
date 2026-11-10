@@ -16,7 +16,7 @@ import type { Scale } from "./data/types";
  */
 
 /** A detection, as fractions of the photo's width and height. */
-export type Box = { label: string; score: number; x: number; y: number; w: number; h: number };
+type Box = { label: string; score: number; x: number; y: number; w: number; h: number };
 export type Reading =
   | { kind: "boxes"; boxes: Box[] }
   | { kind: "text"; text: string; confidence: number };
