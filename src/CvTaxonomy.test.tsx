@@ -868,6 +868,50 @@ describe("morphBayIntoDetail", () => {
     expect(el.style.viewTransitionName).toBe("");
   });
 
+  it("keeps the bay's name when a closing flight on the same cell finishes mid-morph", async () => {
+    const chip = document.createElement("div");
+    chip.id = "cvt-co-x";
+    const el = bay();
+    el.id = "cvt-mx-x";
+    document.body.append(chip);
+    let endFlight: () => void = () => {};
+    const flight = new Promise<void>((resolve) => {
+      endFlight = resolve;
+    });
+    stub((cb: () => void) => {
+      cb();
+      return { ready: Promise.resolve(), finished: flight };
+    });
+    flyIntoMap(["x"]);
+    // the morph's old snapshot is not taken yet when the skipped flight settles
+    stub(() => ({ ready: Promise.resolve(), finished: new Promise(() => {}) }));
+    morphBayIntoDetail(el, () => {});
+    endFlight();
+    await flight;
+    await Promise.resolve();
+    expect(el.style.viewTransitionName).toBe("cvt-bay");
+  });
+
+  it("lets only the latest morph clean up", async () => {
+    let endFirst: () => void = () => {};
+    const first = new Promise<void>((resolve) => {
+      endFirst = resolve;
+    });
+    stub(() => ({ ready: Promise.resolve(), finished: first }));
+    const a = bay();
+    morphBayIntoDetail(a, () => {});
+    stub(() => ({ ready: Promise.resolve(), finished: new Promise(() => {}) }));
+    const b = bay();
+    morphBayIntoDetail(b, () => {});
+    // the first bay's name came off when the second morph began: never two cvt-bay names
+    expect(a.style.viewTransitionName).toBe("");
+    endFirst();
+    await first;
+    await Promise.resolve();
+    expect(b.style.viewTransitionName).toBe("cvt-bay");
+    expect(document.documentElement).toHaveClass("cvt-bay-morphing");
+  });
+
   it("skips the transition under reduced motion and just runs the update", () => {
     window.matchMedia = matchMediaStub((q) => q.includes("reduce"));
     const start = vi.fn();

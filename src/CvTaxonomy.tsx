@@ -175,6 +175,13 @@ export function withViewTransition(run: () => void, enabled: boolean): void {
   }
 }
 
+/** Remove a style property only if it still holds the value this caller set: two
+ *  transitions can share an element (a bay pressed mid-flight), and one's cleanup
+ *  must not strip the other's name. */
+function unset(el: HTMLElement | null | undefined, prop: string, value: string): void {
+  if (el?.style.getPropertyValue(prop) === value) el.style.removeProperty(prop);
+}
+
 /**
  * The closing move: each named cell's chip flies into its matrix cell. Each pair
  * shares one view-transition-name, on the chip for the old snapshot and on the
@@ -204,9 +211,9 @@ export function flyIntoMap(ids: readonly string[]): void {
   });
   const clear = () => {
     for (const p of pairs) {
-      p.cell.style.removeProperty("view-transition-name");
-      p.chip.style.removeProperty("view-transition-class");
-      p.cell.style.removeProperty("view-transition-class");
+      unset(p.cell, "view-transition-name", p.name);
+      unset(p.chip, "view-transition-class", "cvt-fly");
+      unset(p.cell, "view-transition-class", "cvt-fly");
     }
   };
   // aborted or done, the names come off so the next open-cell morph is clean
@@ -222,6 +229,10 @@ export function flyIntoMap(ids: readonly string[]): void {
  * not on screen at the map (the stage has unpinned), so the detail's head is the
  * label the bay becomes. Without the API, or under reduced motion, it just runs.
  */
+/** The running morph's cleanup: a new morph ends the old one first, so two
+ *  bays never carry the same name, and a superseded morph's late cleanup is a no-op. */
+let endMorph: (() => void) | null = null;
+
 export function morphBayIntoDetail(bay: HTMLElement | null, run: () => void): void {
   const doc = document as ViewTransitionDocument;
   if (
@@ -232,15 +243,19 @@ export function morphBayIntoDetail(bay: HTMLElement | null, run: () => void): vo
     run();
     return;
   }
+  endMorph?.();
   let head: HTMLElement | null = null;
   const root = document.documentElement;
   const clear = () => {
+    if (endMorph !== clear) return;
+    endMorph = null;
     root.classList.remove("cvt-bay-morphing");
-    bay.style.removeProperty("view-transition-name");
-    bay.style.removeProperty("view-transition-class");
-    head?.style.removeProperty("view-transition-name");
-    head?.style.removeProperty("view-transition-class");
+    for (const el of [bay, head]) {
+      unset(el, "view-transition-name", "cvt-bay");
+      unset(el, "view-transition-class", "cvt-bay");
+    }
   };
+  endMorph = clear;
   bay.style.setProperty("view-transition-name", "cvt-bay");
   bay.style.setProperty("view-transition-class", "cvt-bay");
   // the page cuts over at once: only the bay moves, so nothing else is doubled mid-fade
