@@ -81,6 +81,7 @@ pnpm preview     # inspect the build at /cv-ie-taxonomy/
 ```
 
 Use `pnpm test` for unit tests or `pnpm test:browser` for Chromium tests.
+`node scripts/og-card.mjs` redraws the social card, `public/og.png`, in Chromium.
 [Contributing](CONTRIBUTING.md) covers issues and pull requests.
 [The changelog](CHANGELOG.md) records changes.
 
