@@ -78,6 +78,7 @@ pnpm check       # lint and format
 pnpm check:theme # colours match src/theme.ts
 pnpm build       # typecheck and production build
 pnpm preview     # inspect the build at /cv-ie-taxonomy/
+node scripts/og-card.mjs # redraw the social card, public/og.png
 ```
 
 Use `pnpm test` for unit tests or `pnpm test:browser` for Chromium tests.
