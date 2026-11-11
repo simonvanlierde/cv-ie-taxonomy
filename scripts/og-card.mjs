@@ -46,10 +46,12 @@ body{width:1200px;height:630px;overflow:hidden;background:#0d3b5e;color:#e9f4ff;
 .text{position:absolute;left:285px;top:0;bottom:0;width:630px;display:flex;flex-direction:column;justify-content:center}
 h1{font-size:68px;font-weight:800;line-height:1.02;letter-spacing:-.02em}
 p{margin-top:28px;font-size:36px;line-height:1.3;color:#9dc2df}
+.url{position:absolute;left:285px;bottom:56px;font-size:32px;font-weight:600;color:#e9f4ff}
 </style><body>
 <div class="grid"></div><div class="sheet"></div>
 <img class="fan" alt="" src="data:image/png;base64,${fan.toString("base64")}">
-<div class="text"><h1>What can a machine actually see?</h1><p>Can a photo help us decide what to repair, reuse or recycle?</p></div>
+<div class="text"><h1>What can a machine actually see?</h1><p>An explorable guide to what a photo can tell us about used products</p></div>
+<div class="url">simonvanlierde.com/cv-ie-taxonomy</div>
 </body></html>`;
 const file = join(tmpdir(), "cv-ie-og-card.html");
 writeFileSync(file, html);
