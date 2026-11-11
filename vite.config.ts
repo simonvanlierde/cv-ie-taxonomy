@@ -1,5 +1,6 @@
 /// <reference types="vitest/config" />
 
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import react from "@vitejs/plugin-react";
 import { playwright } from "@vitest/browser-playwright";
@@ -8,11 +9,22 @@ import { defineConfig } from "vite";
 const TESSERACT_ENG = "tesseract/eng.traineddata.gz";
 const ENG_SOURCE = "node_modules/@tesseract.js-data/eng/4.0.0_best_int/eng.traineddata.gz";
 
+// Platforms cache a preview by image URL, so the card URL carries the PNG's hash.
+const ogVersion = createHash("sha256")
+  .update(readFileSync("public/og.png"))
+  .digest("hex")
+  .slice(0, 8);
+const ogCardVersion = {
+  name: "og-card-version",
+  transformIndexHtml: (html: string) => html.replace('/og.png"', `/og.png?v=${ogVersion}"`),
+};
+
 export default defineConfig(({ command, isPreview }) => ({
   // Preview serves the production build at the same path; development stays at root.
   base: command === "build" || isPreview ? "/cv-ie-taxonomy/" : "/",
   plugins: [
     react(),
+    ogCardVersion,
     // The built page's content security policy. GitHub Pages cannot send headers,
     // so it is a <meta> tag, added at build only: the dev server injects inline
     // scripts. Scripts and workers come only from this site (blob: is the ONNX
