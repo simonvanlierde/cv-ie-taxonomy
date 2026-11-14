@@ -2209,6 +2209,17 @@ html[data-theme="dark"] {
     background-color: var(--cvt-bg);
     border-bottom: 1px solid var(--cvt-line);
   }
+  .cvt-scroll[data-panel="open"] .cvt-stagecol {
+    /* Keep the figure's original space so opening and closing cannot shift scroll. */
+    height: calc(55svh + 2.3rem);
+  }
+  .cvt-scroll[data-panel="open"] .cvt-sticky {
+    position: fixed;
+    inset: 0 0 auto;
+    height: calc(100dvh - var(--cvt-detail-height, 0px));
+    --cvt-stage-h: calc(100dvh - var(--cvt-detail-height, 0px) - 4rem);
+    animation: none;
+  }
   .cvt-hud {
     inset: auto 1rem 0.4rem;
   }
@@ -2358,33 +2369,6 @@ html[data-theme="dark"] {
   }
 }
 
-/* A phone on its side has no height for a figure over the text, so the two sit
-   side by side, as on the sheet. */
-@container cvt (width < 1180px) {
-  @media (orientation: landscape) and (max-height: 500px) {
-    .cvt-scroll {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      column-gap: 1.5rem;
-    }
-    .cvt-stagecol {
-      margin: 0;
-      top: 0;
-      height: 100svh;
-    }
-    .cvt-sticky {
-      height: 100svh;
-      border-bottom: 0;
-      --cvt-stage-h: calc(100svh - 2.1rem);
-    }
-    .cvt-chapter,
-    .cvt-hero,
-    .cvt-outro,
-    .cvt-mcell {
-      scroll-margin-top: 1rem;
-    }
-  }
-}
-
 /* ---- forced colours ---------------------------------------------------------------
    High-contrast modes force text and backgrounds but leave SVG fill and stroke
    alone, so the drawing's ink lines would vanish against Canvas. Every
@@ -2501,6 +2485,11 @@ html[data-theme="dark"] {
     scroll-behavior: auto !important;
   }
   /* biome-ignore-end lint/complexity/noImportantStyles: end kill-switch */
+  /* Inherited visibility must settle before the rail can receive restored focus. */
+  .cvt-rail,
+  .cvt-rail * {
+    transition-property: none;
+  }
   .cvt-panel {
     transition: none;
   }
@@ -2836,7 +2825,10 @@ html[data-theme="dark"] {
   position: fixed;
   z-index: 60;
   inset: auto 0 0;
-  max-height: 84dvh;
+  /* Content sets the height, with room for the illustrated part above it. */
+  max-height: calc(100dvh - 8rem);
+  padding: 1rem 1.2rem max(1rem, env(safe-area-inset-bottom));
+  overscroll-behavior: contain;
   border-left: 0;
   border-right: 0;
   border-bottom: 0;
@@ -2845,6 +2837,82 @@ html[data-theme="dark"] {
      radius the peek sheet under it carries; the exception stops at the breakpoint */
   border-radius: 16px 16px 0 0;
 }
+.cvt-detail-sheet[data-expanded="true"] {
+  max-height: calc(100dvh - 1rem);
+}
+.cvt-detail-sheet .cvt-panel-head {
+  margin-bottom: 0.5rem;
+}
+.cvt-detail-sheet h2 {
+  margin: 0;
+  font-size: var(--cvt-t-4);
+  line-height: 1.2;
+}
+.cvt-detail-controls,
+.cvt-detail-controls nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.cvt-detail-controls {
+  justify-content: space-between;
+  margin-bottom: 0.7rem;
+}
+.cvt-detail-controls button {
+  min-height: 44px;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--cvt-line);
+  background: var(--cvt-panel);
+  color: var(--cvt-ink);
+  font: inherit;
+  cursor: pointer;
+}
+.cvt-detail-controls button:hover {
+  background: var(--cvt-card);
+}
+/* A phone on its side has no height for a figure over the text, so the two sit
+   side by side, as on the sheet. */
+@container cvt (width < 1180px) {
+  @media (orientation: landscape) and (max-height: 500px) {
+    .cvt-detail-sheet {
+      inset: 0 0 0 auto;
+      width: 50%;
+      max-height: 100dvh;
+      border-radius: 0;
+      border-left: 1px solid var(--hue);
+    }
+    .cvt-scroll {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      column-gap: 1.5rem;
+    }
+    .cvt-stagecol {
+      margin: 0;
+      top: 0;
+      height: 100svh;
+    }
+    .cvt-sticky {
+      height: 100svh;
+      border-bottom: 0;
+      --cvt-stage-h: calc(100svh - 2.1rem);
+    }
+    .cvt-scroll[data-panel="open"] .cvt-stagecol {
+      height: 100svh;
+    }
+    .cvt-scroll[data-panel="open"] .cvt-sticky {
+      right: 50%;
+      height: 100dvh;
+      --cvt-stage-h: calc(100dvh - 4rem);
+    }
+
+    .cvt-chapter,
+    .cvt-hero,
+    .cvt-outro,
+    .cvt-mcell {
+      scroll-margin-top: 1rem;
+    }
+  }
+}
+
 .cvt-detail-sheet::before {
   content: none;
 }

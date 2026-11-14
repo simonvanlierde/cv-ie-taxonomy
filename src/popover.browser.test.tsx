@@ -34,6 +34,7 @@ describe("a citation inside a detail, in a real engine", () => {
     await userEvent.click(cell);
 
     const detail = await screen.findByRole("dialog");
+    await userEvent.click(within(detail).getByRole("button", { name: "Read evidence" }));
     // the chips carry author–year, so a year is what tells one from a control;
     // take the first chip actually on screen rather than the first in the DOM
     const cite = within(detail)
