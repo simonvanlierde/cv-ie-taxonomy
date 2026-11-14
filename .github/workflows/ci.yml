@@ -4,14 +4,13 @@ on:
   push:
     branches: [main]
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
 
-# Read-only by default; only the deploy job may publish to GitHub Pages.
+# Read-only by default; deployment jobs receive only the permissions they need.
 permissions:
   contents: read
 
-# Cancel superseded PR runs; never cancel a push run, which carries the deploy.
-# The `pages` group lives on the deploy job instead, so PR builds no longer queue
-# behind a release.
+# Cancel superseded PR runs; never cancel a push run, which carries production.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -56,27 +55,144 @@ jobs:
         run: pnpm exec playwright install chromium
         if: steps.playwright-cache.outputs.cache-hit != 'true'
       - run: pnpm test:browser
-      - run: pnpm build
-      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+      - name: Build deployable assets
+        run: pnpm build
+        env:
+          VITE_BASE_PATH: ${{ github.event_name == 'pull_request' && '/' || '/cv-ie-taxonomy/' }}
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
+          name: worker-dist
           path: dist
+          retention-days: 1
 
   deploy:
-    # Only publish from main; PRs run build for CI but don't deploy.
-    if: github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: build
-    # One deploy at a time; don't cancel an in-flight release.
     concurrency:
-      group: pages
+      group: production
       cancel-in-progress: false
     permissions:
-      pages: write
-      id-token: write
+      contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      name: cloudflare-production
+      url: https://simonvanlierde.com/cv-ie-taxonomy/
     steps:
-      - id: deployment
-        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check deployment credentials
+        id: credentials
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if test -n "$CLOUDFLARE_ACCOUNT_ID" && test -n "$CLOUDFLARE_API_TOKEN"; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping production deployment: cloudflare-production lacks CLOUDFLARE_ACCOUNT_ID or CLOUDFLARE_API_TOKEN."
+          fi
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        if: steps.credentials.outputs.available == 'true'
+        with:
+          name: worker-dist
+          path: dist
+      - name: Deploy production
+        if: steps.credentials.outputs.available == 'true'
+        uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
+        with:
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          command: deploy
+          packageManager: pnpm
+          wranglerVersion: 4.136.3
+      - name: Smoke test production
+        if: steps.credentials.outputs.available == 'true'
+        run: node scripts/smoke-deployment.mjs https://simonvanlierde.com/cv-ie-taxonomy/ dist
+
+  preview-skipped:
+    if: >-
+      github.event_name == 'pull_request' &&
+      (github.event.pull_request.draft || github.event.pull_request.head.repo.full_name != github.repository)
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Explain why no preview was created
+        env:
+          IS_DRAFT: ${{ github.event.pull_request.draft }}
+        run: |
+          if test "$IS_DRAFT" = "true"; then
+            echo "::notice::Skipping preview deployment for a draft pull request."
+          else
+            echo "::notice::Skipping preview deployment for a fork pull request; credentials are not exposed."
+          fi
+
+  preview:
+    if: >-
+      github.event_name == 'pull_request' &&
+      !github.event.pull_request.draft &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    needs: build
+    concurrency:
+      group: preview-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      deployments: write
+      pull-requests: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: cloudflare-preview
+      url: ${{ steps.preview.outputs.preview-url }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check pull request is still open and ready
+        id: policy
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          deployable="$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" --jq '.state == "open" and (.draft | not)')"
+          echo "deploy=$deployable" >> "$GITHUB_OUTPUT"
+          if test "$deployable" != "true"; then
+            echo "::notice::Skipping preview deployment because the pull request is closed or draft."
+          fi
+      - name: Check deployment credentials
+        id: credentials
+        if: steps.policy.outputs.deploy == 'true'
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if test -n "$CLOUDFLARE_ACCOUNT_ID" && test -n "$CLOUDFLARE_API_TOKEN"; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping preview deployment: cloudflare-preview lacks CLOUDFLARE_ACCOUNT_ID or CLOUDFLARE_API_TOKEN."
+          fi
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        if: steps.policy.outputs.deploy == 'true' && steps.credentials.outputs.available == 'true'
+        with:
+          name: worker-dist
+          path: dist
+      - name: Create or update Preview
+        id: preview
+        if: steps.policy.outputs.deploy == 'true' && steps.credentials.outputs.available == 'true'
+        uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
+        with:
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          command: preview --name preview-${{ github.event.pull_request.number }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          packageManager: pnpm
+          wranglerVersion: 4.136.3
+      - name: Smoke test Preview
+        if: steps.policy.outputs.deploy == 'true' && steps.credentials.outputs.available == 'true'
+        env:
+          PREVIEW_URL: ${{ steps.preview.outputs.preview-url }}
+        run: node scripts/smoke-deployment.mjs "$PREVIEW_URL" dist preview

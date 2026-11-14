@@ -3,7 +3,7 @@
 [![CI & Deploy](https://github.com/simonvanlierde/cv-ie-taxonomy/actions/workflows/ci.yml/badge.svg)](https://github.com/simonvanlierde/cv-ie-taxonomy/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/simonvanlierde/cv-ie-taxonomy/branch/main/graph/badge.svg)](https://codecov.io/gh/simonvanlierde/cv-ie-taxonomy)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/simonvanlierde/cv-ie-taxonomy/badge)](https://scorecard.dev/viewer/?uri=github.com/simonvanlierde/cv-ie-taxonomy)
-[![Live demo](https://img.shields.io/badge/live-demo-2b7a78?logo=githubpages&logoColor=white)](https://simonvanlierde.com/cv-ie-taxonomy/)
+[![Live demo](https://img.shields.io/badge/live-demo-2b7a78?logo=cloudflare&logoColor=white)](https://simonvanlierde.com/cv-ie-taxonomy/)
 [![License: MIT](https://img.shields.io/badge/code-MIT-blue)](LICENSE)
 [![License: CC BY 4.0](https://img.shields.io/badge/content-CC%20BY%204.0-lightgrey)](LICENSE-CONTENT)
 
@@ -82,6 +82,7 @@ pnpm preview     # inspect the build at /cv-ie-taxonomy/
 
 Use `pnpm test` for unit tests or `pnpm test:browser` for Chromium tests.
 `node scripts/og-card.mjs` redraws the social card, `public/og.png`, in Chromium.
+[Deployment](docs/deployment.md) covers Cloudflare setup, verification and rollback.
 [Contributing](CONTRIBUTING.md) covers issues and pull requests.
 [The changelog](CHANGELOG.md) records changes.
 
