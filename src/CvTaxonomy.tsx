@@ -1427,7 +1427,7 @@ function Row({
   );
 }
 
-/** Drawn, not a glyph: the sheet's icons (close, chevron, table) share one
+/** Drawn, not a glyph: the sheet's icons (close, table) share one
  *  stroke weight, and a Unicode ✕ renders in whatever the fallback face is. */
 function CloseIcon() {
   return (
