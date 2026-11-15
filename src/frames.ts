@@ -96,3 +96,15 @@ export const FRAMES: Record<string, Frame> = {
   // the corrosion tag extends right of the drifted motor; keep its full width
   "material-condition": { x: 180, y: 340, w: 380, h: 320 },
 };
+
+/** The camera as a CSS transform on the drawing's box: scale the frame up to
+ *  fill the box (contain, like a viewBox with `meet`) and centre it. The box has
+ *  VIEW's aspect ratio and `transform-origin: 0 0`; translate percentages are of
+ *  the box itself. A CSS transition does the move. */
+export function cameraTransform(f: Frame): string {
+  const z = Math.min(VIEW.w / f.w, VIEW.h / f.h);
+  const cx = (f.x + f.w / 2 - VIEW.x) / VIEW.w;
+  const cy = (f.y + f.h / 2 - VIEW.y) / VIEW.h;
+  const pct = (v: number) => `${+(v * 100).toFixed(3)}%`;
+  return `translate(${pct(0.5 - cx * z)}, ${pct(0.5 - cy * z)}) scale(${+z.toFixed(4)})`;
+}

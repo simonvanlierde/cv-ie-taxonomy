@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { DetailBody, morphBayIntoDetail } from "./CvTaxonomy";
+import { DetailBody } from "./Detail";
 import { cellById, cells, maturityName } from "./data/taxonomy";
 import type { Cell } from "./data/types";
 import { MiniMatrix } from "./MiniMatrix";
@@ -23,6 +23,7 @@ import {
 } from "./sandbox";
 import { SCALE_VAR } from "./theme";
 import { useDialogRegion } from "./useDialogRegion";
+import { morphBayIntoDetail } from "./viewTransitions";
 
 /** Act two: the full matrix as a driveable instrument. Selecting a cell fills the
  *  column beside it — the same enlargement act one draws, under the same contract:
