@@ -403,4 +403,12 @@ describe("mobile compact sheet polish", () => {
       await vi.waitFor(() => expect(sizes()).toEqual(settled));
     }
   });
+
+  it("drops the height floor when the phone turns on its side", async () => {
+    await open("component-structure");
+    await page.viewport(844, 390);
+    await vi.waitFor(() =>
+      expect(dialog().getBoundingClientRect().height).toBeLessThanOrEqual(390),
+    );
+  });
 });

@@ -1238,8 +1238,16 @@ function DetailRegion({
     };
     const observer = new ResizeObserver(measure);
     observer.observe(region);
+    // min-height beats max-height: a turned phone must not keep the old floor
+    const restart = () => {
+      tallest = 0;
+      region.style.minHeight = "";
+      measure();
+    };
+    window.addEventListener("resize", restart);
     measure();
     return () => {
+      window.removeEventListener("resize", restart);
       observer.disconnect();
       region.style.minHeight = "";
       root.style.removeProperty("--cvt-detail-height");
