@@ -371,4 +371,19 @@ describe("mobile compact sheet polish", () => {
     const lineHeight = Number.parseFloat(getComputedStyle(note as HTMLElement).lineHeight);
     expect((note as HTMLElement).getBoundingClientRect().height).toBeLessThan(lineHeight * 2.1);
   });
+
+  it.each(["product-identity", "component-quantity"] as const)(
+    "shows the verdict of %s without scrolling at double text size",
+    async (id) => {
+      document.documentElement.style.fontSize = "32px";
+      await open(id);
+      const sheet = dialog().getBoundingClientRect();
+      const verdict = dialog().querySelector(".cvt-verdict strong") as HTMLElement;
+      await vi.waitFor(() => {
+        const line = verdict.getBoundingClientRect();
+        expect(line.top).toBeGreaterThanOrEqual(sheet.top);
+        expect(line.bottom).toBeLessThanOrEqual(Math.min(sheet.bottom, innerHeight));
+      });
+    },
+  );
 });

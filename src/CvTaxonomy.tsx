@@ -1332,9 +1332,9 @@ function DetailPanel({
           <CloseIcon />
         </button>
       </div>
-      {controls}
       <IllustrativeDisclosure scores={scores} short={compact} />
       <DetailBody cell={cell} compact={compact} />
+      {controls}
       {onBackToStart && (
         <button type="button" className="cvt-back-start" onClick={onBackToStart}>
           Back to start

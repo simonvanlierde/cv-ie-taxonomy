@@ -2826,7 +2826,7 @@ html[data-theme="dark"] {
   z-index: 60;
   inset: auto 0 0;
   /* Content sets the height, with room for the illustrated part above it. */
-  max-height: calc(100dvh - 8rem);
+  max-height: calc(100dvh - min(8rem, 6dvh));
   padding: 1rem 1.2rem max(1rem, env(safe-area-inset-bottom));
   overscroll-behavior: contain;
   border-left: 0;
@@ -2870,8 +2870,16 @@ html[data-theme="dark"] {
 }
 .cvt-detail-controls {
   justify-content: space-between;
-  margin-bottom: 0.7rem;
+  /* after the content and pinned to the sheet's foot: the verdict is the first
+     thing under the title, and Previous and Next stay in reach at large text */
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  margin-top: 0.3rem;
+  padding: 0.5rem 0 0;
+  background: var(--cvt-panel);
 }
+
 .cvt-detail-controls button {
   min-height: 44px;
   padding: 0.4rem 0.6rem;
