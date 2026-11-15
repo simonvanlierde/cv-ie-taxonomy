@@ -39,7 +39,7 @@ jobs:
         # The code is MIT: a (A)GPL dependency in what ships would not fit. LGPL passes,
         # as the one LGPL package (libvips for sharp) is a Node-only binary the site never loads.
         run: |-
-          pnpm licenses list --prod --json | jq -e '[keys[] | select(test("^A?GPL"))] | length == 0' \
+          pnpm licenses list --prod --json | jq -e '[keys[] | select(test("(^|[^L])A?GPL"))] | length == 0' \
             || { echo "A production dependency has an (A)GPL licence." >&2; exit 1; }
       - run: pnpm test --coverage
       - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7
