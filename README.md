@@ -59,6 +59,9 @@ fixed commit. **Remove OWL-ViT downloads** clears its stored model files.
 
 Ratings use letters and ink weight as well as colour. High-contrast mode and
 print add textures. Each task is a named button, and `Esc` closes its details.
+On phones, details start with the task, verdict and failure limits. **Read evidence**
+opens the full detail; **Back to compact** returns to the shorter view. **Previous**
+and **Next** compare cells within the same scale.
 The page respects reduced-motion settings. Chromium tests run axe WCAG 2.2 AA
 checks, including the assessment editor and model panels. Automated checks do
 not cover every accessibility need; axe cannot judge text contrast over the grid.

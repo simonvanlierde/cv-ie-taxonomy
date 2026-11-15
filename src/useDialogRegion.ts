@@ -42,6 +42,7 @@ export function useDialogRegion({
   returnFocusTo,
   modal = false,
   contentKey,
+  keepFocus = false,
 }: {
   open: boolean;
   onClose: () => void;
@@ -49,9 +50,12 @@ export function useDialogRegion({
   returnFocusTo: string | null;
   /** true only when the region covers what it belongs to (the mobile sheet) */
   modal?: boolean;
-  /** what the region shows (a cell id): swapping it in place re-runs the
-   *  open step, so focus moves into the new content and Esc reaches it */
+  /** what the region shows (a cell id): swapping it in place moves focus to
+   *  the region, so a screen reader names the new content */
   contentKey?: string;
+  /** a swap leaves focus where it is when that is already inside the region:
+   *  the pressed Next button of the mobile sheet stays pressed */
+  keepFocus?: boolean;
 }): RefObject<HTMLElement | null> {
   const ref = useRef<HTMLElement>(null);
   // read inside the cleanup, so a re-render between open and close cannot
@@ -62,11 +66,13 @@ export function useDialogRegion({
   // biome-ignore lint/correctness/useExhaustiveDependencies: contentKey is not read in the body; it re-runs the effect when the content swaps
   useEffect(() => {
     const region = ref.current;
-    if (!open || !region) return;
-
-    // focus the region itself rather than its first control: a screen reader
-    // then announces the detail's name and role before any button in it
+    if (!open || !region || (keepFocus && region.contains(document.activeElement))) return;
     region.focus();
+  }, [open, contentKey, keepFocus, ref]);
+
+  useEffect(() => {
+    const region = ref.current;
+    if (!open || !region) return;
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -173,7 +179,7 @@ export function useDialogRegion({
       // sits partly under the chapter nav must not scroll the page on its way back
       if (wasOurs) ((operable && opener) || document.body).focus?.({ preventScroll: true });
     };
-  }, [open, onClose, modal, contentKey]);
+  }, [open, onClose, modal]);
 
   return ref;
 }

@@ -400,9 +400,9 @@ export function CvTaxonomy({
       withViewTransition(() => {
         source?.style.removeProperty("view-transition-name");
         setSelected(cell);
-      }, !reduceMotion);
+      }, !reduceMotion && !isMobile);
     },
-    [reduceMotion],
+    [reduceMotion, isMobile],
   );
 
   // Arrow keys step the docked detail through its chapter's siblings — the
@@ -432,8 +432,8 @@ export function CvTaxonomy({
   }, [selected, isMobile, openCell]);
 
   const closeCell = useCallback(() => {
-    withViewTransition(() => setSelected(null), !reduceMotion);
-  }, [reduceMotion]);
+    withViewTransition(() => setSelected(null), !reduceMotion && !isMobile);
+  }, [reduceMotion, isMobile]);
 
   // An open detail is a place the reader went, so the browser's Back closes it
   // rather than leaving the page. One history entry per open detail, however
@@ -525,11 +525,19 @@ export function CvTaxonomy({
       {isMobile && selected && (
         <DetailRegion
           cell={selected}
-          returnFocusTo={lastFocused.current}
+          returnFocusTo={
+            lastFocused.current?.replace("cvt-co-", "cvt-m-") ?? `cvt-m-${selected.id}`
+          }
           onClose={closeCell}
           onBackToStart={
             selected.id === initialCell && !lastFocused.current ? backToStart : undefined
           }
+          onNavigate={(step) => {
+            const ring = cells.filter((c) => c.scale === selected.scale);
+            const index = ring.findIndex((c) => c.id === selected.id);
+            const next = ring[(index + step + ring.length) % ring.length];
+            if (next) openCell(next, `cvt-m-${next.id}`);
+          }}
           compact
           modal
         />
@@ -537,7 +545,8 @@ export function CvTaxonomy({
       <div
         className="cvt-scroll"
         data-layout={isMobile ? "phone" : "sheet"}
-        data-chapter={chapter}
+        data-chapter={isMobile && selected ? selected.scale : chapter}
+        data-cell={selected?.id}
         data-panel={selected ? "open" : undefined}
         // the sheet covers the scenes, so their controls leave the accessibility
         // tree with them: a browse cursor walks past a focus trap
@@ -553,8 +562,8 @@ export function CvTaxonomy({
                 style={isMobile ? undefined : { transform: cameraTransform(cameraFrame) }}
               >
                 <Fan
-                  chapter={chapter}
-                  focus={focus}
+                  chapter={isMobile && selected ? selected.scale : chapter}
+                  focus={isMobile && selected ? selected : focus}
                   onSelect={openCell}
                   onHover={setHovered}
                   reduceMotion={reduceMotion}
@@ -623,7 +632,9 @@ export function CvTaxonomy({
                 cell={selected}
                 // a deep link has no opener; its cell's own callout is the
                 // nearest thing to one, and the link has scrolled it on stage
-                returnFocusTo={lastFocused.current ?? `cvt-co-${selected.id}`}
+                returnFocusTo={
+                  lastFocused.current?.replace("cvt-m-", "cvt-co-") ?? `cvt-co-${selected.id}`
+                }
                 onClose={closeCell}
                 onBackToStart={
                   selected.id === initialCell && !lastFocused.current ? backToStart : undefined
@@ -812,14 +823,23 @@ const Rail = memo(function Rail({
 // ---- pieces shared between the scenes, the detail and the map, so the
 // claim-bearing copy and the cell buttons have exactly one source ---------------
 
-/** `scores`: also say what the numbers on the drawing are, once, beside the figure. */
-function IllustrativeDisclosure({ scores = false }: { scores?: boolean }) {
+/** `scores`: also say what the numbers on the drawing are, once, beside the figure.
+ *  `short`: the clause in a few words, where the stamp shares a small sheet with the verdict. */
+function IllustrativeDisclosure({
+  scores = false,
+  short = false,
+}: {
+  scores?: boolean;
+  short?: boolean;
+}) {
   return (
     <p className="cvt-illustrative-note">
       Illustration · no photo was analysed
       {scores && (
         <span className="cvt-illustrative-scores">
-          Scores such as 0.94 are example confidence values, not measured accuracy.
+          {short
+            ? "Scores are examples, not accuracy."
+            : "Scores such as 0.94 are example confidence values, not measured accuracy."}
         </span>
       )}
     </p>
@@ -1179,24 +1199,109 @@ function DetailRegion({
   onBackToStart,
   compact = false,
   modal = false,
+  onNavigate,
 }: {
   cell: Cell;
   onClose: () => void;
   returnFocusTo: string | null;
   onBackToStart?: () => void;
   compact?: boolean;
+  onNavigate?: (step: number) => void;
   /** only the mobile sheet, which covers the drawing it belongs to */
   modal?: boolean;
 }) {
-  const ref = useDialogRegion({ open: true, onClose, returnFocusTo, modal, contentKey: cell.id });
+  const [expanded, setExpanded] = useState(false);
+  const ref = useDialogRegion({
+    open: true,
+    onClose,
+    returnFocusTo,
+    modal,
+    contentKey: cell.id,
+    keepFocus: compact,
+  });
+  // The figure above the sheet is sized from the sheet's height. Within one scale
+  // the sheet keeps the tallest height seen, so stepping with Next does not
+  // resize the drawing under the reader.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: scale and expanded restart the measure
+  useEffect(() => {
+    const region = ref.current;
+    const root = region?.closest<HTMLElement>(".cvt");
+    if (!compact || !region || !root || typeof ResizeObserver === "undefined") return;
+    let tallest = 0;
+    const measure = () => {
+      const height = region.getBoundingClientRect().height;
+      if (expanded || height > tallest) {
+        tallest = height;
+        region.style.minHeight = expanded ? "" : `${tallest}px`;
+      }
+      root.style.setProperty("--cvt-detail-height", `${tallest}px`);
+    };
+    const observer = new ResizeObserver(measure);
+    observer.observe(region);
+    // min-height beats max-height: a turned phone must not keep the old floor
+    const restart = () => {
+      tallest = 0;
+      region.style.minHeight = "";
+      measure();
+    };
+    window.addEventListener("resize", restart);
+    measure();
+    return () => {
+      window.removeEventListener("resize", restart);
+      observer.disconnect();
+      region.style.minHeight = "";
+      root.style.removeProperty("--cvt-detail-height");
+    };
+  }, [compact, expanded, cell.scale, ref]);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: new content starts at the heading, including after collapse
+  useEffect(() => {
+    if (ref.current) ref.current.scrollTop = 0;
+  }, [cell.id, expanded, ref]);
   const shared = {
     className: compact ? "cvt-detail cvt-detail-sheet" : "cvt-detail",
     "aria-label": `${cell.scale} · ${cell.informationType}`,
+    "data-expanded": expanded,
     style: { "--hue": SCALE_VAR[cell.scale] } as CSSProperties,
     tabIndex: -1,
   };
   const body = (
-    <DetailPanel cell={cell} onClose={onClose} onBackToStart={onBackToStart} scores={compact} />
+    <>
+      {/* the pressed Previous/Next button keeps focus, so the new cell is announced here */}
+      {compact && (
+        <p className="cvt-sr-only" role="status">
+          {cell.scale} · {cell.informationType}
+        </p>
+      )}
+      <DetailPanel
+        cell={cell}
+        onClose={onClose}
+        onBackToStart={onBackToStart}
+        scores={compact}
+        compact={compact && !expanded}
+        controls={
+          compact && (
+            <div className="cvt-detail-controls">
+              <button
+                type="button"
+                onClick={() => setExpanded(!expanded)}
+                className="cvt-evidence-toggle"
+                aria-expanded={expanded}
+              >
+                {expanded ? "Back to compact" : "Read evidence"}
+              </button>
+              <nav aria-label={`Compare ${cell.scale.toLowerCase()} cells`}>
+                <button type="button" aria-label="Previous cell" onClick={() => onNavigate?.(-1)}>
+                  Previous
+                </button>
+                <button type="button" aria-label="Next cell" onClick={() => onNavigate?.(1)}>
+                  Next
+                </button>
+              </nav>
+            </div>
+          )
+        }
+      />
+    </>
   );
 
   // Two elements rather than one with a computed role: aria-modal is only valid
@@ -1217,11 +1322,15 @@ function DetailPanel({
   onClose,
   onBackToStart,
   scores,
+  compact = false,
+  controls,
 }: {
   cell: Cell;
   onClose: () => void;
   onBackToStart?: () => void;
   scores: boolean;
+  compact?: boolean;
+  controls?: ReactNode;
 }) {
   return (
     <>
@@ -1243,8 +1352,9 @@ function DetailPanel({
           <CloseIcon />
         </button>
       </div>
-      <IllustrativeDisclosure scores={scores} />
-      <DetailBody cell={cell} />
+      <IllustrativeDisclosure scores={scores} short={compact} />
+      <DetailBody cell={cell} compact={compact} />
+      {controls}
       {onBackToStart && (
         <button type="button" className="cvt-back-start" onClick={onBackToStart}>
           Back to start
@@ -1254,19 +1364,24 @@ function DetailPanel({
   );
 }
 
-export function DetailBody({ cell }: { cell: Cell }) {
+export function DetailBody({ cell, compact = false }: { cell: Cell; compact?: boolean }) {
   if (cell.structurallyEmpty) {
     return (
       <>
         <div className="cvt-verdict">
           <strong>Not applicable</strong>
         </div>
-        <dl className="cvt-panel-grid">
-          <Row label="Why this cell has no rating" value={cell.maturityNote} />
-        </dl>
-        <div className="cvt-panel-foot">
-          <ShareLink cellId={cell.id} />
-        </div>
+        {compact && <p className="cvt-term-note">{cell.maturityNote}</p>}
+        {!compact && (
+          <>
+            <dl className="cvt-panel-grid">
+              <Row label="Why this cell has no rating" value={cell.maturityNote} />
+            </dl>
+            <div className="cvt-panel-foot">
+              <ShareLink cellId={cell.id} />
+            </div>
+          </>
+        )}
       </>
     );
   }
@@ -1279,7 +1394,7 @@ export function DetailBody({ cell }: { cell: Cell }) {
   );
   return (
     <>
-      {mentionsEol && (
+      {!compact && mentionsEol && (
         <p className="cvt-term-note">
           End-of-life (<abbr title="End-of-life">EoL</abbr>) means after a product has been used.
           Dirt, wear, missing parts and awkward camera angles can change what software recognises.
@@ -1294,7 +1409,7 @@ export function DetailBody({ cell }: { cell: Cell }) {
               : VERDICT_LETTER[cell.maturity]}
             : {maturityName(cell)}
           </strong>
-          {!split && <span>{level.gloss}</span>}
+          {!compact && !split && <span>{level.gloss}</span>}
         </div>
       </div>
 
@@ -1303,82 +1418,101 @@ export function DetailBody({ cell }: { cell: Cell }) {
           {cell.subVerdicts.map((s) => (
             <li key={s.label}>
               <b>{VERDICT_LETTER[s.maturity]}</b> {s.label}: {s.maturity}
-              <span>{maturityLevel(s.maturity).gloss}</span>
+              {!compact && <span>{maturityLevel(s.maturity).gloss}</span>}
             </li>
           ))}
         </ul>
       )}
 
       <dl className="cvt-panel-grid">
-        <Row
-          label="Why this verdict"
-          value={<CitedProse text={cell.maturityNote} citeKeys={cell.citations} />}
-        />
+        {!compact && (
+          <Row
+            label="Why this verdict"
+            value={<CitedProse text={cell.maturityNote} citeKeys={cell.citations} />}
+          />
+        )}
         {cell.failureMode && (
           <Row
             label="Where it fails"
-            value={<CitedProse text={cell.failureMode} citeKeys={cell.citations} />}
+            value={
+              compact ? (
+                cell.failureMode
+              ) : (
+                <CitedProse text={cell.failureMode} citeKeys={cell.citations} />
+              )
+            }
             mode="warn"
           />
         )}
-        <GapRow cell={cell} />
-        <Row
-          label="How to use the result"
-          value={
-            cell.subVerdicts
-              ? cell.subVerdicts.map((s) => (
-                  <span className="cvt-handling" key={s.label}>
-                    {s.label}: {maturityLevel(s.maturity).handling}
-                  </span>
-                ))
-              : level.handling
-          }
-        />
-        {/* The run belongs where the panel opens, not folded into "More detail":
+        {!compact && (
+          <>
+            <GapRow cell={cell} />
+            <Row
+              label="How to use the result"
+              value={
+                cell.subVerdicts
+                  ? cell.subVerdicts.map((s) => (
+                      <span className="cvt-handling" key={s.label}>
+                        {s.label}: {maturityLevel(s.maturity).handling}
+                      </span>
+                    ))
+                  : level.handling
+              }
+            />
+            {/* The run belongs where the panel opens, not folded into "More detail":
             it is the derivation of the verdict stated three lines above it, and
             behind a closed <details> nobody meets the mechanism at all. */}
-        <Row label="How the rating was reached" value={<RubricCircuit cell={cell} />} />
+            <Row label="How the rating was reached" value={<RubricCircuit cell={cell} />} />
+          </>
+        )}
       </dl>
 
-      <details className="cvt-panel-more">
-        <summary>Methods, examples and sources</summary>
-        <dl className="cvt-panel-grid">
-          {cell.methodFamily && (
-            <Row
-              label="Typical methods"
-              value={<CitedProse text={cell.methodFamily} citeKeys={cell.citations} />}
-            />
-          )}
-          {cell.example && (
-            <Row
-              label="Studies and examples"
-              value={<CitedProse text={cell.example} citeKeys={cell.citations} />}
-            />
-          )}
-          {cell.hardware && <Row label="Where it runs" value={cell.hardware} />}
-          {/* the paper's own notation, for a reader checking against Table S2; the
+      {!compact && (
+        <>
+          <details className="cvt-panel-more">
+            <summary>Methods, examples and sources</summary>
+            <dl className="cvt-panel-grid">
+              {cell.methodFamily && (
+                <Row
+                  label="Typical methods"
+                  value={<CitedProse text={cell.methodFamily} citeKeys={cell.citations} />}
+                />
+              )}
+              {cell.example && (
+                <Row
+                  label="Studies and examples"
+                  value={<CitedProse text={cell.example} citeKeys={cell.citations} />}
+                />
+              )}
+              {cell.hardware && <Row label="Where it runs" value={cell.hardware} />}
+              {/* the paper's own notation, for a reader checking against Table S2; the
               run above already glosses each mark, so the key stays with the table */}
-          <Row label={RUBRIC_LABEL} value={<span className="cvt-mono">{cell.rubricMarks}</span>} />
-        </dl>
-      </details>
+              <Row
+                label={RUBRIC_LABEL}
+                value={<span className="cvt-mono">{cell.rubricMarks}</span>}
+              />
+            </dl>
+          </details>
 
-      <div className="cvt-panel-foot">
-        {STATUS_LABEL[cell.sourceStatus] && (
-          <span className={`cvt-status cvt-status-${cell.sourceStatus.toLowerCase()}`}>
-            {STATUS_LABEL[cell.sourceStatus]}
-          </span>
-        )}
-        {cell.citations.length > 0 && (
-          <ul className="cvt-cites">
-            {cell.citations.map((c) => (
-              <li key={c}>
-                <Cite citeKey={c} />
-              </li>
-            ))}
-          </ul>
-        )}
-        <ShareLink cellId={cell.id} />
-      </div>
+          <div className="cvt-panel-foot">
+            {STATUS_LABEL[cell.sourceStatus] && (
+              <span className={`cvt-status cvt-status-${cell.sourceStatus.toLowerCase()}`}>
+                {STATUS_LABEL[cell.sourceStatus]}
+              </span>
+            )}
+            {cell.citations.length > 0 && (
+              <ul className="cvt-cites">
+                {cell.citations.map((c) => (
+                  <li key={c}>
+                    <Cite citeKey={c} />
+                  </li>
+                ))}
+              </ul>
+            )}
+            <ShareLink cellId={cell.id} />
+          </div>
+        </>
+      )}
     </>
   );
 }
