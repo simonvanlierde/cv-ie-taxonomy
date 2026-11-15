@@ -32,7 +32,7 @@ describe("detail on the sheet (desktop)", () => {
     await user.click(trigger("component-identity"));
 
     const region = await detail();
-    expect(within(region).getByRole("heading", { level: 2 })).toBeInTheDocument();
+    expect(within(region).getByRole("heading", { level: 1 })).toBeInTheDocument();
     expect(within(region).getByText(/no photo was analysed/i)).toBeInTheDocument();
   });
 
@@ -189,7 +189,7 @@ describe("detail on the sheet (desktop)", () => {
     render(<CvTaxonomy initialCell={cell.id} />);
 
     const region = await screen.findByRole("complementary", { name: /material · quantity/i });
-    expect(within(region).getByRole("heading", { level: 2 })).toHaveTextContent(cell.task);
+    expect(within(region).getByRole("heading", { level: 1 })).toHaveTextContent(cell.task);
     expect(within(region).getByText(/illustration/i)).toBeInTheDocument();
   });
 

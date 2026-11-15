@@ -6,8 +6,17 @@ import {
   useRef,
   useState,
 } from "react";
+import { flushSync } from "react-dom";
+import { createRoot } from "react-dom/client";
 import { cap } from "./chapters";
-import { maturityLevel, maturityName, splitOf, taskName, VERDICT_LETTER } from "./data/taxonomy";
+import {
+  cells,
+  maturityLevel,
+  maturityName,
+  splitOf,
+  taskName,
+  VERDICT_LETTER,
+} from "./data/taxonomy";
 import type { Cell } from "./data/types";
 import { Cite, CitedProse } from "./References";
 import { RubricCircuit } from "./RubricCircuit";
@@ -84,6 +93,42 @@ export function RubricKey() {
   );
 }
 
+/** The tallest compact sheet among a scale's cells, measured once offscreen in the
+ *  live sheet's own width and styles, so the first Next to a taller cell does not
+ *  resize the figure either. */
+function tallestCompactSheet(root: HTMLElement, cell: Cell, sample: HTMLElement): number {
+  const probe = document.createElement("div");
+  probe.className = "cvt-detail cvt-detail-sheet cvt-probe";
+  probe.style.setProperty("--hue", SCALE_VAR[cell.scale]);
+  probe.inert = true;
+  probe.ariaHidden = "true";
+  probe.style.width = `${sample.offsetWidth}px`;
+  root.append(probe);
+  const mount = createRoot(probe);
+  let tallest = 0;
+  try {
+    for (const c of cells.filter((c) => c.scale === cell.scale)) {
+      flushSync(() =>
+        mount.render(
+          <SheetBody
+            cell={c}
+            compact
+            expanded={false}
+            onToggle={() => {}}
+            onClose={() => {}}
+            onNavigate={() => {}}
+          />,
+        ),
+      );
+      tallest = Math.max(tallest, probe.getBoundingClientRect().height);
+    }
+  } finally {
+    mount.unmount();
+    probe.remove();
+  }
+  return tallest;
+}
+
 // ---- detail: an enlargement drawn on the sheet ---------------------------------
 /**
  * Act one's detail takes the narrative column's place rather than covering the
@@ -122,7 +167,7 @@ export function DetailRegion({
     keepFocus: compact,
   });
   // The figure above the sheet is sized from the sheet's height. Within one scale
-  // the sheet keeps the tallest height seen, so stepping with Next does not
+  // the sheet is as tall as the tallest of its cells, so stepping with Next does not
   // resize the drawing under the reader.
   // biome-ignore lint/correctness/useExhaustiveDependencies: scale and expanded restart the measure
   useEffect(() => {
@@ -132,23 +177,30 @@ export function DetailRegion({
     let tallest = 0;
     const measure = () => {
       const height = region.getBoundingClientRect().height;
-      if (expanded || height > tallest) {
-        tallest = height;
-        region.style.minHeight = expanded ? "" : `${tallest}px`;
-      }
+      tallest = expanded ? height : Math.max(tallest, height);
+      region.style.minHeight = expanded ? "" : `${tallest}px`;
       root.style.setProperty("--cvt-detail-height", `${tallest}px`);
+    };
+    // the floor is the tallest cell of the scale from the start, so the first
+    // step to a taller cell does not resize the drawing
+    const seed = () => {
+      tallest = expanded ? 0 : tallestCompactSheet(root, cell, region);
+      measure();
     };
     const observer = new ResizeObserver(measure);
     observer.observe(region);
     // min-height beats max-height: a turned phone must not keep the old floor
     const restart = () => {
-      tallest = 0;
       region.style.minHeight = "";
-      measure();
+      seed();
     };
     window.addEventListener("resize", restart);
     measure();
+    // flushSync is a no-op inside an effect, so the offscreen render waits a microtask
+    let live = true;
+    queueMicrotask(() => live && seed());
     return () => {
+      live = false;
       window.removeEventListener("resize", restart);
       observer.disconnect();
       region.style.minHeight = "";
@@ -167,6 +219,49 @@ export function DetailRegion({
     tabIndex: -1,
   };
   const body = (
+    <SheetBody
+      cell={cell}
+      compact={compact}
+      expanded={expanded}
+      onToggle={() => setExpanded(!expanded)}
+      onClose={onClose}
+      onBackToStart={onBackToStart}
+      onNavigate={onNavigate}
+    />
+  );
+
+  // Two elements rather than one with a computed role: aria-modal is only valid
+  // alongside an explicit dialog role, and <aside> already means complementary.
+  return modal ? (
+    <div {...shared} ref={ref as RefObject<HTMLDivElement>} role="dialog" aria-modal="true">
+      {body}
+    </div>
+  ) : (
+    <aside {...shared} ref={ref as RefObject<HTMLElement>}>
+      {body}
+    </aside>
+  );
+}
+
+/** The sheet's content, also drawn offscreen to size the sheet before the reader steps. */
+function SheetBody({
+  cell,
+  compact,
+  expanded,
+  onToggle,
+  onClose,
+  onBackToStart,
+  onNavigate,
+}: {
+  cell: Cell;
+  compact: boolean;
+  expanded: boolean;
+  onToggle: () => void;
+  onClose: () => void;
+  onBackToStart?: () => void;
+  onNavigate?: (step: number) => void;
+}) {
+  return (
     <>
       {/* the pressed Previous/Next button keeps focus, so the new cell is announced here */}
       {compact && (
@@ -180,12 +275,15 @@ export function DetailRegion({
         onBackToStart={onBackToStart}
         scores={compact}
         compact={compact && !expanded}
+        // the desktop panel hides the scenes' prose, h1 included, so its title
+        // is the page's heading while it is open; the phone's sheet leaves the scenes in the tree
+        titleTag={compact ? "h2" : "h1"}
         controls={
           compact && (
             <div className="cvt-detail-controls">
               <button
                 type="button"
-                onClick={() => setExpanded(!expanded)}
+                onClick={onToggle}
                 className="cvt-evidence-toggle"
                 aria-expanded={expanded}
               >
@@ -205,18 +303,6 @@ export function DetailRegion({
       />
     </>
   );
-
-  // Two elements rather than one with a computed role: aria-modal is only valid
-  // alongside an explicit dialog role, and <aside> already means complementary.
-  return modal ? (
-    <div {...shared} ref={ref as RefObject<HTMLDivElement>} role="dialog" aria-modal="true">
-      {body}
-    </div>
-  ) : (
-    <aside {...shared} ref={ref as RefObject<HTMLElement>}>
-      {body}
-    </aside>
-  );
 }
 
 function DetailPanel({
@@ -225,6 +311,7 @@ function DetailPanel({
   onBackToStart,
   scores,
   compact = false,
+  titleTag: Title,
   controls,
 }: {
   cell: Cell;
@@ -232,13 +319,14 @@ function DetailPanel({
   onBackToStart?: () => void;
   scores: boolean;
   compact?: boolean;
+  titleTag: "h1" | "h2";
   controls?: ReactNode;
 }) {
   return (
     <>
       <div className="cvt-panel-head">
         <div>
-          <h2>{taskName(cell)}</h2>
+          <Title>{taskName(cell)}</Title>
           {/* under the title, not over it: the same words above a heading are a
               kicker, and this names which cell of the sheet the detail enlarges */}
           <p className="cvt-panel-scale">

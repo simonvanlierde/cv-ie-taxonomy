@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import axe from "axe-core";
 import { describe, expect, it, vi } from "vitest";
 import { CvTaxonomy } from "./CvTaxonomy";
-import { SCALES } from "./data/taxonomy";
+import { cellById, SCALES, taskName } from "./data/taxonomy";
 import { SCENES } from "./params";
 
 /**
@@ -46,6 +46,22 @@ describe("WCAG 2.2 AA (axe)", () => {
   it("an open cell detail", async () => {
     render(<CvTaxonomy initialCell="component-structure" />);
     await screen.findByRole("complementary", { name: /component · structure/i });
+    expect(await violations()).toEqual([]);
+  });
+
+  it("an open cell detail on the wide layout, where the panel hides the scenes' prose", async () => {
+    render(
+      <div style={{ width: 1280 }}>
+        <CvTaxonomy initialCell="component-structure" />
+      </div>,
+    );
+    await screen.findByRole("complementary", { name: /component · structure/i });
+    // axe skips its page-level rules inside this test's iframe, so check the rule's
+    // own condition: the rail (the page h1 with it) is visibility:hidden here, and
+    // the panel's title is what keeps an h1 in the accessible tree
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      taskName(cellById("component-structure")),
+    );
     expect(await violations()).toEqual([]);
   });
 

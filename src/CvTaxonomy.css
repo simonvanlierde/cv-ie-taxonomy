@@ -1908,6 +1908,12 @@ html[data-theme="dark"] {
   letter-spacing: -0.01em;
   margin: 0;
 }
+.cvt-panel-head h1 {
+  /* the desktop panel's title is the page h1 while it is open (Detail.tsx);
+     it keeps the size the h2 had */
+  font-size: 1.5em;
+  margin: 0.83em 0;
+}
 .cvt-panel-close {
   flex-shrink: 0;
   display: grid;
@@ -2847,6 +2853,35 @@ html[data-theme="dark"] {
 }
 .cvt-detail-sheet .cvt-panel-head {
   margin-bottom: 0.5rem;
+}
+/* the offscreen copy that sizes the sheet (tallestCompactSheet in Detail.tsx) */
+.cvt-probe {
+  visibility: hidden;
+  pointer-events: none;
+  animation: none;
+}
+.cvt-probe .cvt-glyphbox {
+  view-transition-name: none;
+}
+/* Large text on a phone (200% leaves a 390px phone about 12rem): the verdict has
+   to stay on the first screen of the sheet, so the chrome above it gives up its
+   air. rem in a container query follows the reader's text size, not the device. */
+@container cvt (width < 20rem) {
+  .cvt-detail-sheet {
+    max-height: calc(100dvh - 0.5rem);
+    padding-inline: 0.7rem;
+  }
+  /* pinned, the 3-row control stack would cover the verdict it follows */
+  .cvt-detail-sheet .cvt-detail-controls {
+    position: static;
+  }
+  /* the dialog is already named "scale · information type", and the figure shows it */
+  .cvt-detail-sheet .cvt-panel-scale {
+    display: none;
+  }
+  .cvt-detail-sheet .cvt-illustrative-note {
+    letter-spacing: 0;
+  }
 }
 .cvt-detail-sheet h2 {
   margin: 0;

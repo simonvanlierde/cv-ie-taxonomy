@@ -372,20 +372,24 @@ describe("mobile compact sheet polish", () => {
     expect((note as HTMLElement).getBoundingClientRect().height).toBeLessThan(lineHeight * 2.1);
   });
 
-  it.each(["product-identity", "component-quantity"] as const)(
-    "shows the verdict of %s without scrolling at double text size",
-    async (id) => {
-      document.documentElement.style.fontSize = "32px";
-      await open(id);
-      const sheet = dialog().getBoundingClientRect();
-      const verdict = dialog().querySelector(".cvt-verdict strong") as HTMLElement;
-      await vi.waitFor(() => {
-        const line = verdict.getBoundingClientRect();
-        expect(line.top).toBeGreaterThanOrEqual(sheet.top);
-        expect(line.bottom).toBeLessThanOrEqual(Math.min(sheet.bottom, innerHeight));
-      });
-    },
-  );
+  it.each([
+    "product-identity",
+    "component-quantity",
+    "component-structure",
+    "component-condition",
+    "product-condition",
+  ] as const)("shows the verdict of %s without scrolling at double text size", async (id) => {
+    document.documentElement.style.fontSize = "32px";
+    await open(id);
+    const sheet = dialog().getBoundingClientRect();
+    // a compound cell's sub-verdicts are part of its verdict
+    const verdict = dialog().querySelector(".cvt-subverdicts, .cvt-verdict strong") as HTMLElement;
+    await vi.waitFor(() => {
+      const line = verdict.getBoundingClientRect();
+      expect(line.top).toBeGreaterThanOrEqual(sheet.top);
+      expect(line.bottom).toBeLessThanOrEqual(Math.min(sheet.bottom, innerHeight));
+    });
+  });
 
   it("keeps the figure and the sheet one size while stepping through a scale", async () => {
     await open("component-identity");
@@ -401,6 +405,17 @@ describe("mobile compact sheet polish", () => {
     for (let i = 0; i < 4; i++) {
       await userEvent.click(button("Next cell"));
       await vi.waitFor(() => expect(sizes()).toEqual(settled));
+    }
+  });
+
+  it("sizes the figure for the tallest cell before the first step", async () => {
+    await open("component-identity");
+    const sizes = () => [rect(".cvt-sticky").height, dialog().getBoundingClientRect().height];
+    const first = sizes();
+    for (let i = 1; i < cells.filter((c) => c.scale === "Component").length; i++) {
+      await userEvent.click(button("Next cell"));
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      expect(sizes()).toEqual(first);
     }
   });
 
