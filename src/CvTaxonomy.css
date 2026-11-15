@@ -218,7 +218,7 @@ html[data-theme="dark"] {
    instrument (below) can stop short of it without a second, driftable
    number of its own */
 .cvt-scroll {
-  --cvt-rail-max: 440px;
+  --cvt-rail-max: 500px;
   --cvt-rail-gap: clamp(1rem, 2.5vw, 2.5rem);
 
   display: grid;
@@ -1167,7 +1167,7 @@ html[data-theme="dark"] {
      narrative column beside it carries the caption until a detail takes its
      place. The matrix track is 1fr over its own min-width, so it takes the
      sheet's slack and opening a detail still shifts nothing. */
-  grid-template-columns: minmax(660px, 1fr) minmax(300px, 400px);
+  grid-template-columns: minmax(660px, 1fr) minmax(300px, 460px);
   gap: clamp(1.5rem, 4vw, 3.5rem);
   align-items: start;
   margin: 1rem 0 0;
