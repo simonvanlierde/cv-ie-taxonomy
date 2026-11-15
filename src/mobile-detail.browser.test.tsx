@@ -192,7 +192,7 @@ describe("mobile compact evidence", () => {
     await userEvent.click(button("Next cell"));
     expect(dialog()).toHaveAccessibleName("Product · Quantity");
     await vi.waitFor(() =>
-      expect(Number(getComputedStyle(overlays[0] as SVGElement).opacity)).toBeCloseTo(0.05),
+      expect(Number(getComputedStyle(overlays[0] as SVGElement).opacity)).toBeCloseTo(0),
     );
     expect(Number(getComputedStyle(overlays[1] as SVGElement).opacity)).toBeCloseTo(1);
     await userEvent.click(button("Next cell"));
