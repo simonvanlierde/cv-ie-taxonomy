@@ -321,6 +321,15 @@ function Callout({
   const inFrame =
     !frame ||
     (cx >= frame.x && cx <= frame.x + frame.w && cy >= frame.y && cy <= frame.y + frame.h);
+  // A chip the frame only half holds shows as a cropped fragment at the figure's
+  // edge: fade it out. It stays clickable and in the accessibility tree.
+  const cropped =
+    !!frame &&
+    !selected &&
+    (plate.x < frame.x ||
+      plate.y < frame.y ||
+      plate.x + plate.w > frame.x + frame.w ||
+      plate.y + plate.h > frame.y + frame.h);
   const hid = `cvt-co-${cell.id}`;
   return (
     <button
@@ -341,7 +350,7 @@ function Callout({
           : { left: pctX(x) }),
         // the plate stays opaque over its leader; a sibling's dimming fades only
         // what is on the plate (`--dim` in CSS)
-        opacity: PRESENCE[cell.scale],
+        opacity: cropped ? 0 : PRESENCE[cell.scale],
         "--dim": dim,
         "--hue": SCALE_VAR[cell.scale],
       }}
@@ -574,7 +583,7 @@ export function Fan({
   // 0.7 keeps a dimmed chip's text above 4.5:1 on both grounds
   const chipDim = (c: Cell) => (focus && focus.id !== c.id ? 0.7 : 1);
   // annotations: isolated on hover/focus, a step below full otherwise
-  const deco = (id: string, base = 0.85) => (focus ? (focus.id === id ? 1 : 0.05) : base);
+  const deco = (id: string, base = 0.85) => (focus ? (focus.id === id ? 1 : 0) : base);
 
   const co = (id: string) => {
     const c = cell(id);
@@ -847,10 +856,10 @@ export function Fan({
             color="var(--cvt-tag-abs)"
             s={ts}
           />
-          <Tag x={M.moC[0] + 8} y={M.moC[1] - 6} label="copper" color="var(--cvt-tag-cu)" s={ts} />
+          <Tag x={M.moC[0] - 55} y={M.moC[1] - 6} label="copper" color="var(--cvt-tag-cu)" s={ts} />
           <Tag
             x={M.baC[0] - 20}
-            y={M.baC[1] - 8}
+            y={M.baC[1] - (TAG_H * ts) / 2}
             label="circuit board"
             color="var(--cvt-tag-pcb)"
             s={ts}
