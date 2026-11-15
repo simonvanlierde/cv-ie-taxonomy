@@ -20,6 +20,13 @@ import { flyIntoMap, morphBayIntoDetail, withViewTransition } from "./viewTransi
  *  pin that scene via `debugChapter` */
 const trigger = (cellId: string) => document.getElementById(`cvt-co-${cellId}`) as HTMLElement;
 
+it("hero hint points at the scenes' tasks, not at labels the hero fan does not show", () => {
+  render(<CvTaxonomy />);
+  expect(screen.getByRole("heading", { level: 1 }).parentElement).not.toHaveTextContent(
+    /label on the fan/i,
+  );
+});
+
 describe("detail on the sheet (desktop)", () => {
   const detail = () => screen.findByRole("complementary", { name: /component · identity/i });
 

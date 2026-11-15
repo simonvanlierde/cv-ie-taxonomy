@@ -4,6 +4,15 @@ import { describe, expect, it, vi } from "vitest";
 import { Explorable } from "./Explorable";
 
 describe("Explorable", () => {
+  it("keeps the evidence limits in view beside the idle map and the method in a disclosure", () => {
+    render(<Explorable />);
+    expect(screen.getByText(/no task reaches strong/i)).toBeInTheDocument();
+    expect(screen.getByText(/does not show failure/i)).toBeInTheDocument();
+    const more = screen.getByText("How the ratings were reached").closest("details");
+    expect(more).toHaveTextContent(/one researcher/i);
+    expect(more).toHaveTextContent(/only label reading has collection-site pilot evidence/i);
+  });
+
   it("shows a prompt until a cell is selected, then fills the detail inline (no dialog)", async () => {
     render(<Explorable />);
     expect(screen.getByText(/select a task/i)).toBeInTheDocument();

@@ -1254,7 +1254,7 @@ html[data-theme="dark"] {
 .cvt-inline-prompt {
   color: var(--cvt-ink);
   font-size: var(--cvt-t-3);
-  margin: 1.2rem 0 1.4rem;
+  margin: 0 0 1.2rem;
 }
 /* Below the wide sheet the figure and a column cannot share the canvas (the
    matrix is 660px wide), so the column dissolves into the grid: the prompt sits

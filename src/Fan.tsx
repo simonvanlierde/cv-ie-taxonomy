@@ -860,7 +860,7 @@ export function Fan({
           />
           <Tag x={M.moC[0] - 55} y={M.moC[1] - 6} label="copper" color="var(--cvt-tag-cu)" s={ts} />
           <Tag
-            x={M.baC[0] - 20}
+            x={M.baC[0] - (compact ? tagWidth("circuit board", ts) / 2 : 20)}
             y={M.baC[1] - (TAG_H * ts) / 2}
             label="circuit board"
             color="var(--cvt-tag-pcb)"
