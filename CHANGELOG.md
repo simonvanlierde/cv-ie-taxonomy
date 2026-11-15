@@ -15,6 +15,15 @@ Changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- The map has a caption and a way in, and the reading path is shorter. See
+  [what the page shows](README.md#what-the-page-shows).
+- The page states the limits of the evidence before the photo tool, and the photo tool
+  rejects files that are not images, over 25 MB or over 50 megapixels, and says when
+  the browser cannot read a photo. See [the photo tools](README.md#try-software-on-your-own-photo).
+- The social card has the 1200x630 shape that link previews expect. See
+  [development commands](README.md#development).
+- On phones, a task opens as a compact view with the verdict and failure limits,
+  and **Read evidence** opens the rest. See [accessibility behaviour](README.md#accessibility).
 - The page and README explain the findings through decisions about repair, reuse
   and recycling, while preserving study scope and distinguishing missing evidence
   from demonstrated failure. Research ratings and numbers are unchanged; see
@@ -24,6 +33,11 @@ Changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   jumping. See [what the page shows](README.md#what-the-page-shows).
 
 ### Fixed
+
+- **Export CSV** opens correctly in spreadsheet programs, with the symbols intact.
+  See [what the page shows](README.md#what-the-page-shows).
+- Labels on the fan's material scene no longer crowd each other.
+  See [what the page shows](README.md#what-the-page-shows).
 
 - Closing a phone task sheet returns keyboard focus to the task that opened it.
   See [accessibility behaviour](README.md#accessibility).
