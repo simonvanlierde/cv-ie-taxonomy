@@ -114,7 +114,10 @@ describe("mobile compact evidence", () => {
       await vi.waitFor(() =>
         expect(dialog()).toHaveAccessibleName(`${cell.scale} · ${cell.informationType}`),
       );
-      expect(dialog()).toHaveFocus();
+      expect(button("Next cell")).toHaveFocus();
+      expect(dialog().querySelector(".cvt-sr-only[role=status]")).toHaveTextContent(
+        `${cell.scale} · ${cell.informationType}`,
+      );
       expect(within(dialog()).getByText(new RegExp(maturityName(cell)))).toBeVisible();
       expect(document.querySelector(".cvt-scroll")).toHaveAttribute("data-cell", cell.id);
       expect(within(dialog()).getByText("Why this verdict")).toBeInTheDocument();

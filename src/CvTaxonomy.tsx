@@ -1208,6 +1208,7 @@ function DetailRegion({
     returnFocusTo,
     modal,
     contentKey: cell.id,
+    keepFocus: compact,
   });
   useEffect(() => {
     const region = ref.current;
@@ -1235,35 +1236,43 @@ function DetailRegion({
     tabIndex: -1,
   };
   const body = (
-    <DetailPanel
-      cell={cell}
-      onClose={onClose}
-      onBackToStart={onBackToStart}
-      scores={compact}
-      compact={compact && !expanded}
-      controls={
-        compact && (
-          <div className="cvt-detail-controls">
-            <button
-              type="button"
-              onClick={() => setExpanded(!expanded)}
-              className="cvt-evidence-toggle"
-              aria-expanded={expanded}
-            >
-              {expanded ? "Back to compact" : "Read evidence"}
-            </button>
-            <nav aria-label={`Compare ${cell.scale.toLowerCase()} cells`}>
-              <button type="button" aria-label="Previous cell" onClick={() => onNavigate?.(-1)}>
-                Previous
+    <>
+      {/* the pressed Previous/Next button keeps focus, so the new cell is announced here */}
+      {compact && (
+        <p className="cvt-sr-only" role="status">
+          {cell.scale} · {cell.informationType}
+        </p>
+      )}
+      <DetailPanel
+        cell={cell}
+        onClose={onClose}
+        onBackToStart={onBackToStart}
+        scores={compact}
+        compact={compact && !expanded}
+        controls={
+          compact && (
+            <div className="cvt-detail-controls">
+              <button
+                type="button"
+                onClick={() => setExpanded(!expanded)}
+                className="cvt-evidence-toggle"
+                aria-expanded={expanded}
+              >
+                {expanded ? "Back to compact" : "Read evidence"}
               </button>
-              <button type="button" aria-label="Next cell" onClick={() => onNavigate?.(1)}>
-                Next
-              </button>
-            </nav>
-          </div>
-        )
-      }
-    />
+              <nav aria-label={`Compare ${cell.scale.toLowerCase()} cells`}>
+                <button type="button" aria-label="Previous cell" onClick={() => onNavigate?.(-1)}>
+                  Previous
+                </button>
+                <button type="button" aria-label="Next cell" onClick={() => onNavigate?.(1)}>
+                  Next
+                </button>
+              </nav>
+            </div>
+          )
+        }
+      />
+    </>
   );
 
   // Two elements rather than one with a computed role: aria-modal is only valid
