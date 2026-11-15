@@ -322,7 +322,8 @@ function Callout({
     !frame ||
     (cx >= frame.x && cx <= frame.x + frame.w && cy >= frame.y && cy <= frame.y + frame.h);
   // A chip the frame only half holds shows as a cropped fragment at the figure's
-  // edge: fade it out. It stays clickable and in the accessibility tree.
+  // edge: fade it out and take it out of the tab order and the pointer's reach.
+  // It stays in the accessibility tree.
   const cropped =
     !!frame &&
     !selected &&
@@ -340,7 +341,7 @@ function Callout({
       data-selected={selected}
       // another scene's chip is faded out: neither seen, operable nor announced
       inert={!active}
-      tabIndex={selected || inFrame ? 0 : -1}
+      tabIndex={selected || (inFrame && !cropped) ? 0 : -1}
       // starts with what the chip shows, so a voice user can say what they see
       aria-label={`${letter} ${text}. ${cell.scale} · ${cell.informationType}: ${taskName(cell)}. ${cell.structurallyEmpty ? "Not applicable" : `Maturity: ${maturityName(cell)}`}. Open details.`}
       style={{
@@ -351,6 +352,7 @@ function Callout({
         // the plate stays opaque over its leader; a sibling's dimming fades only
         // what is on the plate (`--dim` in CSS)
         opacity: cropped ? 0 : PRESENCE[cell.scale],
+        pointerEvents: cropped ? "none" : undefined,
         "--dim": dim,
         "--hue": SCALE_VAR[cell.scale],
       }}

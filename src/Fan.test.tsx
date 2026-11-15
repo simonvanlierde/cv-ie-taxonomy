@@ -233,6 +233,7 @@ describe("label layout while a detail is open", () => {
     const { container } = renderFan({ chapter: "Material", focus: condition, frame });
     // mass chip: left gutter at y 140, but its plate runs past the frame's right edge
     expect(chip(container, "material-quantity").style.opacity).toBe("0");
+    expect(chip(container, "material-quantity").tabIndex).toBe(-1);
     expect(chip(container, "material-condition").style.opacity).not.toBe("0");
   });
 });
