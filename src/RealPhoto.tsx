@@ -15,6 +15,10 @@ type State =
   | { status: "error"; message: string }
   | { status: "removed" };
 
+// shortcut: no downscale before the models; rejecting oversize input is enough, add one if memory errors appear
+const MAX_BYTES = 25 * 1024 * 1024;
+const MAX_PIXELS = 50_000_000;
+
 /**
  * A scene's real-model mode: one photo, one model, run in the reader's browser.
  * The drawing stays illustrative; this sits beside it, folded away until asked
@@ -65,10 +69,23 @@ function RealPhotoPanel({ scale, model }: { scale: Scale; model: RealModel }) {
   // makes an earlier run's answer stale, and a stale answer is dropped rather
   // than drawn over the wrong photo.
   const runId = useRef(0);
+  const reject = (message: string) => {
+    runId.current += 1;
+    setState({ status: "error", message });
+  };
   const choose = (file: File) => {
+    if (!file.type.startsWith("image/"))
+      return reject("That file is not an image. Choose a photo.");
+    if (file.size > MAX_BYTES)
+      return reject("That photo is larger than 25 MB. Choose a smaller one.");
     runId.current += 1;
     setState({ status: "idle" });
     setOwn(URL.createObjectURL(file));
+  };
+  const loaded = (img: HTMLImageElement) => {
+    if (img.naturalWidth * img.naturalHeight <= MAX_PIXELS) return;
+    setOwn(null);
+    reject("That photo is larger than 50 megapixels. Choose a smaller one.");
   };
   const run = async () => {
     const img = image.current;
@@ -102,7 +119,16 @@ function RealPhotoPanel({ scale, model }: { scale: Scale; model: RealModel }) {
       </p>
       {src ? (
         <div className="cvt-real-photo">
-          <img ref={image} src={src} alt={own ? "Your photo" : (fan?.alt ?? "")} />
+          <img
+            ref={image}
+            src={src}
+            alt={own ? "Your photo" : (fan?.alt ?? "")}
+            onLoad={(e) => loaded(e.currentTarget)}
+            onError={() => {
+              setOwn(null);
+              reject("Your browser cannot open that photo. Try a JPEG or PNG.");
+            }}
+          />
           {state.status === "done" && state.reading.kind === "boxes" && (
             <div className="cvt-real-boxes" aria-hidden="true">
               {state.reading.boxes.map((b, i) => (

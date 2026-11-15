@@ -50,7 +50,13 @@ type Detection = {
   score: number;
   box: { xmin: number; ymin: number; xmax: number; ymax: number };
 };
-type Detector = (image: string, labels: string[], o: { threshold: number }) => Promise<Detection[]>;
+type Detector = ((
+  image: string,
+  labels: string[],
+  o: { threshold: number },
+) => Promise<Detection[]>) & {
+  dispose(): Promise<void>;
+};
 let detector: Promise<Detector> | null = null;
 
 /** Detections in pixels → boxes as fractions of the photo, best first. */
@@ -144,8 +150,9 @@ export const REAL_MODELS: Record<Scale, RealModel> = {
  * A download still in flight finishes first, so its files cannot land after the delete.
  */
 export async function removeDownloads(): Promise<void> {
-  await detector?.catch(() => undefined);
+  const loaded = await detector?.catch(() => undefined);
   detector = null;
+  await loaded?.dispose();
   if (typeof caches !== "undefined") await caches.delete("transformers-cache");
 }
 

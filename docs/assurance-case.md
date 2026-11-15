@@ -59,9 +59,10 @@ compromised dependencies or model files, malicious links and malformed images.
 - A compromised maintainer account or upstream package can affect the published
   site. This single-maintainer project has no independent approval requirement.
   [Governance](../GOVERNANCE.md) records the continuity limit.
-- The file picker's `accept="image/*"` is a browser hint, not a validation boundary.
-  There is no explicit file-size or decoded-pixel limit. Large or malformed images
-  may exhaust resources or reach defects in the browser or model runtime.
+- The file picker's `accept="image/*"` is a browser hint, so the page also rejects
+  non-image types, files over 25 MB and images over 50 megapixels. It does not
+  downscale. Malformed images within those limits may still exhaust resources or
+  reach defects in the browser or model runtime.
 - Third-party WebAssembly and model parsers remain part of the attack surface.
   The tests do not establish their memory safety or resistance to hostile images.
 - HTTPS relies on the browser and hosting providers. This application implements
