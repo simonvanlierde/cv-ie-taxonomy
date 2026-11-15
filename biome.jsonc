@@ -12,6 +12,7 @@
       "!dist",
       "!node_modules",
       "!coverage",
+      "!**/worktrees",
       "!test-results",
       "!src/data/deposit-rubric-marks.json"
     ]
