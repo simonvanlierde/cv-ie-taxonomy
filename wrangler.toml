@@ -1,6 +1,10 @@
 name = "cv-ie-taxonomy"
 compatibility_date = "2026-11-14"
 previews = {}
+# Pull request Previews are served on workers.dev. Without preview_urls, Wrangler uploads a
+# Preview with no URL. Both are explicit so a production deploy keeps them on.
+workers_dev = true
+preview_urls = true
 
 routes = [
   { pattern = "simonvanlierde.com/cv-ie-taxonomy", zone_name = "simonvanlierde.com" },
