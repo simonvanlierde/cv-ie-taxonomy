@@ -10,6 +10,9 @@ allowBuilds:
   protobufjs: false
   # its install script only prints a funding notice
   tesseract.js: false
+  # wrangler-action adds wrangler at deploy time; deploy and preview upload files and never
+  # run the local workerd runtime, so its binary download is not needed
+  workerd: false
 minimumReleaseAgeExclude:
   # Renovate security update: @vitest/browser@5.0.5
   - "@vitest/browser@5.0.5"
