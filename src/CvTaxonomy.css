@@ -264,7 +264,7 @@ html[data-theme="dark"] {
 }
 /* ---- the figure: one box in VIEW's aspect ratio (800 × 875), holding the camera,
    which holds the two drawings. The camera is a CSS transform set from the
-   active scene or the open cell (cameraTransform in CvTaxonomy.tsx). ---- */
+   active scene or the open cell (cameraTransform in frames.ts). ---- */
 /* Sized from the room the sticky gives it (--cvt-stage-h) and never wider than
    the column, so the box always keeps the drawing's aspect ratio: the camera
    maths in cameraTransform assumes it. */

@@ -1,20 +1,11 @@
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import {
-  CellList,
-  CvTaxonomy,
-  cameraTransform,
-  flyIntoMap,
-  frameFor,
-  MaturityKey,
-  morphBayIntoDetail,
-  Outro,
-  withViewTransition,
-} from "./CvTaxonomy";
+import { CellList, CvTaxonomy, frameFor, MaturityKey, Outro } from "./CvTaxonomy";
 import { cellById } from "./data/taxonomy";
-import { CHAPTER_FRAMES, VIEW } from "./frames";
+import { CHAPTER_FRAMES, cameraTransform, VIEW } from "./frames";
 import { matchMediaStub } from "./test-helpers";
+import { flyIntoMap, morphBayIntoDetail, withViewTransition } from "./viewTransitions";
 
 /**
  * The detail is an enlargement drawn on the sheet, not a <dialog>: on desktop it
