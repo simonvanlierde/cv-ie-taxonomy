@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { RealPhoto } from "./RealPhoto";
@@ -253,5 +253,49 @@ describe("toBoxes", () => {
       { label: "b", score: 0.9, x: 0.5, y: 0.5, w: 0.5, h: 0.5 },
       { label: "a", score: 0.2, x: 0, y: 0, w: 0.25, h: 0.25 },
     ]);
+  });
+});
+
+describe("photo limits", () => {
+  const start = async () => {
+    const user = userEvent.setup({ applyAccept: false });
+    render(<RealPhoto scale="Component" model={fake(vi.fn())} />);
+    await user.click(screen.getByRole("button", { name: /try your own photo/i }));
+    return { user, input: screen.getByLabelText(/use your own photo/i) };
+  };
+
+  it("rejects a file that is not an image", async () => {
+    const { user, input } = await start();
+    await user.upload(input, new File(["x"], "a.pdf", { type: "application/pdf" }));
+    expect(screen.getByRole("status")).toHaveTextContent(/not an image/i);
+    expect(screen.queryByRole("button", { name: /analyse photo/i })).not.toBeInTheDocument();
+  });
+
+  it("rejects a photo over 25 MB", async () => {
+    const { user, input } = await start();
+    const big = new File(["x"], "big.jpg", { type: "image/jpeg" });
+    Object.defineProperty(big, "size", { value: 26 * 1024 * 1024 });
+    await user.upload(input, big);
+    expect(screen.getByRole("status")).toHaveTextContent(/larger than 25 MB/i);
+    expect(screen.queryByRole("button", { name: /analyse photo/i })).not.toBeInTheDocument();
+  });
+
+  it("rejects an image over 50 megapixels once it loads", async () => {
+    const { user, input } = await start();
+    await user.upload(input, photo());
+    const img = screen.getByRole("img", { name: /your photo/i });
+    Object.defineProperty(img, "naturalWidth", { value: 10000 });
+    Object.defineProperty(img, "naturalHeight", { value: 6000 });
+    fireEvent.load(img);
+    expect(screen.getByRole("status")).toHaveTextContent(/50 megapixels/i);
+    expect(screen.queryByRole("button", { name: /analyse photo/i })).not.toBeInTheDocument();
+  });
+
+  it("says so when the browser cannot decode the file", async () => {
+    const { user, input } = await start();
+    await user.upload(input, photo());
+    fireEvent.error(screen.getByRole("img", { name: /your photo/i }));
+    expect(screen.getByRole("status")).toHaveTextContent(/cannot open that photo/i);
+    expect(screen.queryByRole("button", { name: /analyse photo/i })).not.toBeInTheDocument();
   });
 });

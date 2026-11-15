@@ -19,12 +19,12 @@ const ogCardVersion = {
   transformIndexHtml: (html: string) => html.replace('/og.png"', `/og.png?v=${ogVersion}"`),
 };
 
-// The built page's content security policy. GitHub Pages cannot send headers,
-// so it is a <meta> tag, added at build only: the dev server injects inline
-// scripts. Scripts and workers come only from this site (blob: is the ONNX
-// runtime's factory and wasm needs 'wasm-unsafe-eval'); a reader's photo can
-// only be fetched by the page itself, and the only host it may contact is
-// Hugging Face, which serves the detector's weights.
+// The built page's content security policy is a <meta> tag, because the
+// static asset deployment has no Worker code. It is added at build only: the
+// dev server injects inline scripts. Scripts and workers come only from this
+// site (blob: is the ONNX runtime's factory and wasm needs 'wasm-unsafe-eval');
+// a reader's photo can only be fetched by the page itself, and the only host it
+// may contact is Hugging Face, which serves the detector's weights.
 export const contentSecurityPolicy = {
   name: "content-security-policy",
   apply: "build",
@@ -50,9 +50,12 @@ export const contentSecurityPolicy = {
   ],
 };
 
+const deploymentBase = (command: "build" | "serve", isPreview?: boolean) =>
+  process.env.VITE_BASE_PATH ?? (command === "build" || isPreview ? "/cv-ie-taxonomy/" : "/");
+
 export default defineConfig(({ command, isPreview }) => ({
-  // Preview serves the production build at the same path; development stays at root.
-  base: command === "build" || isPreview ? "/cv-ie-taxonomy/" : "/",
+  // Pull request previews set this to `/`; production and local previews use the public path.
+  base: deploymentBase(command, isPreview),
   plugins: [
     react(),
     ogCardVersion,
@@ -77,13 +80,21 @@ export default defineConfig(({ command, isPreview }) => ({
         server.middlewares.use(`/${TESSERACT_ENG}`, (_, res) => res.end(readFileSync(ENG_SOURCE)));
       },
       generateBundle() {
-        this.emitFile({ type: "asset", fileName: TESSERACT_ENG, source: readFileSync(ENG_SOURCE) });
+        this.emitFile({
+          type: "asset",
+          fileName: TESSERACT_ENG,
+          source: readFileSync(ENG_SOURCE),
+        });
       },
     },
   ],
   // transformers.js is one lazy 540 kB chunk, loaded only when a reader runs a
   // real model; the page's own bundle stays near 330 kB
-  build: { chunkSizeWarningLimit: 600 },
+  build: {
+    chunkSizeWarningLimit: 600,
+    // Workers serves production at a subpath and previews from their hostname root.
+    outDir: deploymentBase(command, isPreview) === "/" ? "dist" : "dist/cv-ie-taxonomy",
+  },
   test: {
     // Two projects, because two different things are worth proving.
     //
