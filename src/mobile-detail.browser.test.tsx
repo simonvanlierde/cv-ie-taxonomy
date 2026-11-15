@@ -363,4 +363,12 @@ describe("mobile compact sheet polish", () => {
       expect(within(dialog()).getByText(cellById(id).maturityNote)).toBeVisible();
     },
   );
+
+  it("keeps the illustration stamp and a short scores clause to two lines", async () => {
+    await open("component-structure");
+    const note = dialog().querySelector<HTMLElement>(".cvt-illustrative-note");
+    expect(note?.firstChild?.textContent).toContain("Illustration · no photo was analysed");
+    const lineHeight = Number.parseFloat(getComputedStyle(note as HTMLElement).lineHeight);
+    expect((note as HTMLElement).getBoundingClientRect().height).toBeLessThan(lineHeight * 2.1);
+  });
 });

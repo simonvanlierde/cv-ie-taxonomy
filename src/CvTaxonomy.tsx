@@ -823,14 +823,23 @@ const Rail = memo(function Rail({
 // ---- pieces shared between the scenes, the detail and the map, so the
 // claim-bearing copy and the cell buttons have exactly one source ---------------
 
-/** `scores`: also say what the numbers on the drawing are, once, beside the figure. */
-function IllustrativeDisclosure({ scores = false }: { scores?: boolean }) {
+/** `scores`: also say what the numbers on the drawing are, once, beside the figure.
+ *  `short`: the clause in a few words, where the stamp shares a small sheet with the verdict. */
+function IllustrativeDisclosure({
+  scores = false,
+  short = false,
+}: {
+  scores?: boolean;
+  short?: boolean;
+}) {
   return (
     <p className="cvt-illustrative-note">
       Illustration · no photo was analysed
       {scores && (
         <span className="cvt-illustrative-scores">
-          Scores such as 0.94 are example confidence values, not measured accuracy.
+          {short
+            ? "Scores are examples, not accuracy."
+            : "Scores such as 0.94 are example confidence values, not measured accuracy."}
         </span>
       )}
     </p>
@@ -1324,7 +1333,7 @@ function DetailPanel({
         </button>
       </div>
       {controls}
-      <IllustrativeDisclosure scores={scores} />
+      <IllustrativeDisclosure scores={scores} short={compact} />
       <DetailBody cell={cell} compact={compact} />
       {onBackToStart && (
         <button type="button" className="cvt-back-start" onClick={onBackToStart}>
