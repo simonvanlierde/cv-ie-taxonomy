@@ -215,3 +215,25 @@ describe("the scene claims drawn on the fan", () => {
     expect(container.querySelectorAll(".cvt-drop")).toHaveLength(0);
   });
 });
+
+describe("label layout while a detail is open", () => {
+  const condition = cellById("material-condition");
+
+  it("fades the other cells' read-outs out instead of leaving a wash", () => {
+    const { container } = renderFan({ chapter: "Material", focus: condition });
+    const layers = [...container.querySelectorAll<SVGGElement>(".ov-layer")];
+    const identity = layers.find((l) => l.textContent?.includes("copper"));
+    expect(identity?.style.opacity).toMatch(/\* 0\)$/);
+    const own = layers.find((l) => l.textContent?.includes("corrosion?"));
+    expect(own?.style.opacity).toMatch(/\* 1\)$/);
+  });
+
+  it("hides a chip the camera frame only partly holds", () => {
+    const frame = { x: 0, y: 0, w: 300, h: 300 };
+    const { container } = renderFan({ chapter: "Material", focus: condition, frame });
+    // mass chip: left gutter at y 140, but its plate runs past the frame's right edge
+    expect(chip(container, "material-quantity").style.opacity).toBe("0");
+    expect(chip(container, "material-quantity").tabIndex).toBe(-1);
+    expect(chip(container, "material-condition").style.opacity).not.toBe("0");
+  });
+});
