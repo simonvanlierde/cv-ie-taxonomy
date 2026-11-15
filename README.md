@@ -86,6 +86,7 @@ pnpm preview     # inspect the build at /cv-ie-taxonomy/
 
 Use `pnpm test` for unit tests or `pnpm test:browser` for Chromium tests.
 `node scripts/og-card.mjs` redraws the social card, `public/og.png`, in Chromium.
+[Architecture](docs/architecture.md) describes the modules, data and tests.
 [Deployment](docs/deployment.md) covers Cloudflare setup, verification and rollback.
 [Contributing](CONTRIBUTING.md) covers issues and pull requests.
 [The changelog](CHANGELOG.md) records changes.
