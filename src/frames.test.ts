@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { cameraTransform, frameFor } from "./CvTaxonomy";
+import { frameFor } from "./CvTaxonomy";
 import { cells } from "./data/taxonomy";
 import { chipFrame } from "./Fan";
-import { CHAPTER_FRAMES, clampFrame, FRAMES, VIEW } from "./frames";
+import { CHAPTER_FRAMES, cameraTransform, clampFrame, FRAMES, VIEW } from "./frames";
 import { frameOf } from "./test-helpers";
 
 const inside = (f: { x: number; y: number; w: number; h: number }) =>
