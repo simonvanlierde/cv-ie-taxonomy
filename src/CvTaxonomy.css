@@ -1329,6 +1329,14 @@ html[data-theme="dark"] {
   background: var(--hue);
   flex-shrink: 0;
 }
+/* forced colors drop the fill: paint the swatch in the text colour */
+@media (forced-colors: active) {
+  .cvt-mx-row::before,
+  .cvt-panel-scale::before {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+}
 .cvt-mx-cell {
   position: relative;
   display: block;
