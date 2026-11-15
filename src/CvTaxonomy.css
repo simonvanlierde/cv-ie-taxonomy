@@ -1062,7 +1062,6 @@ html[data-theme="dark"] {
   font-family: var(--cvt-sans);
 }
 .cvt-skip {
-  display: inline-block;
   margin-top: 0.9rem;
   font-family: var(--cvt-mono);
   font-size: var(--cvt-t-2);
@@ -1071,6 +1070,10 @@ html[data-theme="dark"] {
   text-decoration: underline;
   text-decoration-style: dotted;
   text-underline-offset: 4px;
+  /* a 24px target (WCAG 2.5.8) */
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 24px;
 }
 .cvt-skip:hover {
   color: var(--cvt-ink);
@@ -2104,7 +2107,10 @@ html[data-theme="dark"] {
   font-size: var(--cvt-t-2);
   line-height: 1.3;
   /* a standalone chip is a 24px target (WCAG 2.5.8); inline ones in prose are exempt */
-  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 24px;
+  min-inline-size: 24px;
 }
 .cvt-cite-chip:hover {
   color: var(--cvt-ink);

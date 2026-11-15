@@ -104,6 +104,20 @@ describe("mobile compact evidence", () => {
     expect(window.scrollY).toBe(scroll);
   });
 
+  it("gives the skip links and source chips a 24px target at 390 wide", async () => {
+    await open();
+    await userEvent.click(button("Read evidence"));
+    const targets = [
+      ...document.querySelectorAll<HTMLElement>(".cvt-skip"),
+      ...document.querySelectorAll<HTMLElement>(".cvt-cites .cvt-cite-chip"),
+    ];
+    expect(targets.length).toBeGreaterThan(1);
+    for (const el of targets) {
+      const { width, height } = el.getBoundingClientRect();
+      expect([el.className, width >= 24, height >= 24]).toEqual([el.className, true, true]);
+    }
+  });
+
   it("keeps navigation, verdicts, source overlays and focus synchronized through the whole scale", async () => {
     await open("component-identity");
     const ring = cells.filter((c) => c.scale === "Component");

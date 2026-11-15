@@ -242,7 +242,7 @@ function DetailPanel({
           {/* under the title, not over it: the same words above a heading are a
               kicker, and this names which cell of the sheet the detail enlarges */}
           <p className="cvt-panel-scale">
-            detail · {cell.scale} · {cell.informationType}
+            detail ·&nbsp;{cell.scale} ·&nbsp;{cell.informationType}
           </p>
         </div>
         <button
