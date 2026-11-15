@@ -27,6 +27,7 @@ const image = () =>
 beforeEach(() => {
   vi.clearAllMocks();
   pipeline.mockResolvedValue(detector);
+  Object.assign(detector, { dispose: vi.fn().mockResolvedValue(undefined) });
   detector.mockResolvedValue([]);
   createWorker.mockResolvedValue(worker);
   worker.recognize.mockResolvedValue({ data: { text: "  TYP 4212/A \n", confidence: 76 } });
@@ -133,6 +134,25 @@ describe("removing the downloads", () => {
     await removeDownloads();
     await REAL_MODELS.Component.run(image());
     expect(pipeline).toHaveBeenCalledTimes(2);
+  });
+
+  it("disposes the loaded detector before dropping it", async () => {
+    const { REAL_MODELS, removeDownloads } = await load();
+    await REAL_MODELS.Component.run(image());
+    await removeDownloads();
+    expect((detector as unknown as { dispose: unknown }).dispose).toHaveBeenCalledTimes(1);
+  });
+
+  it("still deletes the files when dispose fails", async () => {
+    const del = vi.fn().mockResolvedValue(true);
+    vi.stubGlobal("caches", { delete: del });
+    const { REAL_MODELS, removeDownloads } = await load();
+    await REAL_MODELS.Component.run(image());
+    (detector as unknown as { dispose: ReturnType<typeof vi.fn> }).dispose.mockRejectedValue(
+      new Error("boom"),
+    );
+    await expect(removeDownloads()).rejects.toThrow("boom");
+    expect(del).toHaveBeenCalledWith("transformers-cache");
   });
 
   it("waits for a download in flight, so its files cannot land after the delete", async () => {
