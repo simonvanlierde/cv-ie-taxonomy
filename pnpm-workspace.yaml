@@ -11,7 +11,5 @@ allowBuilds:
   # its install script only prints a funding notice
   tesseract.js: false
 minimumReleaseAgeExclude:
-  # Renovate security update: vite@8.3.3
-  - vite@8.3.3
   # Renovate security update: @vitest/browser@5.0.5
   - "@vitest/browser@5.0.5"

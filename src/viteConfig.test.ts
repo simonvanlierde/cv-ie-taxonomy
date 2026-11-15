@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import config from "../vite.config";
+import config, { contentSecurityPolicy } from "../vite.config";
 
 type ConfigFn = (env: { command: "build" | "serve"; mode: string; isPreview?: boolean }) => {
   base: string;
@@ -15,5 +15,25 @@ describe("vite base path", () => {
 
   it("keeps the dev server at the root", () => {
     expect(resolve({ command: "serve", mode: "development" }).base).toBe("/");
+  });
+});
+
+describe("content security policy", () => {
+  const content = String(contentSecurityPolicy.transformIndexHtml()[0]?.attrs.content);
+  const directives = Object.fromEntries(
+    content.split("; ").map((d) => [d.split(" ")[0], d.split(" ").slice(1)]),
+  );
+  const remote = (sources: string[]) => sources.filter((s) => /^https?:|^\*/.test(s));
+
+  it("loads scripts only from this site", () => {
+    expect(remote(directives["script-src"])).toEqual([]);
+  });
+
+  it("lets the page contact only the hosts that serve the detector's weights", () => {
+    expect(remote(directives["connect-src"]).sort()).toEqual([
+      "https://*.hf.co",
+      "https://*.huggingface.co",
+      "https://huggingface.co",
+    ]);
   });
 });
