@@ -53,14 +53,19 @@ graph TD
   CvTaxonomy --> Detail
   CvTaxonomy --> RealPhoto
   CvTaxonomy --> chapters
+  CvTaxonomy --> frames
   CvTaxonomy --> viewTransitions
   CvTaxonomy --> References
   Explorable --> Detail
   Explorable --> MiniMatrix
+  Explorable --> sandbox
+  Explorable --> RubricCircuit
   Explorable --> useDialogRegion
   Explorable --> viewTransitions
   Detail --> useDialogRegion
   Detail --> rubricMarks
+  Detail --> References
+  Detail --> chapters
   Detail --> RubricCircuit
   Fan --> frames
   Fan --> chapters
@@ -72,6 +77,7 @@ graph TD
   Detail --> taxonomy
   Fan --> taxonomy
   sandbox --> taxonomy
+  sandbox --> deposit["deposit-rubric-marks.json"]
   References --> data["references.json, methods.json"]
   taxonomy --> taxonomyJson["taxonomy.json"]
 ```

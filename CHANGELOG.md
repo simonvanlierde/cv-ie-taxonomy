@@ -38,7 +38,6 @@ Changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   See [what the page shows](README.md#what-the-page-shows).
 - Labels on the fan's material scene no longer crowd each other.
   See [what the page shows](README.md#what-the-page-shows).
-
 - Closing a phone task sheet returns keyboard focus to the task that opened it.
   See [accessibility behaviour](README.md#accessibility).
 - Cells whose connections are assessed at the parts level show no maturity rating.
