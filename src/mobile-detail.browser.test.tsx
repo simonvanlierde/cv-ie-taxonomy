@@ -346,3 +346,10 @@ describe("mobile compact evidence", () => {
     }
   });
 });
+
+describe("mobile compact sheet polish", () => {
+  it("draws no scroll fog over the compact sheet", async () => {
+    await open("component-structure");
+    expect(getComputedStyle(dialog(), "::after").content).toBe("none");
+  });
+});

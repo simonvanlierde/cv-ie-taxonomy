@@ -2840,6 +2840,11 @@ html[data-theme="dark"] {
 .cvt-detail-sheet[data-expanded="true"] {
   max-height: calc(100dvh - 1rem);
 }
+/* the compact sheet is sized to its content; the desktop scroll fog would
+   fade its last lines instead of hinting at more */
+.cvt-detail-sheet:not([data-expanded="true"])::after {
+  content: none;
+}
 .cvt-detail-sheet .cvt-panel-head {
   margin-bottom: 0.5rem;
 }
