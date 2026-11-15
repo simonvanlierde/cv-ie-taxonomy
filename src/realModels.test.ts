@@ -143,6 +143,18 @@ describe("removing the downloads", () => {
     expect((detector as unknown as { dispose: unknown }).dispose).toHaveBeenCalledTimes(1);
   });
 
+  it("still deletes the files when dispose fails", async () => {
+    const del = vi.fn().mockResolvedValue(true);
+    vi.stubGlobal("caches", { delete: del });
+    const { REAL_MODELS, removeDownloads } = await load();
+    await REAL_MODELS.Component.run(image());
+    (detector as unknown as { dispose: ReturnType<typeof vi.fn> }).dispose.mockRejectedValue(
+      new Error("boom"),
+    );
+    await expect(removeDownloads()).rejects.toThrow("boom");
+    expect(del).toHaveBeenCalledWith("transformers-cache");
+  });
+
   it("waits for a download in flight, so its files cannot land after the delete", async () => {
     const del = vi.fn().mockResolvedValue(true);
     vi.stubGlobal("caches", { delete: del });

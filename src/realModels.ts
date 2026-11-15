@@ -152,8 +152,12 @@ export const REAL_MODELS: Record<Scale, RealModel> = {
 export async function removeDownloads(): Promise<void> {
   const loaded = await detector?.catch(() => undefined);
   detector = null;
-  await loaded?.dispose();
-  if (typeof caches !== "undefined") await caches.delete("transformers-cache");
+  try {
+    await loaded?.dispose();
+  } finally {
+    // a failed dispose must not leave the downloaded files behind
+    if (typeof caches !== "undefined") await caches.delete("transformers-cache");
+  }
 }
 
 /**
