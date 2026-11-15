@@ -19,6 +19,37 @@ const ogCardVersion = {
   transformIndexHtml: (html: string) => html.replace('/og.png"', `/og.png?v=${ogVersion}"`),
 };
 
+// The built page's content security policy is a <meta> tag, because the
+// static asset deployment has no Worker code. It is added at build only: the
+// dev server injects inline scripts. Scripts and workers come only from this
+// site (blob: is the ONNX runtime's factory and wasm needs 'wasm-unsafe-eval');
+// a reader's photo can only be fetched by the page itself, and the only host it
+// may contact is Hugging Face, which serves the detector's weights.
+export const contentSecurityPolicy = {
+  name: "content-security-policy",
+  apply: "build",
+  transformIndexHtml: () => [
+    {
+      tag: "meta",
+      injectTo: "head-prepend",
+      attrs: {
+        "http-equiv": "Content-Security-Policy",
+        content: [
+          "default-src 'self'",
+          "script-src 'self' blob: 'wasm-unsafe-eval'",
+          "worker-src 'self' blob:",
+          "style-src 'self' 'unsafe-inline'",
+          "img-src 'self' data: blob:",
+          "font-src 'self'",
+          "connect-src 'self' blob: data: https://huggingface.co https://*.huggingface.co https://*.hf.co",
+          "object-src 'none'",
+          "base-uri 'self'",
+        ].join("; "),
+      },
+    },
+  ],
+};
+
 const deploymentBase = (command: "build" | "serve", isPreview?: boolean) =>
   process.env.VITE_BASE_PATH ?? (command === "build" || isPreview ? "/cv-ie-taxonomy/" : "/");
 
@@ -28,36 +59,7 @@ export default defineConfig(({ command, isPreview }) => ({
   plugins: [
     react(),
     ogCardVersion,
-    // The built page's content security policy is a <meta> tag, because the
-    // static asset deployment has no Worker code. The dev server injects inline
-    // scripts. Scripts and workers come only from this site (blob: is the ONNX
-    // runtime's factory and wasm needs 'wasm-unsafe-eval'); a reader's photo can
-    // only be fetched by the page itself, and the only host it may contact is
-    // Hugging Face, which serves the detector's weights.
-    {
-      name: "content-security-policy",
-      apply: "build",
-      transformIndexHtml: () => [
-        {
-          tag: "meta",
-          injectTo: "head-prepend",
-          attrs: {
-            "http-equiv": "Content-Security-Policy",
-            content: [
-              "default-src 'self'",
-              "script-src 'self' blob: 'wasm-unsafe-eval'",
-              "worker-src 'self' blob:",
-              "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob:",
-              "font-src 'self'",
-              "connect-src 'self' blob: data: https://huggingface.co https://*.huggingface.co https://*.hf.co",
-              "object-src 'none'",
-              "base-uri 'self'",
-            ].join("; "),
-          },
-        },
-      ],
-    },
+    contentSecurityPolicy,
     // transformers.js references its default (asyncify) ONNX runtime build, so
     // Vite emits it; realModels.ts points the runtime at the plain build instead,
     // and nothing ever loads this 27 MB file
