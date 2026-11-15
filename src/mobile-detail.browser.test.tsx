@@ -355,4 +355,12 @@ describe("mobile compact sheet polish", () => {
     await open("component-structure");
     expect(getComputedStyle(dialog(), "::after").content).toBe("none");
   });
+
+  it.each(["product-structure", "material-structure"] as const)(
+    "keeps the reason a structural cell has no rating in %s",
+    async (id) => {
+      await open(id);
+      expect(within(dialog()).getByText(cellById(id).maturityNote)).toBeVisible();
+    },
+  );
 });

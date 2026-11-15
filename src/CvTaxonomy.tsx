@@ -1342,6 +1342,7 @@ export function DetailBody({ cell, compact = false }: { cell: Cell; compact?: bo
         <div className="cvt-verdict">
           <strong>Not applicable</strong>
         </div>
+        {compact && <p className="cvt-term-note">{cell.maturityNote}</p>}
         {!compact && (
           <>
             <dl className="cvt-panel-grid">
