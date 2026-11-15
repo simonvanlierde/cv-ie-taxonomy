@@ -7,8 +7,9 @@ import {
   useRef,
   useState,
 } from "react";
+import { FIELD_SPLIT } from "./chapters";
 import { DetailBody } from "./Detail";
-import { cellById, cells, maturityName } from "./data/taxonomy";
+import { cellById, cells, maturityName, taxonomy } from "./data/taxonomy";
 import type { Cell } from "./data/types";
 import { MiniMatrix } from "./MiniMatrix";
 import { RubricCircuit } from "./RubricCircuit";
@@ -120,6 +121,7 @@ export function Explorable({ children }: { children?: ReactNode }) {
             >
               Start with reading a product label
             </button>
+            <MapNotes />
             {children}
           </div>
         )}
@@ -357,6 +359,64 @@ function MarksEditor({
         );
       })}
       <RubricCircuit cell={mine} />
+    </div>
+  );
+}
+
+/** What the idle column says about reading the map. The caveats about evidence limits
+ *  stay in view; the method and the gap analysis wait in a disclosure so the map,
+ *  not the caption, is what the eye lands on. */
+function MapNotes() {
+  return (
+    <div className="cvt-foot">
+      <p>
+        Ratings come from the paper&rsquo;s Table&nbsp;S2, a review of the literature as of{" "}
+        {taxonomy.meta.scanDate}. Columns ask what something is, how much is there, how it is put
+        together and what condition it is in; rows run from the whole product to its parts and
+        materials. Taller blocks mean stronger evidence.
+      </p>
+      <p>
+        No task reaches Strong, the dashed line. Strong needs a method meant for many product types,
+        evidence that it works on recycler-intake photos, and documented use for the task. A missing
+        test leaves a requirement unmet; it does not show failure.
+      </p>
+      <details className="cvt-panel-more cvt-foot-more">
+        <summary>How the ratings were reached</summary>
+        <p>
+          The review used targeted searches, with assessments recorded by one researcher. A missing
+          method means the review did not find one.
+        </p>
+        <p>
+          Finding parts and identifying how they attach are rated separately, so ten tasks give
+          eleven assessments. The two hatched cells have no rating of their own: connections are
+          assessed at the parts level.
+        </p>
+        <p>{FIELD_SPLIT}</p>
+        <p>
+          Some gaps need more than another test. Damage across product types and how parts connect
+          need agreed categories first, and hidden material composition needs a method. The rest are
+          about how existing methods perform on photos taken where used products are handled. Among
+          tasks using ordinary field photos, only label reading has collection-site pilot evidence,
+          from one research group. Reliable product data need tests of the whole workflow, from
+          taking photos to checking what the software reads and what a person confirms.
+        </p>
+      </details>
+      <details className="cvt-panel-more cvt-foot-more">
+        <summary>Contribute product evidence</summary>
+        <p>
+          <a href="https://r9lab.io/">Contribute a product record through R9lab</a>, a platform for
+          documenting products as they are taken apart. Pair your photographs with measurements and
+          notes on how you checked each value, and follow its{" "}
+          <a href="https://docs.r9lab.io/user-guides/data-collection/">collection guide</a>. To
+          compare methods on the same products, each item needs clean and field photographs paired
+          with checked model numbers, material names or measurements.
+        </p>
+        <p>
+          R9lab uploads are public. Keep people and personal details out of your photographs, and
+          read its <a href="https://r9lab.io/terms/">contributor terms</a> and{" "}
+          <a href="https://r9lab.io/privacy/">privacy policy</a> before uploading.
+        </p>
+      </details>
     </div>
   );
 }

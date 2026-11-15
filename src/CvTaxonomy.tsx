@@ -7,7 +7,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { CHAPTER_COPY, FIELD_SPLIT } from "./chapters";
+import { CHAPTER_COPY } from "./chapters";
 import "./CvTaxonomy.css";
 import { CloseIcon, DetailRegion, IllustrativeDisclosure, RUBRIC_LABEL, RubricKey } from "./Detail";
 import {
@@ -639,7 +639,7 @@ const Rail = memo(function Rail({
           hint={
             phone
               ? "Tap a task in each scene to see what the research found."
-              : "Then select any label on the fan to see what the research found."
+              : "Then select a task in each scene to see what the research found."
           }
         />
         <a className="cvt-skip" href="#cvt-matrix">
@@ -799,65 +799,6 @@ export const Outro = memo(function Outro() {
       {/* the caption and the table twin ride the narrative column beside the
           figure, and step aside for the detail the way act one's prose does */}
       <Explorable>
-        <div className="cvt-foot">
-          <p>
-            Columns ask what something is, how much is there, how it is put together and what
-            condition it is in; rows run from the whole product to its parts and materials. Ratings
-            come from the paper&rsquo;s Table&nbsp;S2, a review of the literature as of{" "}
-            {taxonomy.meta.scanDate}. Taller blocks mean stronger evidence.
-          </p>
-          <p>
-            The dashed line marks Strong, the highest rating, and no task reaches it. Strong needs a
-            method meant for many product types, evidence that it works on recycler-intake photos,
-            and documented use for the task. A missing test leaves a requirement unmet; it does not
-            show failure.
-          </p>
-          {/* the method and the gap analysis on demand: three chunks stay in view,
-              so the map, not the caption, is what the eye lands on */}
-          <details className="cvt-panel-more cvt-foot-more">
-            <summary>How the ratings were reached</summary>
-            <p>
-              The review used targeted searches, with assessments recorded by one researcher. A
-              missing method means the review did not find one.
-            </p>
-            <p>
-              Finding parts and identifying how they attach are rated separately, so ten tasks give
-              eleven assessments. The two hatched cells have no rating of their own: connections are
-              assessed at the parts level.
-            </p>
-            <p>{FIELD_SPLIT}</p>
-            <p>
-              Some gaps need more than another test. Describing damage across product types, or how
-              parts connect, needs agreed categories first. Measuring hidden material composition
-              needs a method. The remaining gaps are about how existing methods perform on photos
-              taken where used products are handled.
-            </p>
-            <p>
-              For the reviewed tasks using ordinary field photos, only label reading has
-              collection-site pilot evidence, from one research group. Reliable product data need
-              tests of the whole workflow, from taking photos to checking what the software reads
-              and what a person confirms.
-            </p>
-          </details>
-          <details className="cvt-panel-more cvt-foot-more">
-            <summary>Contribute product evidence</summary>
-            <p>
-              Help build that evidence:{" "}
-              <a href="https://r9lab.io/">contribute a product record through R9lab</a>, a platform
-              for documenting products as they are taken apart. Pair your own photographs with
-              measurements and notes on how you checked each value. Follow its{" "}
-              <a href="https://docs.r9lab.io/user-guides/data-collection/">collection guide</a> for
-              what to photograph and record. These records can support research. Comparing methods
-              on the same products still needs clean and field photographs of each item, paired with
-              checked model numbers, material names or measurements.
-            </p>
-            <p>
-              R9lab uploads are public. Keep people and personal details out of your photographs,
-              and read its <a href="https://r9lab.io/terms/">contributor terms</a> and{" "}
-              <a href="https://r9lab.io/privacy/">privacy policy</a> before uploading.
-            </p>
-          </details>
-        </div>
         <TableView />
       </Explorable>
     </section>
