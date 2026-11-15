@@ -1219,20 +1219,32 @@ function DetailRegion({
     contentKey: cell.id,
     keepFocus: compact,
   });
+  // The figure above the sheet is sized from the sheet's height. Within one scale
+  // the sheet keeps the tallest height seen, so stepping with Next does not
+  // resize the drawing under the reader.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: scale and expanded restart the measure
   useEffect(() => {
     const region = ref.current;
     const root = region?.closest<HTMLElement>(".cvt");
     if (!compact || !region || !root || typeof ResizeObserver === "undefined") return;
-    const measure = () =>
-      root.style.setProperty("--cvt-detail-height", `${region.getBoundingClientRect().height}px`);
+    let tallest = 0;
+    const measure = () => {
+      const height = region.getBoundingClientRect().height;
+      if (expanded || height > tallest) {
+        tallest = height;
+        region.style.minHeight = expanded ? "" : `${tallest}px`;
+      }
+      root.style.setProperty("--cvt-detail-height", `${tallest}px`);
+    };
     const observer = new ResizeObserver(measure);
     observer.observe(region);
     measure();
     return () => {
       observer.disconnect();
+      region.style.minHeight = "";
       root.style.removeProperty("--cvt-detail-height");
     };
-  }, [compact, ref]);
+  }, [compact, expanded, cell.scale, ref]);
   // biome-ignore lint/correctness/useExhaustiveDependencies: new content starts at the heading, including after collapse
   useEffect(() => {
     if (ref.current) ref.current.scrollTop = 0;

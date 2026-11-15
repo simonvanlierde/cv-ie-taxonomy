@@ -386,4 +386,21 @@ describe("mobile compact sheet polish", () => {
       });
     },
   );
+
+  it("keeps the figure and the sheet one size while stepping through a scale", async () => {
+    await open("component-identity");
+    const sizes = () => [rect(".cvt-sticky").height, dialog().getBoundingClientRect().height];
+    const lap = async () => {
+      for (let i = 0; i < cells.filter((c) => c.scale === "Component").length; i++) {
+        await userEvent.click(button("Next cell"));
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+    };
+    await lap();
+    const settled = sizes();
+    for (let i = 0; i < 4; i++) {
+      await userEvent.click(button("Next cell"));
+      await vi.waitFor(() => expect(sizes()).toEqual(settled));
+    }
+  });
 });
