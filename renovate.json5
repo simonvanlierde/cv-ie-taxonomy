@@ -13,6 +13,9 @@
 
   // A week gives a hijacked release time to be yanked.
   minimumReleaseAge: "7 days",
+  // A grouped PR can carry a release younger than the week above; open the PR
+  // only once renovate/stability-days and the other checks have passed.
+  prCreation: "not-pending",
 
   // A lock refresh has no release date, so minimumReleaseAge would hold it at
   // renovate/stability-days for good. pnpm's minimumReleaseAge keeps releases younger than a
