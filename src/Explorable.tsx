@@ -203,13 +203,15 @@ function WhatIfBar({
   csv: () => string;
 }) {
   const download = () => {
-    const url = URL.createObjectURL(new Blob([csv()], { type: "text/csv" }));
+    const url = URL.createObjectURL(
+      new Blob(["\uFEFF", csv()], { type: "text/csv;charset=utf-8" }), // BOM: Excel reads ✓ ✗ · as UTF-8
+    );
     const a = Object.assign(document.createElement("a"), {
       href: url,
       download: "rubric-marks-what-if.csv",
     });
     a.click();
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 0); // a synchronous revoke can cancel the download
   };
   return (
     <div className="cvt-whatif" data-on={on}>

@@ -41,6 +41,7 @@ et al., [citation: forthcoming]).
   When your marks raise a task to Strong, the page names the marks the paper
   did not give.
   **Export CSV** saves your changes in the deposit's `rubric-marks.csv` format.
+  The file carries a UTF-8 byte-order mark so spreadsheet programs read the symbols.
 
 ## Try software on your own photo
 

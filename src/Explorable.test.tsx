@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { Explorable } from "./Explorable";
@@ -253,6 +253,10 @@ describe("What if?", () => {
 
       expect(click).toHaveBeenCalledTimes(1);
       expect(click.mock.contexts[0]).toHaveProperty("download", "rubric-marks-what-if.csv");
+      expect(blobs[0]?.type).toBe("text/csv;charset=utf-8");
+      expect([...new Uint8Array((await blobs[0]?.arrayBuffer()) ?? [])].slice(0, 3)).toEqual([
+        0xef, 0xbb, 0xbf,
+      ]);
       const [header, ...rows] = (await blobs[0]?.text())?.split("\n") ?? [];
       expect(header).toBe(
         "cell,sub_cell,evidence_mark,field_gate,field_gate_basis,deployment_gate,derived_verdict,evidence_citekeys",
@@ -260,7 +264,7 @@ describe("What if?", () => {
       expect(rows.find((r) => r.startsWith("Product · Identity,"))).toMatch(
         /^[^,]*,[^,]*,B,✓,,✓,Strong,/,
       );
-      expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:csv");
+      await waitFor(() => expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:csv"));
     } finally {
       click.mockRestore();
     }
