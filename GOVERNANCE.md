@@ -19,8 +19,9 @@ record; the website does not revise them independently.
 ## Access and continuity
 
 Only the maintainer can merge to `main`. GitHub Actions publishes the site from
-`main` using GitHub Pages permissions; it does not require a deployment password
-in this repository. See the [deployment workflow](.github/workflows/ci.yml).
+`main` to Cloudflare Workers with an API token held as a secret of the
+`cloudflare-production` environment, which only protected branches can use. See the
+[deployment workflow](.github/workflows/ci.yml) and [deployment](docs/deployment.md).
 
 Bus factor: **1**. There is no documented replacement maintainer or transfer of
 repository and domain access. The project cannot currently promise that another
