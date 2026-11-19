@@ -182,7 +182,7 @@
       "task": "Find, outline and count the parts, and how they attach",
       "methodFamily": "Detecting parts from a fixed or an open list; outlining any region with a large pretrained (foundation) model, then labelling it; for attachments, inferring joints from an image (image-to-articulation)",
       "maturity": "Partial",
-      "maturityNote": "Finding and outlining parts is rated Partial. One narrow test reports ~98.8% mAP50, a standard score for how reliably software finds objects, but the software needs adjustment for each setting. Outlines learned at one waste-sorting facility score 56.0 mIoU, and 45.5 at a second facility; mIoU measures, out of 100, how closely outlines match the correct ones. Identifying how parts attach is Emerging-but-narrow: methods cover only jointed household objects or toy vehicles. In one study of jointed household objects, the whole connection map was correct in ~82% of cases on one dataset and ~39% on an unseen dataset. This tests generalisation, not performance on repair-shop photos. The rating for finding and outlining parts rests on one lab-photographed teardown study.",
+      "maturityNote": "Finding and outlining parts is rated Partial. One narrow test reports ~98.8% mAP50, a standard score for how reliably software finds objects, but the software needs adjustment for each setting. Outlines learned at one waste-sorting facility score 56.0 mIoU, and 45.5 at a second facility; mIoU measures, out of 100, how closely outlines match the correct ones. Identifying how parts attach is Plausible-but-unvalidated: methods recover how the parts of jointed household objects move, not how parts are fastened, and the one study that predicts joining relations used four toy vehicles. In one study of jointed household objects, the whole connection map was correct in ~82% of cases on one dataset and ~39% on an unseen dataset. This tests generalisation, not performance on repair-shop photos. The rating for finding and outlining parts rests on one lab-photographed teardown study.",
       "subVerdicts": [
         {
           "label": "Finding and outlining parts",
@@ -191,22 +191,23 @@
         },
         {
           "label": "How parts attach",
-          "maturity": "Emerging-but-narrow",
-          "rubricMarks": "N · ✗ᵘ · ✗",
+          "maturity": "Plausible-but-unvalidated",
+          "rubricMarks": "C · ✗ᵘ · ✗",
           "gaps": ["ontology-bound"]
         }
       ],
-      "rubricMarks": "detect/seg B · ✗ᵃ · ✗; relations N · ✗ᵘ · ✗",
+      "rubricMarks": "detect/seg B · ✗ᵃ · ✗; relations C · ✗ᵘ · ✗",
       "hardware": "Fixed-list detection can run on the phone; open-vocabulary and foundation models need a server.",
       "failureMode": "Performance drops outside the setting used for training. The software needs adjustment to that setting and a way to name each outlined part. There is no general method for mapping how parts attach.",
-      "example": "Segmenting parts in e-waste and laptop teardowns (Zhang et al. 2026). Waste segmentation tested across facilities (Bashkirova et al. 2023). Foundation segmentation that also labels what it outlines (Carion et al. 2025, SAM 3). Joints inferred from an image (Liu 2025 SINGAPO; Chen 2024 URDFormer; Yuan 2025 LARM).",
+      "example": "Segmenting parts in e-waste and laptop teardowns (Zhang et al. 2026). Waste segmentation tested across facilities (Bashkirova et al. 2023). Foundation segmentation that also labels what it outlines (Carion et al. 2025, SAM 3). Joints inferred from an image (Liu 2025 SINGAPO; Chen 2024 URDFormer; Yuan 2025 LARM). Joining relations predicted for toy vehicles (Jahn et al. 2026).",
       "citations": [
         "zhangEvaluatingLargeLightweight2026",
         "bashkirovaVisDA2022Challenge2023",
         "carionSAM3Segment2026",
         "liuSINGAPOSingleImage2025",
         "chenURDFormerPipelineConstructing2024",
-        "yuanLARMLargeArticulatedObject2025"
+        "yuanLARMLargeArticulatedObject2025",
+        "jahnGeometric2DScene2026"
       ],
       "sourceStatus": "Mixed"
     },

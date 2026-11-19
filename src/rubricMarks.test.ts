@@ -32,7 +32,7 @@ describe("rubric marks", () => {
   it("splits a compound row into its two named sub-runs", () => {
     const runs = runsOf(byId("component-structure"));
     expect(runs.map((r) => r.label)).toEqual(["detect/seg", "relations"]);
-    expect(runs.map((r) => r.evidence)).toEqual(["B", "N"]);
+    expect(runs.map((r) => r.evidence)).toEqual(["B", "C"]);
   });
 
   it("reads the derived row's dash as an evidence mark", () => {
@@ -61,7 +61,7 @@ describe("edge cases", () => {
   it("orders a split stronger-first whatever the data order", () => {
     const base = byId("component-structure");
     const reversed = { ...base, subVerdicts: [...(base.subVerdicts ?? [])].reverse() };
-    expect(splitOf(reversed)).toEqual(["Partial", "Emerging-but-narrow"]);
+    expect(splitOf(reversed)).toEqual(["Partial", "Plausible-but-unvalidated"]);
   });
 });
 
@@ -75,7 +75,7 @@ const PAPER_GAPS: Record<string, string[][]> = {
   "product-condition": [["ontology", "field:untested"]],
   "component-identity": [["field:inferred"]],
   "component-quantity": [["field:untested"]],
-  "component-structure": [["field:inferred"], ["ontology", "field:untested"]],
+  "component-structure": [["field:inferred"], ["ontology"]],
   "component-condition": [["ontology"]],
   "material-identity": [["method", "field:inferred"]],
   "material-quantity": [["derived"]],
@@ -96,7 +96,7 @@ describe("the matrix's gap words", () => {
   it("joins a compound cell's field gaps into one phrase, after the other kinds", () => {
     expect(cellGapTexts(byId("component-structure"))).toEqual([
       "no agreed categories yet",
-      "likely to fall short or not tested on field photos",
+      "likely to fall short on field photos",
     ]);
     expect(cellGapTexts(byId("product-identity"))).toEqual(["fell short on field photos"]);
     expect(cellGapTexts(byId("product-structure"))).toEqual([]);

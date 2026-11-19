@@ -70,13 +70,14 @@
  {
   "cell": "Component · Structure (BoC)",
   "sub_cell": "relations",
-  "evidence_mark": "N",
+  "evidence_mark": "C",
   "field_gate": "✗",
   "field_gate_basis": "untested",
   "deployment_gate": "✗",
-  "derived_verdict": "Emerging-but-narrow",
+  "derived_verdict": "Plausible-but-unvalidated",
   "evidence_citekeys": [
    "chenURDFormerPipelineConstructing2024",
+   "jahnGeometric2DScene2026",
    "liuSINGAPOSingleImage2025",
    "yuanLARMLargeArticulatedObject2025"
   ]
