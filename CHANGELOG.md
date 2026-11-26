@@ -4,6 +4,8 @@ Changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.1.0] - YYYY-MM-DD
+
 ### Added
 
 - Explore the review's evidence through an illustrated desk fan, an interactive
@@ -12,6 +14,8 @@ Changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   image-analysis software on a photo in your browser. See [the photo tools](README.md#try-software-on-your-own-photo).
 - Issue and pull request templates and a code of conduct explain how to contribute.
   See [Contributing](CONTRIBUTING.md).
+- Without JavaScript, the page says it needs it and links the privacy and
+  accessibility statements.
 
 ### Changed
 
@@ -38,6 +42,8 @@ Changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - When your **What if?** marks raise a task to Strong, the page names the marks
   the paper did not give. Map blocks now move to their new height instead of
   jumping. See [what the page shows](README.md#what-the-page-shows).
+- The accessibility statement lists the turning fan, which has no pause button, as a
+  known problem. See the [accessibility statement](https://simonvanlierde.com/cv-ie-taxonomy/accessibility.html).
 
 ### Fixed
 
@@ -55,5 +61,15 @@ Changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   See [how the map presents evidence](README.md#what-the-page-shows).
 - The production preview serves scripts at the same path as the build.
   See [development commands](README.md#development).
+- In **What if?**, swapping the two ratings of a task with two parts keeps the
+  paper's rating outlined on the map, and two equal ratings read once.
+  See [what the page shows](README.md#what-the-page-shows).
+- A calculated task you mark as a method that fails on field photos now says it
+  was not tested on them, on the page and in **Export CSV**.
+- Turning reduced motion on or off no longer moves keyboard focus out of an open
+  task. See [accessibility behaviour](README.md#accessibility).
+- When a photo cannot be analysed, the message suggests reloading the page, which
+  fixes a failed download after the site updates.
 
-[Unreleased]: https://github.com/simonvanlierde/cv-ie-taxonomy/commits/HEAD
+[Unreleased]: https://github.com/simonvanlierde/cv-ie-taxonomy/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/simonvanlierde/cv-ie-taxonomy/releases/tag/v0.1.0
