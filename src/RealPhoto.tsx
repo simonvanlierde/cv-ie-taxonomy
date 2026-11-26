@@ -101,7 +101,7 @@ function RealPhotoPanel({ scale, model }: { scale: Scale; model: RealModel }) {
       if (id !== runId.current) return;
       setState({
         status: "error",
-        message: `Could not analyse the photo: ${error instanceof Error ? error.message : String(error)}. Try again or choose another photo.`,
+        message: `Could not analyse the photo: ${error instanceof Error ? error.message : String(error)}. Try again, reload the page or choose another photo.`,
       });
     }
   };

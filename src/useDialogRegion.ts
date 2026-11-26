@@ -62,6 +62,10 @@ export function useDialogRegion({
   // strand the restore on a stale id
   const returnTo = useRef(returnFocusTo);
   returnTo.current = returnFocusTo;
+  // a new onClose (the parent re-renders on a media-query change) must not
+  // re-run the listener effect, whose cleanup moves focus back to the opener
+  const close = useRef(onClose);
+  close.current = onClose;
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: contentKey is not read in the body; it re-runs the effect when the content swaps
   useEffect(() => {
@@ -82,7 +86,7 @@ export function useDialogRegion({
         // and takes the keypress itself; the detail underneath stays.
         if (!region.contains(document.activeElement) || hasOpenPopover(region)) return;
         e.preventDefault();
-        onClose();
+        close.current();
         return;
       }
       if (e.key !== "Tab" || !modal) return;
@@ -147,7 +151,7 @@ export function useDialogRegion({
     const onOutsideClick = () => {
       if (!armed) return;
       armed = false;
-      onClose();
+      close.current();
     };
 
     document.addEventListener("keydown", onKeyDown);
@@ -179,7 +183,7 @@ export function useDialogRegion({
       // sits partly under the chapter nav must not scroll the page on its way back
       if (wasOurs) ((operable && opener) || document.body).focus?.({ preventScroll: true });
     };
-  }, [open, onClose, modal]);
+  }, [open, modal]);
 
   return ref;
 }
