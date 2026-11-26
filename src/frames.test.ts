@@ -39,6 +39,7 @@ describe("frames", () => {
       if (!chip) continue;
       const f = CHAPTER_FRAMES[c.scale];
       expect(chip.x - 2 >= f.x && chip.x + chip.w + 2 <= f.x + f.w, `${c.id} chip x`).toBe(true);
+      expect(chip.y - 2 >= f.y && chip.y + chip.h + 2 <= f.y + f.h, `${c.id} chip y`).toBe(true);
     }
   });
 
