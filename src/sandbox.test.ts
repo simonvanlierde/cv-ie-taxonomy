@@ -80,7 +80,7 @@ describe("the What if? sandbox", () => {
     if (!detect || !relations) throw new Error("no runs");
     const strong = { evidence: "B", capture: "pass", deployed: "pass", basis: null } as const;
     expect(assumptionsOf(cellById("component-structure"), [detect, strong])).toEqual([
-      "You marked a general method, tested on these or similar products, for how parts attach; the paper found a method tested on one type of object only.",
+      "You marked a general method, tested on these or similar products, for how parts attach; the paper found an idea or evidence from a related field.",
       "You marked field photos as tested for how parts attach; the paper found they were not tested.",
       "You marked the method as in use for how parts attach; the paper did not.",
     ]);

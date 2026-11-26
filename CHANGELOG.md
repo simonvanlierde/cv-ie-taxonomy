@@ -15,6 +15,9 @@ Changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- Mapping how parts attach is now rated Plausible-but-unvalidated, down from
+  Emerging-but-narrow, following the article: the one study that predicts joining
+  relations used four toy vehicles.
 - The page now lives at <https://simonvanlierde.com/cv-ie-taxonomy/>. Links to the
   old `simonvanlierde.github.io` address redirect there.
 - The desktop reading column is wider, and the notes beside the map are shorter.

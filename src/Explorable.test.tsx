@@ -102,11 +102,11 @@ describe("Explorable", () => {
 
     await user.click(screen.getByRole("button", { name: /component · structure/i }));
     const region = screen.getByRole("complementary", { name: /component · structure/i });
-    expect(region).toHaveTextContent("Partial and Emerging-but-narrow");
-    // the relations sub-task is Emerging-but-narrow: its handling is "do not
+    expect(region).toHaveTextContent("Partial and Plausible-but-unvalidated");
+    // the relations sub-task is Plausible-but-unvalidated: its handling is "do not
     // populate", which must not be flattened into Partial's "verify"
     expect(region).toHaveTextContent(
-      /How parts attach: For products in general, a person must supply the value/,
+      /How parts attach: A person enters the value and checks it in more than one way/,
     );
   });
 
@@ -194,10 +194,10 @@ describe("What if?", () => {
     const detail = screen.getByRole("complementary", { name: /component · structure/i });
     const relations = within(detail).getByRole("group", { name: "How parts attach" });
     const evidence = within(relations).getByRole("group", { name: "Evidence" });
-    await user.click(within(evidence).getByRole("radio", { name: /^C,/ }));
+    await user.click(within(evidence).getByRole("radio", { name: /^N,/ }));
     expect(structure.querySelector(".cvt-mx-ghost")).not.toBeNull();
     expect(structure.getAttribute("aria-label")).toMatch(
-      /the paper's is Partial and Emerging-but-narrow$/,
+      /the paper's is Partial and Plausible-but-unvalidated$/,
     );
   });
 

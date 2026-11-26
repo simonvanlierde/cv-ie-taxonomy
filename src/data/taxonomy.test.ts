@@ -58,9 +58,12 @@ describe("taxonomy data layer (mirrors the review article's Table S2)", () => {
     expect(cellAt("Material", "Structure")?.structurallyEmpty).toBe(true);
   });
 
-  it("Component·Structure carries both sub-verdicts (detect/seg Partial, BoC relations Emerging-but-narrow)", () => {
+  it("Component·Structure carries both sub-verdicts (detect/seg Partial, BoC relations Plausible-but-unvalidated)", () => {
     const c = cellAt("Component", "Structure");
-    expect(c?.subVerdicts?.map((s) => s.maturity)).toEqual(["Partial", "Emerging-but-narrow"]);
+    expect(c?.subVerdicts?.map((s) => s.maturity)).toEqual([
+      "Partial",
+      "Plausible-but-unvalidated",
+    ]);
   });
 
   it("Material·Quantity is Absent (derived)", () => {

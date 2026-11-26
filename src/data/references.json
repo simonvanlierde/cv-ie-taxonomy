@@ -78,6 +78,12 @@
     "url": "https://doi.org/10.48550/arXiv.2603.29363"
   },
   {
+    "key": "jahnGeometric2DScene2026",
+    "short": "Jahn et al., 2026",
+    "apa": "Jahn, C., Waldmann, U., & Goldlücke, B. (2026). Geometric 2D scene graph generation. In *Proceedings of the 18th International Conference on Agents and Artificial Intelligence, Volume 3: ICAART* (pp. 2449–2459).",
+    "url": "https://doi.org/10.5220/0014249800004052"
+  },
+  {
     "key": "jeongWinCLIPZeroFewShot2023",
     "short": "Jeong et al., 2023",
     "apa": "Jeong, J., Zou, Y., Kim, T., Zhang, D., Ravichandran, A., & Dabeer, O. (2023). WinCLIP: Zero-/few-shot anomaly classification and segmentation. In *Proceedings of the IEEE/CVF conference on computer vision and pattern recognition* (pp. 19606–19616).",

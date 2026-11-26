@@ -63,11 +63,11 @@ describe("chapter prose is backed by taxonomy.json", () => {
 });
 
 describe("the map's field split", () => {
-  it("states the article's 1 measured / 3 inferred / 4 untested split of eight field-bound rows", () => {
-    expect(FIELD_SPLIT).toContain("Eight of the eleven assessments have a method to test.");
+  it("states the article's 1 measured / 3 inferred / 3 untested split of seven field-bound rows", () => {
+    expect(FIELD_SPLIT).toContain("Seven of the eleven assessments have a method to test.");
     expect(FIELD_SPLIT).toContain("falls short in one assessment (product identity)");
     expect(FIELD_SPLIT).toContain(
-      "is judged from indirect evidence in three, and has not been tested in four.",
+      "is judged from indirect evidence in three, and has not been tested in three.",
     );
     expect(FIELD_SPLIT).toMatch(/field photos/i);
   });

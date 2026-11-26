@@ -609,7 +609,7 @@ describe("what each cell is missing", () => {
     render(<CvTaxonomy debugChapter="outro" />);
     const cell = document.getElementById("cvt-mx-component-structure") as HTMLElement;
     expect(cell.getAttribute("aria-label")).toMatch(
-      /^P \/ E no agreed categories yet, likely to fall short or not tested on field photos\. Component · Structure: /,
+      /^P \/ U no agreed categories yet, likely to fall short on field photos\. Component · Structure: /,
     );
   });
 
@@ -627,9 +627,7 @@ describe("what each cell is missing", () => {
     expect(row).toHaveTextContent(
       "Finding and outlining parts: likely to fall short on field photos",
     );
-    expect(row).toHaveTextContent(
-      "How parts attach: no agreed categories yet; not tested on field photos",
-    );
+    expect(row).toHaveTextContent("How parts attach: no agreed categories yet");
   });
 
   it("has no row when the cell is structurally empty", async () => {
