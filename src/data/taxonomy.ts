@@ -52,7 +52,10 @@ export function splitOf(cell: Cell): readonly [Verdict, Verdict] | undefined {
 }
 
 /** The verdict as words, both sub-verdicts for a compound cell. */
-export const maturityName = (cell: Cell) => splitOf(cell)?.join(" and ") ?? cell.maturity;
+export const maturityName = (cell: Cell) => {
+  const split = splitOf(cell);
+  return split ? [...new Set(split)].join(" and ") : cell.maturity;
+};
 
 /** A cell's task as a heading or label; the two structurally empty cells have
  *  no task of their own, and "(structurally empty)" is not a name. */

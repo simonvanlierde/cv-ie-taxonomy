@@ -1,6 +1,7 @@
 import { cellAt, INFO_TYPES, maturityName, SCALES, splitOf, VERDICT_LETTER } from "./data/taxonomy";
 import type { Cell, Scale, Verdict } from "./data/types";
 import { cellGapTexts } from "./rubricMarks";
+import { verdictsDiffer } from "./sandbox";
 import { SCALE_VAR, VERDICT_HEIGHT, VERDICT_VAR } from "./theme";
 
 /**
@@ -71,8 +72,7 @@ function MiniMatrixRow({
         const cell = view(paper);
         // where the reader's verdict is not the paper's, the paper's stays drawn
         // as a ghost, so the sandbox can never pass for the paper's finding
-        // compared as words, so a compound cell's weaker sub-verdict counts too
-        const differs = maturityName(cell) !== maturityName(paper);
+        const differs = verdictsDiffer(paper, cell);
         const ghost = differs ? (splitOf(paper)?.[0] ?? paper.maturity) : null;
         // a compound cell shows both sub-task verdicts rather than flattening to one
         const split = splitOf(cell);

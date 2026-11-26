@@ -1,7 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+import { cellById } from "./data/taxonomy";
 import { MiniMatrix } from "./MiniMatrix";
+import { runsOf } from "./rubricMarks";
+import { withEdits } from "./sandbox";
 
 describe("MiniMatrix", () => {
   it("renders a button per populated cell and reports selection", async () => {
@@ -12,6 +15,27 @@ describe("MiniMatrix", () => {
     if (!first) throw new Error("expected at least one matrix cell button");
     await userEvent.click(first);
     expect(onSelect).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the paper's rating drawn when the reader swaps a compound cell's sub-verdicts", () => {
+    // detect/seg B and relations C (Partial and Plausible-but-unvalidated) swapped
+    // to C and B reads the same as words, yet both sub-verdicts are the reader's
+    const [detect, relations] = runsOf(cellById("component-structure"));
+    if (!detect || !relations) throw new Error("no runs");
+    const swapped = [
+      { ...detect, evidence: "C" as const },
+      { ...relations, evidence: "B" as const },
+    ];
+    render(
+      <MiniMatrix
+        selectedId={null}
+        onSelect={() => {}}
+        view={(cell) => (cell.id === "component-structure" ? withEdits(cell, swapped) : cell)}
+      />,
+    );
+    const bay = document.getElementById("cvt-mx-component-structure");
+    expect(bay?.querySelector(".cvt-mx-ghost")).not.toBeNull();
+    expect(bay?.getAttribute("aria-label")).toMatch(/your marks' verdict/);
   });
 
   it("marks the selected cell with aria-pressed", () => {

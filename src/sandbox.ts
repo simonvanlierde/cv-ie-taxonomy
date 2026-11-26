@@ -31,7 +31,14 @@ const rank = (v: Verdict) => taxonomy.meta.maturityLevels.findIndex((m) => m.ver
  *  Without edits it is the paper's cell, unchanged. */
 export function withEdits(cell: Cell, edits: Marks[] | undefined): Cell {
   if (!edits) return cell;
-  const runs = runsOf(cell).map((run, i) => ({ ...run, ...edits[i] }));
+  const runs = runsOf(cell).map((run, i) => {
+    const marked = { ...run, ...edits[i] };
+    // a derived row (–) the reader turns into a method has no basis of its own;
+    // a method that fails the field gate without one was not tested on field photos
+    return marked.evidence !== "–" && marked.capture === "fail" && !marked.basis
+      ? { ...marked, basis: "untested" as const }
+      : marked;
+  });
   const verdicts = runs.map((run) =>
     verdictOf({
       ...run,
@@ -94,12 +101,16 @@ export function assumptionsOf(paper: Cell, marks: Marks[]): string[] {
 /** The verdict of every run, so a compound cell's two sub-verdicts both count. */
 const verdictsOf = (cell: Cell) => runsOf(cell).map(verdictOf);
 
+/** Whether any run's verdict in `mine` differs from the paper's cell. Compared
+ *  per run, so swapping a compound cell's two sub-verdicts still counts. */
+export const verdictsDiffer = (paper: Cell, mine: Cell) => {
+  const theirs = verdictsOf(paper);
+  return verdictsOf(mine).some((v, i) => v !== theirs[i]);
+};
+
 /** How many of the cells' verdicts the reader's marks have changed. */
 export function changedCount(edits: Edits): number {
-  return cells.filter((cell) => {
-    const mine = verdictsOf(withEdits(cell, edits[cell.id]));
-    return mine.some((v, i) => v !== verdictsOf(cell)[i]);
-  }).length;
+  return cells.filter((cell) => verdictsDiffer(cell, withEdits(cell, edits[cell.id]))).length;
 }
 
 // The deposit names a row "Component · Structure (BoC)" and calls the inferred
