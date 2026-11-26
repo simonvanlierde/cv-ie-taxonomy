@@ -20,7 +20,8 @@ whether I can reproduce it and when I expect a fix.
 
 ## Fixes and disclosure
 
-This site has no releases. A fix lands on `main` and the site redeploys from there.
+A fix lands on `main` and the site redeploys from there. Tagged releases, such as the
+build the article cites, are not patched.
 Once it is live, I publish the GitHub security advisory, with a CVE where one applies,
 and credit you unless you would rather not be named.
 
