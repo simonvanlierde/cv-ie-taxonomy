@@ -663,11 +663,20 @@ describe("per-cell share", () => {
     Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
     Object.assign(navigator, { share: undefined });
 
+    // the theme survives; the dev-only scene pin and the skip-link fragment do not
+    // biome-ignore lint/security/noSecrets: a page URL, not a credential
+    history.replaceState(null, "", "/?theme=dark&scene=2#cvt-matrix");
+
     render(<CvTaxonomy initialCell="material-condition" />);
     const dialog = await screen.findByRole("complementary");
     await user.click(within(dialog).getByRole("button", { name: /copy link/i }));
 
-    expect(writeText).toHaveBeenCalledWith(expect.stringContaining("?cell=material-condition"));
+    const copied = new URL(String(writeText.mock.calls[0]?.[0]));
+    history.replaceState(null, "", "/");
+    expect(copied.searchParams.get("cell")).toBe("material-condition");
+    expect(copied.searchParams.get("theme")).toBe("dark");
+    expect(copied.searchParams.has("scene")).toBe(false);
+    expect(copied.hash).toBe("");
   });
 });
 
