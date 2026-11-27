@@ -136,7 +136,8 @@ describe("chip copy vs. verdict", () => {
       const text = container
         .querySelector(`#cvt-co-${cell.id} .cvt-co-text`)
         ?.textContent?.toLowerCase();
-      if (!text) continue;
+      // a missing read-out must fail, or a renamed class would check nothing
+      expect(text, `${cell.id} read-out`).toBeTruthy();
       for (const { verdict, words } of VERDICT_WORDS) {
         if (verdict === cell.maturity) continue;
         for (const word of words) {

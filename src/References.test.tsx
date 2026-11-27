@@ -50,8 +50,9 @@ describe("references", () => {
   });
 
   it("never surfaces a citation key to the reader", () => {
-    render(REFERENCES.map((r) => <Cite key={r.key} citeKey={r.key} />));
-    expect(screen.queryByText(/@\w/)).toBeNull();
+    const { container } = render(REFERENCES.map((r) => <Cite key={r.key} citeKey={r.key} />));
+    // the keys are bare (no "@"), so look for each one in the rendered text
+    for (const r of REFERENCES) expect(container.textContent, r.key).not.toContain(r.key);
   });
 });
 

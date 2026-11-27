@@ -93,6 +93,8 @@ describe("taxonomy data layer (mirrors the review article's Table S2)", () => {
       const runs = runsOf(c);
       const expected = c.subVerdicts?.map((s) => s.maturity) ?? [c.maturity];
       expect(runs.map(verdictOf), c.id).toEqual(expected);
+      // a compound cell stands at its stronger sub-verdict
+      expect(c.maturity, c.id).toBe(VERDICTS.find((v) => expected.includes(v)));
     }
   });
 
