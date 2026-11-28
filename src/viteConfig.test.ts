@@ -44,8 +44,15 @@ describe("content security policy", () => {
   );
   const remote = (sources: string[]) => sources.filter((s) => /^https?:|^\*/.test(s));
 
-  it("loads scripts only from this site", () => {
-    expect(remote(directives["script-src"])).toEqual([]);
+  it("loads scripts only from this site, with no inline script or eval", () => {
+    // blob: is the ONNX runtime's factory; wasm needs 'wasm-unsafe-eval'
+    expect(directives["script-src"]).toEqual(["'self'", "blob:", "'wasm-unsafe-eval'"]);
+  });
+
+  it("falls back to this site and blocks plugins and base rewrites", () => {
+    expect(directives["default-src"]).toEqual(["'self'"]);
+    expect(directives["object-src"]).toEqual(["'none'"]);
+    expect(directives["base-uri"]).toEqual(["'self'"]);
   });
 
   it("lets the page contact only the hosts that serve the detector's weights", () => {

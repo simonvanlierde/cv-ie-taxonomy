@@ -30,6 +30,7 @@ async function files(directory) {
 const page = await check(base, mode === "preview" ? "noindex" : undefined);
 await check(new URL("?cell=component-structure", base));
 await check(new URL("privacy.html", base));
+await check(new URL("accessibility.html", base));
 await check(new URL("og.png", base));
 
 const html = await page.text();
@@ -40,6 +41,9 @@ await Promise.all(references.map((path) => check(new URL(path, base))));
 
 const deploymentRoot = resolve(dist, base.pathname.slice(1));
 const deploymentFiles = await files(deploymentRoot);
+// the build drops this 27 MB runtime because the page never loads it
+const unused = deploymentFiles.filter((file) => /asyncify.*\.wasm$/.test(file));
+if (unused.length > 0) throw new Error(`${dist}: unused runtime shipped: ${unused.join(", ")}`);
 for (const required of [/\.woff2$/, /ort-wasm-simd-threaded.*\.wasm$/, /eng\.traineddata\.gz$/]) {
   const matches = deploymentFiles.filter((file) => required.test(file));
   if (matches.length === 0) throw new Error(`${dist}: no file matches ${required}`);

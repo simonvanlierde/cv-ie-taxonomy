@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import deposit from "./data/deposit-rubric-marks.json";
 import { cellById, cells, maturityName } from "./data/taxonomy";
-import { type Evidence, runsOf } from "./rubricMarks";
+import { cellGapTexts, type Evidence, runsOf } from "./rubricMarks";
 import {
   assumptionsOf,
   changedCount,
@@ -60,6 +60,32 @@ describe("the What if? sandbox", () => {
     expect(cell.maturity).toBe("Partial");
     // the printed marks still parse back into the same two labelled runs
     expect(runsOf(cell).map((r) => r.label)).toEqual(["detect/seg", "relations"]);
+  });
+
+  it("names two equal sub-verdicts once", () => {
+    const [detect, relations] = marksOf("component-structure");
+    if (!detect || !relations) throw new Error("no runs");
+    // detect/seg B · ✗ᵃ · ✗ is Partial; raising relations to B makes it Partial too
+    const cell = withEdits(cellById("component-structure"), [
+      detect,
+      { ...relations, evidence: "B" },
+    ]);
+    expect(maturityName(cell)).toBe("Partial");
+  });
+
+  it("gives a derived row the reader turns into a failing method an untested basis", () => {
+    // Material · Quantity is – · ✗ · ✗: worked out from other cells, so no basis
+    const [run] = marksOf("material-quantity");
+    if (!run) throw new Error("no run");
+    expect(run.basis).toBeNull();
+    const edits: Edits = { "material-quantity": [{ ...run, evidence: "B" }] };
+    const cell = withEdits(cellById("material-quantity"), edits["material-quantity"]);
+    expect(cell.maturity).toBe("Partial");
+    expect(cellGapTexts(cell)).toContain("not tested on field photos");
+    const row = toDepositCsv(edits)
+      .split("\n")
+      .find((line) => line.startsWith("Material · Quantity,"));
+    expect(row?.split(",")[4]).toBe("untested");
   });
 
   it("names the marks the paper did not give when the reader's lift a cell to Strong", () => {

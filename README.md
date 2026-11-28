@@ -30,7 +30,8 @@ et al., [citation: forthcoming]).
 
 - **The research:** ratings and evidence mirror the paper's Table S2 in
   [`src/data/taxonomy.json`](src/data/taxonomy.json). Tests check the scoring
-  rules, ratings, marks and citation keys against the stored deposit data. The evidence covers the
+  rules, ratings, marks and citation keys against the rubric marks in the article's
+  data deposit, copied to [`src/data/deposit-rubric-marks.json`](src/data/deposit-rubric-marks.json). The evidence covers the
   literature as of June 2026, including washing machines, laptops, phones and vehicles.
 - **The illustration:** the fan and its read-outs show what the methods might
   output. No image analysis was run on the drawing. The fan is schematic and not to scale.
